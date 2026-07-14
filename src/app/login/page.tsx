@@ -62,7 +62,7 @@ export default async function LoginPage({
           name="email"
           type="email"
           required
-          className="mb-4 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm"
+          className="mb-4 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
         />
 
         <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -72,7 +72,7 @@ export default async function LoginPage({
           name="senha"
           type="password"
           required
-          className="mb-6 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm"
+          className="mb-6 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
         />
 
         <button
