@@ -44,7 +44,6 @@ export default function PainelEtapas({ etapas }: { etapas: Etapa[] }) {
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3">
         {etapas.map((etapa) => {
           const contagem = contarPorSeveridade(etapa.itens);
-          const emergenciais = etapa.itens.filter((i) => i.emergencial).length;
 
           return (
             <button
@@ -70,14 +69,6 @@ export default function PainelEtapas({ etapas }: { etapas: Etapa[] }) {
                         {contagem[cor]}
                       </span>
                     )
-                )}
-                {emergenciais > 0 && (
-                  <span
-                    className="flex h-5 items-center justify-center gap-0.5 rounded bg-red-600 px-1 text-xs font-bold text-white"
-                    title="Manutenções emergenciais"
-                  >
-                    🚨{emergenciais}
-                  </span>
                 )}
               </div>
             </button>
