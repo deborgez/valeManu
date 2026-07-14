@@ -5,10 +5,15 @@ import TelefoneInput from "@/components/inputs/TelefoneInput";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { redirect } from "next/navigation";
 
-export default async function ConfiguracoesPage() {
+export default async function ConfiguracoesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ salvo?: string }>;
+}) {
   const session = await auth();
   if (session?.user.role !== "ADMIN") redirect("/");
 
+  const params = await searchParams;
   const imobiliaria = await prisma.imobiliaria.findUnique({
     where: { id: "singleton" },
   });
@@ -18,6 +23,12 @@ export default async function ConfiguracoesPage() {
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
         Configurações da Imobiliária
       </h1>
+
+      {params?.salvo && (
+        <p className="mb-4 rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-sm text-green-700 dark:text-green-400">
+          Configurações salvas com sucesso.
+        </p>
+      )}
 
       <form
         action={atualizarImobiliaria}

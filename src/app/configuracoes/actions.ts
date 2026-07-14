@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function atualizarImobiliaria(formData: FormData) {
   const session = await auth();
@@ -32,4 +33,5 @@ export async function atualizarImobiliaria(formData: FormData) {
   });
 
   revalidatePath("/configuracoes");
+  redirect("/configuracoes?salvo=1");
 }
