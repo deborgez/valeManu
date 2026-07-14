@@ -41,7 +41,11 @@ export default async function RelatoriosPage({
       status: true,
       reaberta: true,
       createdAt: true,
-      conclusaoServico: { select: { dataConclusao: true } },
+      conclusoesServico: {
+        select: { dataConclusao: true },
+        orderBy: { dataConclusao: "desc" },
+        take: 1,
+      },
     },
     orderBy: { createdAt: "asc" },
   });
@@ -57,9 +61,10 @@ export default async function RelatoriosPage({
   const itensReabertas = manutencoes.filter((m) => m.reaberta).map(itemDe);
 
   const manutencoesAtrasadas = manutencoes.filter((m) => {
-    if (m.conclusaoServico) {
+    const conclusao = m.conclusoesServico[0];
+    if (conclusao) {
       const dias = Math.floor(
-        (m.conclusaoServico.dataConclusao.getTime() - m.createdAt.getTime()) /
+        (conclusao.dataConclusao.getTime() - m.createdAt.getTime()) /
           (1000 * 60 * 60 * 24)
       );
       return dias >= 3;

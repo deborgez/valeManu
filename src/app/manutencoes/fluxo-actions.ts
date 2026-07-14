@@ -9,6 +9,16 @@ async function revalidarManutencao(manutencaoId: string) {
   revalidatePath("/manutencoes");
 }
 
+async function registrarHistorico(
+  manutencaoId: string,
+  etapa: string,
+  detalhe?: string | null
+) {
+  await prisma.historicoEtapa.create({
+    data: { manutencaoId, etapa, detalhe: detalhe || null },
+  });
+}
+
 export async function entregarOrcamento(
   pedidoId: string,
   manutencaoId: string,
@@ -18,7 +28,7 @@ export async function entregarOrcamento(
   const arquivoNome = formData.get("arquivoOrcamentoNome") as string | null;
   const arquivoTipo = formData.get("arquivoOrcamentoTipo") as string | null;
 
-  await prisma.pedidoOrcamento.update({
+  const pedido = await prisma.pedidoOrcamento.update({
     where: { id: pedidoId },
     data: {
       valorMaoDeObra: parseMoeda(formData.get("valorMaoDeObra")),
@@ -27,6 +37,7 @@ export async function entregarOrcamento(
       status: "ENTREGUE_AGUARDANDO_APROVACAO",
       entregueEm: new Date(),
     },
+    include: { prestador: true },
   });
 
   if (arquivoUrl) {
@@ -46,6 +57,12 @@ export async function entregarOrcamento(
     data: { status: "AGUARDANDO_APROVACAO" },
   });
 
+  await registrarHistorico(
+    manutencaoId,
+    "Orçamento entregue",
+    pedido.prestador.nome
+  );
+
   await revalidarManutencao(manutencaoId);
 }
 
@@ -53,17 +70,24 @@ export async function marcarOrcamentoNaoEntregue(
   pedidoId: string,
   manutencaoId: string
 ) {
-  await prisma.pedidoOrcamento.update({
+  const pedido = await prisma.pedidoOrcamento.update({
     where: { id: pedidoId },
     data: { status: "NAO_ENTREGUE" },
+    include: { prestador: true },
   });
+  await registrarHistorico(
+    manutencaoId,
+    "Orçamento não entregue",
+    pedido.prestador.nome
+  );
   await revalidarManutencao(manutencaoId);
 }
 
 export async function aprovarPedido(pedidoId: string, manutencaoId: string) {
-  await prisma.pedidoOrcamento.update({
+  const pedido = await prisma.pedidoOrcamento.update({
     where: { id: pedidoId },
     data: { status: "APROVADO" },
+    include: { prestador: true },
   });
 
   // Pedidos concorrentes ainda pendentes de aprovação são superados.
@@ -81,14 +105,26 @@ export async function aprovarPedido(pedidoId: string, manutencaoId: string) {
     data: { status: "APROVADA" },
   });
 
+  await registrarHistorico(
+    manutencaoId,
+    "Serviço aprovado",
+    pedido.prestador.nome
+  );
+
   await revalidarManutencao(manutencaoId);
 }
 
 export async function reprovarPedido(pedidoId: string, manutencaoId: string) {
-  await prisma.pedidoOrcamento.update({
+  const pedido = await prisma.pedidoOrcamento.update({
     where: { id: pedidoId },
     data: { status: "REPROVADO" },
+    include: { prestador: true },
   });
+  await registrarHistorico(
+    manutencaoId,
+    "Serviço reprovado",
+    pedido.prestador.nome
+  );
   await revalidarManutencao(manutencaoId);
 }
 
@@ -96,15 +132,8 @@ export async function iniciarServicoImediato(
   manutencaoId: string,
   pedidoOrcamentoAprovadoId: string
 ) {
-  await prisma.inicioServico.upsert({
-    where: { manutencaoId },
-    update: {
-      tipo: "IMEDIATO",
-      status: "INICIADO_ANDAMENTO",
-      dataHoraAgendada: null,
-      pedidoOrcamentoAprovadoId,
-    },
-    create: {
+  await prisma.inicioServico.create({
+    data: {
       manutencaoId,
       pedidoOrcamentoAprovadoId,
       tipo: "IMEDIATO",
@@ -116,6 +145,8 @@ export async function iniciarServicoImediato(
     where: { id: manutencaoId },
     data: { status: "EM_ANDAMENTO" },
   });
+
+  await registrarHistorico(manutencaoId, "Serviço iniciado", "Início imediato");
 
   await revalidarManutencao(manutencaoId);
 }
@@ -129,15 +160,8 @@ export async function agendarServico(
   const hora = String(formData.get("hora"));
   const dataHoraAgendada = new Date(`${data}T${hora}`);
 
-  await prisma.inicioServico.upsert({
-    where: { manutencaoId },
-    update: {
-      tipo: "AGENDADO",
-      status: "AGENDADO",
-      dataHoraAgendada,
-      pedidoOrcamentoAprovadoId,
-    },
-    create: {
+  await prisma.inicioServico.create({
+    data: {
       manutencaoId,
       pedidoOrcamentoAprovadoId,
       tipo: "AGENDADO",
@@ -151,6 +175,12 @@ export async function agendarServico(
     data: { status: "AGENDADA" },
   });
 
+  await registrarHistorico(
+    manutencaoId,
+    "Serviço agendado",
+    dataHoraAgendada.toLocaleString("pt-BR")
+  );
+
   await revalidarManutencao(manutencaoId);
 }
 
@@ -160,10 +190,8 @@ export async function concluirServico(
 ) {
   const observacoes = (formData.get("observacoes") as string) || null;
 
-  await prisma.conclusaoServico.upsert({
-    where: { manutencaoId },
-    update: { observacoes, dataConclusao: new Date() },
-    create: { manutencaoId, observacoes },
+  await prisma.conclusaoServico.create({
+    data: { manutencaoId, observacoes },
   });
 
   await prisma.manutencao.update({
@@ -171,14 +199,18 @@ export async function concluirServico(
     data: { status: "CONCLUIDA" },
   });
 
+  await registrarHistorico(manutencaoId, "Serviço concluído", observacoes);
+
   await revalidarManutencao(manutencaoId);
 }
 
 export async function reabrirServico(manutencaoId: string) {
   await prisma.manutencao.update({
     where: { id: manutencaoId },
-    data: { status: "EM_ANDAMENTO", reaberta: true },
+    data: { status: "AGUARDANDO_ORCAMENTO", reaberta: true },
   });
+
+  await registrarHistorico(manutencaoId, "Serviço reaberto");
 
   await revalidarManutencao(manutencaoId);
 }

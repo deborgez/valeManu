@@ -22,6 +22,7 @@ export async function gerarPedidoOrcamento(
       prestadorId,
       geradoPorId: session.user.id,
     },
+    include: { prestador: true },
   });
 
   for (let i = 0; i < urls.length; i++) {
@@ -41,6 +42,14 @@ export async function gerarPedidoOrcamento(
   await prisma.manutencao.updateMany({
     where: { id: manutencaoId, status: "SOLICITACAO" },
     data: { status: "AGUARDANDO_ORCAMENTO" },
+  });
+
+  await prisma.historicoEtapa.create({
+    data: {
+      manutencaoId,
+      etapa: "Pedido de orçamento gerado",
+      detalhe: pedido.prestador.nome,
+    },
   });
 
   revalidatePath(`/manutencoes/${manutencaoId}`);

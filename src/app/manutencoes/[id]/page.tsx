@@ -54,12 +54,19 @@ export default async function ManutencaoDetalhePage({
         include: { prestador: true, geradoPor: true, anexos: true },
         orderBy: { createdAt: "asc" },
       },
-      inicioServico: { include: { pedidoOrcamentoAprovado: true } },
-      conclusaoServico: true,
+      inicioServicos: {
+        include: { pedidoOrcamentoAprovado: true },
+        orderBy: { createdAt: "desc" },
+      },
+      conclusoesServico: { orderBy: { dataConclusao: "desc" } },
+      historico: { orderBy: { createdAt: "asc" } },
     },
   });
 
   if (!manutencao) notFound();
+
+  const inicioServicoAtual = manutencao.inicioServicos[0] ?? null;
+  const conclusaoServicoAtual = manutencao.conclusoesServico[0] ?? null;
 
   const prestadores = await prisma.prestador.findMany({
     orderBy: { nome: "asc" },
@@ -71,9 +78,9 @@ export default async function ManutencaoDetalhePage({
 
   const baseUrl = await getBaseUrl();
 
-  const pedidoAprovado = manutencao.pedidosOrcamento.find(
-    (p) => p.status === "APROVADO"
-  );
+  const pedidoAprovado = [...manutencao.pedidosOrcamento]
+    .reverse()
+    .find((p) => p.status === "APROVADO");
   const pedidosAguardandoEntrega = manutencao.pedidosOrcamento.filter(
     (p) => p.status === "AGUARDANDO_ENTREGA"
   );
@@ -373,7 +380,8 @@ export default async function ManutencaoDetalhePage({
       )}
 
       {/* Início do Serviço */}
-      {pedidoAprovado && manutencao.status !== "CONCLUIDA" && (
+      {pedidoAprovado &&
+        ["APROVADA", "AGENDADA", "EM_ANDAMENTO"].includes(manutencao.status) && (
         <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
           <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
             Início do Serviço
@@ -382,67 +390,78 @@ export default async function ManutencaoDetalhePage({
             Orçamento aprovado: {pedidoAprovado.prestador.nome}
           </p>
 
-          {!manutencao.inicioServico && (
-            <div className="flex gap-3">
-              <form
-                action={async () => {
-                  "use server";
-                  await iniciarServicoImediato(manutencao.id, pedidoAprovado.id);
-                }}
-              >
-                <button
-                  type="submit"
-                  className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
-                >
-                  Início imediato
-                </button>
-              </form>
-              <AgendarServicoForm
-                action={async (formData: FormData) => {
-                  "use server";
-                  await agendarServico(
-                    manutencao.id,
-                    pedidoAprovado.id,
-                    formData
-                  );
-                }}
-              />
-            </div>
-          )}
+          {(() => {
+            const inicioAtual =
+              inicioServicoAtual?.pedidoOrcamentoAprovadoId === pedidoAprovado.id
+                ? inicioServicoAtual
+                : null;
 
-          {manutencao.inicioServico?.status === "AGENDADO" && (
-            <p className="text-sm text-amber-700 dark:text-amber-400">
-              Agendado para{" "}
-              {manutencao.inicioServico.dataHoraAgendada?.toLocaleString(
-                "pt-BR"
-              )}
-            </p>
-          )}
+            return (
+              <>
+                {!inicioAtual && (
+                  <div className="flex gap-3">
+                    <form
+                      action={async () => {
+                        "use server";
+                        await iniciarServicoImediato(manutencao.id, pedidoAprovado.id);
+                      }}
+                    >
+                      <button
+                        type="submit"
+                        className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+                      >
+                        Início imediato
+                      </button>
+                    </form>
+                    <AgendarServicoForm
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await agendarServico(
+                          manutencao.id,
+                          pedidoAprovado.id,
+                          formData
+                        );
+                      }}
+                    />
+                  </div>
+                )}
 
-          {manutencao.inicioServico?.status === "INICIADO_ANDAMENTO" && (
-            <p className="text-sm text-blue-700 dark:text-blue-400">Iniciado - em andamento</p>
-          )}
+                {inicioAtual?.status === "AGENDADO" && (
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    Agendado para{" "}
+                    {inicioAtual.dataHoraAgendada?.toLocaleString("pt-BR")}
+                  </p>
+                )}
 
-          {manutencao.inicioServico && (
-            <div className="mt-3">
-              <ImpressaoModal label="Imprimir Ordem de Serviço">
-                <OrdemServicoDocumento
-                  imobiliaria={imobiliaria}
-                  numeroProcesso={manutencao.numeroProcesso}
-                  descricaoProblema={manutencao.descricaoProblema}
-                  natureza={manutencao.natureza}
-                  competencia={manutencao.competencia}
-                  endereco={manutencao}
-                  prestador={pedidoAprovado.prestador}
-                  valorMaoDeObra={pedidoAprovado.valorMaoDeObra}
-                  valorMaterial={pedidoAprovado.valorMaterial}
-                  descricaoServico={pedidoAprovado.descricaoServico}
-                  tipoInicio={manutencao.inicioServico.tipo}
-                  dataHoraAgendada={manutencao.inicioServico.dataHoraAgendada}
-                />
-              </ImpressaoModal>
-            </div>
-          )}
+                {inicioAtual?.status === "INICIADO_ANDAMENTO" && (
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                    Iniciado - em andamento
+                  </p>
+                )}
+
+                {inicioAtual && (
+                  <div className="mt-3">
+                    <ImpressaoModal label="Imprimir Ordem de Serviço">
+                      <OrdemServicoDocumento
+                        imobiliaria={imobiliaria}
+                        numeroProcesso={manutencao.numeroProcesso}
+                        descricaoProblema={manutencao.descricaoProblema}
+                        natureza={manutencao.natureza}
+                        competencia={manutencao.competencia}
+                        endereco={manutencao}
+                        prestador={pedidoAprovado.prestador}
+                        valorMaoDeObra={pedidoAprovado.valorMaoDeObra}
+                        valorMaterial={pedidoAprovado.valorMaterial}
+                        descricaoServico={pedidoAprovado.descricaoServico}
+                        tipoInicio={inicioAtual.tipo}
+                        dataHoraAgendada={inicioAtual.dataHoraAgendada}
+                      />
+                    </ImpressaoModal>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </section>
       )}
 
@@ -475,7 +494,7 @@ export default async function ManutencaoDetalhePage({
           </section>
         )}
 
-      {manutencao.status === "CONCLUIDA" && manutencao.conclusaoServico && (
+      {manutencao.status === "CONCLUIDA" && conclusaoServicoAtual && (
         <section className="mb-6 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 p-6">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-green-900 dark:text-green-300">
@@ -497,15 +516,35 @@ export default async function ManutencaoDetalhePage({
           </div>
           <p className="text-sm text-green-800 dark:text-green-400">
             Em{" "}
-            {manutencao.conclusaoServico.dataConclusao.toLocaleString(
-              "pt-BR"
-            )}
+            {conclusaoServicoAtual.dataConclusao.toLocaleString("pt-BR")}
           </p>
-          {manutencao.conclusaoServico.observacoes && (
+          {conclusaoServicoAtual.observacoes && (
             <p className="mt-1 text-sm text-green-800 dark:text-green-400">
-              {manutencao.conclusaoServico.observacoes}
+              {conclusaoServicoAtual.observacoes}
             </p>
           )}
+        </section>
+      )}
+
+      {/* Histórico */}
+      {manutencao.historico.length > 0 && (
+        <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Histórico
+          </h2>
+          <ol className="flex flex-col gap-3">
+            {manutencao.historico.map((evento) => (
+              <li key={evento.id} className="flex gap-3 text-sm">
+                <span className="w-40 shrink-0 text-slate-400 dark:text-slate-500">
+                  {evento.createdAt.toLocaleString("pt-BR")}
+                </span>
+                <span className="text-slate-700 dark:text-slate-300">
+                  {evento.etapa}
+                  {evento.detalhe ? ` — ${evento.detalhe}` : ""}
+                </span>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
     </div>

@@ -112,9 +112,10 @@ model Manutencao {
   criadoPorId String
   criadoPor   User   @relation("CriadoPor", fields: [criadoPorId], references: [id])
 
-  pedidosOrcamento PedidoOrcamento[]
-  inicioServico    InicioServico?
-  conclusaoServico ConclusaoServico?
+  pedidosOrcamento  PedidoOrcamento[]
+  inicioServicos    InicioServico[]
+  conclusoesServico ConclusaoServico[]
+  historico         HistoricoEtapa[]
 }
 
 model PedidoOrcamento {
@@ -160,7 +161,7 @@ model InicioServico {
   status                 InicioServicoStatus
   createdAt              DateTime             @default(now())
 
-  manutencaoId String     @unique
+  manutencaoId String
   manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
 
   pedidoOrcamentoAprovadoId String
@@ -172,6 +173,16 @@ model ConclusaoServico {
   dataConclusao  DateTime @default(now())
   observacoes    String?
 
-  manutencaoId String     @unique
+  manutencaoId String
+  manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
+}
+
+model HistoricoEtapa {
+  id           String   @id @default(cuid())
+  etapa        String
+  detalhe      String?
+  createdAt    DateTime @default(now())
+
+  manutencaoId String
   manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
 }

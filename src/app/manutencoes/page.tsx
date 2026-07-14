@@ -11,7 +11,7 @@ type ManutencaoComRelacoes = Awaited<
 async function buscarManutencoes() {
   return prisma.manutencao.findMany({
     include: {
-      inicioServico: true,
+      inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
       pedidosOrcamento: { select: { id: true } },
     },
     orderBy: { updatedAt: "desc" },
@@ -93,12 +93,12 @@ function Cartao({ manutencao }: { manutencao: ManutencaoComRelacoes }) {
       )}
       <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">{formatEndereco(manutencao)}</p>
       <p className="text-xs text-slate-500 dark:text-slate-400">{manutencao.natureza}</p>
-      {manutencao.inicioServico?.status === "AGENDADO" && (
+      {manutencao.inicioServicos[0]?.status === "AGENDADO" && (
         <span className="mt-2 inline-block rounded bg-amber-100 dark:bg-amber-900 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
           Agendado
         </span>
       )}
-      {manutencao.inicioServico?.status === "INICIADO_ANDAMENTO" &&
+      {manutencao.inicioServicos[0]?.status === "INICIADO_ANDAMENTO" &&
         manutencao.status !== "CONCLUIDA" && (
           <span className="mt-2 inline-block rounded bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400">
             Em andamento

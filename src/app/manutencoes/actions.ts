@@ -31,6 +31,10 @@ export async function criarManutencao(formData: FormData) {
     },
   });
 
+  await prisma.historicoEtapa.create({
+    data: { manutencaoId: manutencao.id, etapa: "Solicitação criada" },
+  });
+
   redirect(`/manutencoes/${manutencao.id}`);
 }
 
