@@ -115,7 +115,7 @@ export default function PainelEtapas({ etapas }: { etapas: Etapa[] }) {
                   href={`/manutencoes/${item.id}`}
                   className="block rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm hover:border-slate-300 dark:hover:border-slate-600"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     {item.severidade !== "neutro" && (
                       <span
                         className={`h-2 w-2 shrink-0 rounded-full ${
@@ -131,7 +131,7 @@ export default function PainelEtapas({ etapas }: { etapas: Etapa[] }) {
                       {item.numeroProcesso}
                     </p>
                     {item.emergencial && (
-                      <span className="rounded bg-red-100 dark:bg-red-900 px-1.5 py-0.5 text-[10px] font-bold text-red-700 dark:text-red-400">
+                      <span className="shrink-0 rounded bg-red-100 dark:bg-red-900 px-1 py-0.5 text-[9px] font-bold uppercase text-red-700 dark:text-red-400">
                         Emergencial
                       </span>
                     )}
