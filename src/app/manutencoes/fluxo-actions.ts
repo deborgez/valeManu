@@ -189,10 +189,25 @@ export async function concluirServico(
   formData: FormData
 ) {
   const observacoes = (formData.get("observacoes") as string) || null;
+  const urls = formData.getAll("fotosUrl") as string[];
+  const nomes = formData.getAll("fotosNome") as string[];
+  const tipos = formData.getAll("fotosTipo") as string[];
 
-  await prisma.conclusaoServico.create({
+  const conclusao = await prisma.conclusaoServico.create({
     data: { manutencaoId, observacoes },
   });
+
+  for (let i = 0; i < urls.length; i++) {
+    await prisma.anexo.create({
+      data: {
+        tipo: tipos[i]?.startsWith("video/") ? "VIDEO" : "FOTO",
+        path: urls[i],
+        mimeType: tipos[i] || "application/octet-stream",
+        filename: nomes[i] || urls[i],
+        conclusaoServicoId: conclusao.id,
+      },
+    });
+  }
 
   await prisma.manutencao.update({
     where: { id: manutencaoId },

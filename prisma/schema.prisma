@@ -152,6 +152,9 @@ model Anexo {
 
   pedidoOrcamentoId String?
   pedidoOrcamento   PedidoOrcamento? @relation(fields: [pedidoOrcamentoId], references: [id])
+
+  conclusaoServicoId String?
+  conclusaoServico   ConclusaoServico? @relation(fields: [conclusaoServicoId], references: [id])
 }
 
 model InicioServico {
@@ -175,6 +178,8 @@ model ConclusaoServico {
 
   manutencaoId String
   manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
+
+  anexos Anexo[]
 }
 
 model HistoricoEtapa {

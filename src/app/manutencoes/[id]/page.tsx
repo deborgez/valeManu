@@ -59,7 +59,10 @@ export default async function ManutencaoDetalhePage({
         include: { pedidoOrcamentoAprovado: true },
         orderBy: { createdAt: "desc" },
       },
-      conclusoesServico: { orderBy: { dataConclusao: "desc" } },
+      conclusoesServico: {
+        include: { anexos: true },
+        orderBy: { dataConclusao: "desc" },
+      },
       historico: { orderBy: { createdAt: "asc" } },
     },
   });
@@ -485,6 +488,12 @@ export default async function ManutencaoDetalhePage({
                 rows={3}
                 className="rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
               />
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Fotos do serviço concluído (opcional)
+                </label>
+                <BlobUploadInput name="fotos" multiple accept="image/*,video/*" />
+              </div>
               <button
                 type="submit"
                 className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
@@ -516,6 +525,29 @@ export default async function ManutencaoDetalhePage({
             <p className="mt-1 text-sm text-green-800 dark:text-green-400">
               {conclusaoServicoAtual.observacoes}
             </p>
+          )}
+          {conclusaoServicoAtual.anexos.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {conclusaoServicoAtual.anexos.map((anexo) =>
+                anexo.tipo === "VIDEO" ? (
+                  <video
+                    key={anexo.id}
+                    src={anexo.path}
+                    controls
+                    className="h-24 w-24 rounded object-cover"
+                  />
+                ) : (
+                  <a key={anexo.id} href={anexo.path} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={anexo.path}
+                      alt={anexo.filename}
+                      className="h-24 w-24 rounded object-cover"
+                    />
+                  </a>
+                )
+              )}
+            </div>
           )}
         </section>
       )}
