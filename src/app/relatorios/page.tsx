@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { diasEmAberto } from "@/lib/tempo";
 import { formatMoedaExibicao } from "@/lib/masks";
 import ListaClicavel from "@/components/ListaClicavel";
-import DesempenhoChart from "@/components/DesempenhoChart";
 import { LABEL_MANUTENCAO_STATUS, LABEL_PEDIDO_STATUS } from "@/lib/labels";
+import { calcularMetricasDesempenho, formatDias } from "@/lib/desempenho";
 
 function primeiroDiaDoMes(): string {
   const agora = new Date();
@@ -46,9 +46,15 @@ export default async function RelatoriosPage({
         orderBy: { dataConclusao: "desc" },
         take: 1,
       },
+      historico: {
+        select: { etapa: true, createdAt: true },
+        orderBy: { createdAt: "asc" },
+      },
     },
     orderBy: { createdAt: "asc" },
   });
+
+  const metricas = calcularMetricasDesempenho(manutencoes);
 
   const itemDe = (m: (typeof manutencoes)[number]): ItemLista => ({
     id: m.id,
@@ -127,35 +133,6 @@ export default async function RelatoriosPage({
     (soma, p) => soma + p.valorAprovado,
     0
   );
-
-  // Monta os dados do gráfico agrupando por dia (ou por blocos de dias, se o período for longo).
-  const totalDias = Math.max(
-    1,
-    Math.ceil((dataFim.getTime() - dataInicio.getTime()) / 86400000) + 1
-  );
-  const diasPorBloco = Math.max(1, Math.ceil(totalDias / 30));
-
-  const blocos: { label: string; valor: number; inicio: number }[] = [];
-  for (
-    let cursor = new Date(dataInicio);
-    cursor <= dataFim;
-    cursor.setDate(cursor.getDate() + diasPorBloco)
-  ) {
-    const inicioBloco = new Date(cursor);
-    const label = inicioBloco.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-    blocos.push({ label, valor: 0, inicio: inicioBloco.getTime() });
-  }
-
-  for (const m of manutencoes) {
-    const idx = Math.min(
-      blocos.length - 1,
-      Math.floor((m.createdAt.getTime() - dataInicio.getTime()) / 86400000 / diasPorBloco)
-    );
-    if (blocos[idx]) blocos[idx].valor += 1;
-  }
 
   return (
     <div className="mx-auto w-full max-w-4xl p-6">
@@ -238,10 +215,100 @@ export default async function RelatoriosPage({
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
-        Manutenções abertas no período
+        Prazos de conclusão ({metricas.totalConcluidas} concluídas no período)
       </h2>
-      <div className="mb-6">
-        <DesempenhoChart dados={blocos} />
+      <div className="mb-6 grid grid-cols-3 gap-4">
+        <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 p-4 text-center">
+          <p className="text-2xl font-semibold text-green-800 dark:text-green-400">
+            {metricas.concluidasNoPrazo}
+          </p>
+          <p className="text-xs text-green-700 dark:text-green-400">
+            Dentro do prazo (até 2 dias)
+          </p>
+        </div>
+        <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-4 text-center">
+          <p className="text-2xl font-semibold text-amber-800 dark:text-amber-400">
+            {metricas.concluidasForaPrazo2a5}
+          </p>
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            Fora do prazo (2 a 5 dias)
+          </p>
+        </div>
+        <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 p-4 text-center">
+          <p className="text-2xl font-semibold text-red-800 dark:text-red-400">
+            {metricas.concluidasForaPrazo5mais}
+          </p>
+          <p className="text-xs text-red-700 dark:text-red-400">
+            Fora do prazo (mais de 5 dias)
+          </p>
+        </div>
+      </div>
+
+      <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+        Tempo médio por etapa (onde está o gargalo)
+      </h2>
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[
+          { label: "Até receber orçamento", valor: metricas.mediaDiasAteOrcamento, etapa: "Solicitação até orçamento entregue" },
+          { label: "Até aprovação", valor: metricas.mediaDiasAteAprovacao, etapa: "Orçamento entregue até aprovação" },
+          { label: "Até início do serviço", valor: metricas.mediaDiasAteInicio, etapa: "Aprovação até início do serviço" },
+          { label: "Execução do serviço", valor: metricas.mediaDiasExecucao, etapa: "Início até conclusão (execução)" },
+        ].map((item) => {
+          const ehGargalo = metricas.gargalo?.etapa === item.etapa;
+          return (
+            <div
+              key={item.label}
+              className={`rounded-lg border p-4 text-center ${
+                ehGargalo
+                  ? "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950"
+                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+              }`}
+            >
+              <p
+                className={`text-xl font-semibold ${
+                  ehGargalo
+                    ? "text-red-800 dark:text-red-400"
+                    : "text-slate-900 dark:text-slate-100"
+                }`}
+              >
+                {formatDias(item.valor)}
+              </p>
+              <p
+                className={`text-xs ${
+                  ehGargalo
+                    ? "text-red-700 dark:text-red-400"
+                    : "text-slate-500 dark:text-slate-400"
+                }`}
+              >
+                {item.label}
+                {ehGargalo && " — maior gargalo"}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-center">
+          <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            {formatDias(metricas.mediaDiasTotal)}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Média total (solicitação até conclusão)
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-center">
+          <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            {metricas.totalReabertas}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Reabertas no período</p>
+        </div>
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-center">
+          <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            {metricas.taxaReabertura === null ? "—" : `${metricas.taxaReabertura.toFixed(1)}%`}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Taxa de reabertura</p>
+        </div>
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
