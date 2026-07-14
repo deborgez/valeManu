@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import { sair } from "./actions";
 import ThemeToggle from "./ThemeToggle";
+import NavLinks from "./NavLinks";
 
 export default async function NavBar() {
   const session = await auth();
@@ -37,15 +37,7 @@ export default async function NavBar() {
           />
         )}
         <span className="font-semibold text-slate-900">Manutenções</span>
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="text-sm text-slate-600 hover:text-slate-900"
-          >
-            {link.label}
-          </Link>
-        ))}
+        <NavLinks links={links} />
       </div>
       <div className="flex items-center gap-4">
         <ThemeToggle />
