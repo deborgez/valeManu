@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ParteInteressada {
+  LOCADOR
+  LOCATARIO
+}
+
+enum ManutencaoStatus {
+  SOLICITACAO
+  AGUARDANDO_ORCAMENTO
+  AGUARDANDO_APROVACAO
+  APROVADA
+  AGENDADA
+  EM_ANDAMENTO
+  CONCLUIDA
+}
+
+enum PedidoOrcamentoStatus {
+  AGUARDANDO_ENTREGA
+  NAO_ENTREGUE
+  ENTREGUE_AGUARDANDO_APROVACAO
+  APROVADO
+  REPROVADO
+}
+
+enum AnexoTipo {
+  FOTO
+  VIDEO
+  ORCAMENTO
+}
+
+enum InicioServicoTipo {
+  IMEDIATO
+  AGENDADO
+}
+
+enum InicioServicoStatus {
+  AGENDADO
+  INICIADO_ANDAMENTO
+}
+
+model Imobiliaria {
+  id        String   @id @default("singleton")
+  nome      String
+  endereco  String
+  telefone  String
+  email     String
+  logoUrl   String?
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id         String   @id @default(cuid())
+  nome       String
+  email      String   @unique
+  senhaHash  String
+  role       Role     @default(USER)
+  createdAt  DateTime @default(now())
+
+  manutencoesCriadas Manutencao[]      @relation("CriadoPor")
+  pedidosGerados     PedidoOrcamento[] @relation("GeradoPor")
+}
+
+model Prestador {
+  id            String   @id @default(cuid())
+  nome          String
+  especialidade String
+  telefone      String
+  cpf           String?
+  email         String?
+  observacoes   String?
+  createdAt     DateTime @default(now())
+
+  pedidos PedidoOrcamento[]
+}
+
+model Manutencao {
+  id                String           @id @default(cuid())
+  numeroProcesso    String           @unique
+  cep               String?
+  rua               String?
+  numero            String?
+  complemento       String?
+  bairro            String?
+  cidade            String?
+  estado            String?
+  solicitanteTipo   ParteInteressada
+  solicitanteNome   String?
+  solicitanteCpf    String?
+  natureza          String
+  descricaoProblema String
+  emergencial       Boolean          @default(false)
+  competencia       ParteInteressada
+  status            ManutencaoStatus @default(SOLICITACAO)
+  reaberta          Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  criadoPorId String
+  criadoPor   User   @relation("CriadoPor", fields: [criadoPorId], references: [id])
+
+  pedidosOrcamento PedidoOrcamento[]
+  inicioServico    InicioServico?
+  conclusaoServico ConclusaoServico?
+}
+
+model PedidoOrcamento {
+  id               String                @id @default(cuid())
+  token            String                @unique @default(cuid())
+  status           PedidoOrcamentoStatus @default(AGUARDANDO_ENTREGA)
+  valorMaoDeObra   Float?
+  valorMaterial    Float?
+  descricaoServico String?
+  createdAt        DateTime              @default(now())
+  entregueEm       DateTime?
+
+  manutencaoId String
+  manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
+
+  prestadorId String
+  prestador   Prestador @relation(fields: [prestadorId], references: [id])
+
+  geradoPorId String
+  geradoPor   User   @relation("GeradoPor", fields: [geradoPorId], references: [id])
+
+  anexos Anexo[]
+
+  inicioServico InicioServico[]
+}
+
+model Anexo {
+  id       String    @id @default(cuid())
+  tipo     AnexoTipo
+  path     String
+  mimeType String
+  filename String
+  createdAt DateTime @default(now())
+
+  pedidoOrcamentoId String?
+  pedidoOrcamento   PedidoOrcamento? @relation(fields: [pedidoOrcamentoId], references: [id])
+}
+
+model InicioServico {
+  id                     String               @id @default(cuid())
+  tipo                   InicioServicoTipo
+  dataHoraAgendada       DateTime?
+  status                 InicioServicoStatus
+  createdAt              DateTime             @default(now())
+
+  manutencaoId String     @unique
+  manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
+
+  pedidoOrcamentoAprovadoId String
+  pedidoOrcamentoAprovado   PedidoOrcamento @relation(fields: [pedidoOrcamentoAprovadoId], references: [id])
+}
+
+model ConclusaoServico {
+  id             String   @id @default(cuid())
+  dataConclusao  DateTime @default(now())
+  observacoes    String?
+
+  manutencaoId String     @unique
+  manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
+}
