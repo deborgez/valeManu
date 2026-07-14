@@ -51,7 +51,7 @@ export default function BlobUploadInput({
   }
 
   return (
-    <div>
+    <div className="relative">
       <input
         type="file"
         multiple={multiple}
@@ -61,20 +61,24 @@ export default function BlobUploadInput({
         required={required && arquivos.length === 0}
         className={FILE_INPUT_CLASSE}
       />
-      {enviando && (
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          Enviando...
-        </p>
-      )}
-      {erro && (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{erro}</p>
-      )}
-      {arquivos.length > 0 && (
-        <ul className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          {arquivos.map((a, i) => (
-            <li key={i}>{a.nome}</li>
-          ))}
-        </ul>
+      {(enviando || erro || arquivos.length > 0) && (
+        <div className="absolute top-full left-0 z-10 mt-1 whitespace-nowrap">
+          {enviando && (
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Enviando...
+            </p>
+          )}
+          {erro && (
+            <p className="text-xs text-red-600 dark:text-red-400">{erro}</p>
+          )}
+          {arquivos.length > 0 && (
+            <ul className="text-xs text-slate-500 dark:text-slate-400">
+              {arquivos.map((a, i) => (
+                <li key={i}>{a.nome}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
       {arquivos.map((a, i) => (
         <input key={`url-${i}`} type="hidden" name={`${name}Url`} value={a.url} />
