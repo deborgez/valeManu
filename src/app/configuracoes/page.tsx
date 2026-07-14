@@ -24,12 +24,6 @@ export default async function ConfiguracoesPage({
         Configurações da Imobiliária
       </h1>
 
-      {params?.salvo && (
-        <p className="mb-4 rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-sm text-green-700 dark:text-green-400">
-          Configurações salvas com sucesso.
-        </p>
-      )}
-
       <form
         action={atualizarImobiliaria}
         className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6"
@@ -99,12 +93,19 @@ export default async function ConfiguracoesPage({
           <BlobUploadInput name="logo" accept="image/*" />
         </div>
 
-        <button
-          type="submit"
-          className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
-        >
-          Salvar
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            className="cursor-pointer rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+          >
+            Salvar
+          </button>
+          {params?.salvo && (
+            <p className="rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-sm text-green-700 dark:text-green-400">
+              Configurações salvas com sucesso.
+            </p>
+          )}
+        </div>
       </form>
     </div>
   );
