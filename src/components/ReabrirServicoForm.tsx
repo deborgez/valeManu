@@ -8,6 +8,7 @@ export default function ReabrirServicoForm({
   action: (formData: FormData) => Promise<void>;
 }) {
   const [aberto, setAberto] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
   if (!aberto) {
     return (
@@ -24,7 +25,11 @@ export default function ReabrirServicoForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <form
-        action={action}
+        action={(formData) => {
+          if (enviando) return;
+          setEnviando(true);
+          action(formData);
+        }}
         className="w-full max-w-sm rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
       >
         <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -46,15 +51,17 @@ export default function ReabrirServicoForm({
           <button
             type="button"
             onClick={() => setAberto(false)}
+            disabled={enviando}
             className="rounded px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="rounded bg-orange-600 dark:bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 dark:hover:bg-orange-800"
+            disabled={enviando}
+            className="rounded bg-orange-600 dark:bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 dark:hover:bg-orange-800 disabled:opacity-60"
           >
-            Confirmar reabertura
+            {enviando ? "Reabrindo..." : "Confirmar reabertura"}
           </button>
         </div>
       </form>
