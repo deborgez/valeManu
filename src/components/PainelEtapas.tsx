@@ -10,8 +10,17 @@ type ItemManutencao = {
   endereco: string;
   natureza: string;
   emergencial: boolean;
+  reaberta: boolean;
   severidade: Severidade;
 };
+
+const COR_SEVERIDADE_HEX: Record<Exclude<Severidade, "neutro">, string> = {
+  verde: "#22c55e",
+  amarelo: "#fbbf24",
+  vermelho: "#ef4444",
+};
+
+const ROXO_REABERTA = "#a855f7";
 
 type Etapa = {
   titulo: string;
@@ -109,13 +118,15 @@ export default function PainelEtapas({ etapas }: { etapas: Etapa[] }) {
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     {item.severidade !== "neutro" && (
                       <span
-                        className={`h-2 w-2 shrink-0 rounded-full ${
-                          item.severidade === "verde"
-                            ? "bg-green-500"
-                            : item.severidade === "amarelo"
-                              ? "bg-amber-400"
-                              : "bg-red-500"
-                        }`}
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        title={item.reaberta ? "Reaberto" : undefined}
+                        style={
+                          item.reaberta
+                            ? {
+                                background: `linear-gradient(90deg, ${ROXO_REABERTA} 50%, ${COR_SEVERIDADE_HEX[item.severidade]} 50%)`,
+                              }
+                            : { backgroundColor: COR_SEVERIDADE_HEX[item.severidade] }
+                        }
                       />
                     )}
                     <p className="font-medium text-slate-900 dark:text-slate-100">

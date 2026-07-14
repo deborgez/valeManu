@@ -19,6 +19,7 @@ type ManutencaoResumo = {
   natureza: string;
   status: string;
   emergencial: boolean;
+  reaberta: boolean;
   createdAt: Date;
   pedidosOrcamento: { id: string }[];
 };
@@ -71,6 +72,7 @@ export default async function Home() {
       natureza: true,
       status: true,
       emergencial: true,
+      reaberta: true,
       createdAt: true,
       pedidosOrcamento: { select: { id: true } },
     },
@@ -87,6 +89,7 @@ export default async function Home() {
         endereco: formatEndereco(m),
         natureza: m.natureza,
         emergencial: m.emergencial,
+        reaberta: m.reaberta,
         severidade: classificarSeveridade(diasEmAberto(m.createdAt), aberta),
       };
     }),
