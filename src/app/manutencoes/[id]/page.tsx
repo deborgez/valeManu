@@ -19,6 +19,7 @@ import { formatMoedaExibicao } from "@/lib/masks";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { formatEndereco } from "@/lib/endereco";
 import EditarEnderecoForm from "@/components/EditarEnderecoForm";
+import ReabrirServicoForm from "@/components/ReabrirServicoForm";
 import { atualizarEndereco } from "../actions";
 import TrilhaEtapas from "@/components/TrilhaEtapas";
 import { etapaAtualIndex } from "@/lib/trilha";
@@ -500,19 +501,12 @@ export default async function ManutencaoDetalhePage({
             <h2 className="text-sm font-semibold text-green-900 dark:text-green-300">
               Serviço Concluído
             </h2>
-            <form
-              action={async () => {
+            <ReabrirServicoForm
+              action={async (formData: FormData) => {
                 "use server";
-                await reabrirServico(manutencao.id);
+                await reabrirServico(manutencao.id, formData);
               }}
-            >
-              <button
-                type="submit"
-                className="rounded border border-orange-300 dark:border-orange-700 px-3 py-1 text-xs font-medium text-orange-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950"
-              >
-                Reabrir serviço
-              </button>
-            </form>
+            />
           </div>
           <p className="text-sm text-green-800 dark:text-green-400">
             Em{" "}

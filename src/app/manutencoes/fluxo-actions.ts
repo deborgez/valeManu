@@ -204,13 +204,16 @@ export async function concluirServico(
   await revalidarManutencao(manutencaoId);
 }
 
-export async function reabrirServico(manutencaoId: string) {
+export async function reabrirServico(manutencaoId: string, formData: FormData) {
+  const motivo = String(formData.get("motivo") || "").trim();
+  if (!motivo) throw new Error("Informe o motivo da reabertura.");
+
   await prisma.manutencao.update({
     where: { id: manutencaoId },
     data: { status: "AGUARDANDO_ORCAMENTO", reaberta: true },
   });
 
-  await registrarHistorico(manutencaoId, "Serviço reaberto");
+  await registrarHistorico(manutencaoId, "Serviço reaberto", motivo);
 
   await revalidarManutencao(manutencaoId);
 }
