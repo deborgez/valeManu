@@ -22,6 +22,7 @@ type ManutencaoResumo = {
   reaberta: boolean;
   createdAt: Date;
   pedidosOrcamento: { id: string }[];
+  pagamentos: { status: string }[];
 };
 
 const ETAPAS: {
@@ -50,7 +51,15 @@ const ETAPAS: {
       m.status === "AGENDADA" ||
       m.status === "EM_ANDAMENTO",
   },
-  { titulo: "Concluída", filtro: (m) => m.status === "CONCLUIDA" },
+  {
+    titulo: "Concluída",
+    filtro: (m) =>
+      m.status === "CONCLUIDA" && m.pagamentos[0]?.status !== "PAGO",
+  },
+  {
+    titulo: "Pagamento Efetuado",
+    filtro: (m) => m.status === "CONCLUIDA" && m.pagamentos[0]?.status === "PAGO",
+  },
 ];
 
 export default async function Home() {
@@ -75,6 +84,11 @@ export default async function Home() {
       reaberta: true,
       createdAt: true,
       pedidosOrcamento: { select: { id: true } },
+      pagamentos: {
+        select: { status: true },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
     orderBy: { updatedAt: "desc" },
   });

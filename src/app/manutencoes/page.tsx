@@ -13,6 +13,7 @@ async function buscarManutencoes() {
     include: {
       inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
       pedidosOrcamento: { select: { id: true } },
+      pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -44,7 +45,15 @@ const COLUNAS: {
       m.status === "AGENDADA" ||
       m.status === "EM_ANDAMENTO",
   },
-  { titulo: "Concluída", filtro: (m) => m.status === "CONCLUIDA" },
+  {
+    titulo: "Concluída",
+    filtro: (m) =>
+      m.status === "CONCLUIDA" && m.pagamentos[0]?.status !== "PAGO",
+  },
+  {
+    titulo: "Pagamento Efetuado",
+    filtro: (m) => m.status === "CONCLUIDA" && m.pagamentos[0]?.status === "PAGO",
+  },
 ];
 
 const CARTAO_COR = {
@@ -130,7 +139,7 @@ export default async function ManutencoesPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {COLUNAS.map((coluna) => {
           const itens = manutencoes.filter(coluna.filtro);
           return (

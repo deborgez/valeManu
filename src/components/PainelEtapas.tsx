@@ -50,7 +50,7 @@ export default function PainelEtapas({ etapas }: { etapas: Etapa[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 lg:grid-cols-7">
         {etapas.map((etapa) => {
           const contagem = contarPorSeveridade(etapa.itens);
 
