@@ -48,3 +48,37 @@ export async function enviarOrcamentoProfissional(
   revalidatePath(`/orcamento/${token}`);
   revalidatePath(`/manutencoes/${pedido.manutencaoId}`);
 }
+
+export async function responderContraoferta(token: string, aceitar: boolean) {
+  const pedido = await prisma.pedidoOrcamento.findUnique({ where: { token } });
+  if (!pedido) throw new Error("Pedido não encontrado.");
+  if (pedido.status !== "CONTRAOFERTA_ENVIADA") return;
+
+  if (aceitar) {
+    await prisma.pedidoOrcamento.update({
+      where: { token },
+      data: {
+        valorMaoDeObra: pedido.contraOfertaValorMaoDeObra,
+        valorMaterial: pedido.contraOfertaValorMaterial,
+        status: "ENTREGUE_AGUARDANDO_APROVACAO",
+      },
+    });
+    await prisma.historicoEtapa.create({
+      data: { manutencaoId: pedido.manutencaoId, etapa: "Contraoferta aceita" },
+    });
+  } else {
+    await prisma.pedidoOrcamento.update({
+      where: { token },
+      data: {
+        status: "ENTREGUE_AGUARDANDO_APROVACAO",
+        contraOfertaRecusada: true,
+      },
+    });
+    await prisma.historicoEtapa.create({
+      data: { manutencaoId: pedido.manutencaoId, etapa: "Contraoferta recusada" },
+    });
+  }
+
+  revalidatePath(`/orcamento/${token}`);
+  revalidatePath(`/manutencoes/${pedido.manutencaoId}`);
+}

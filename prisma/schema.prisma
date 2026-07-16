@@ -16,6 +16,7 @@ enum Role {
 enum ParteInteressada {
   LOCADOR
   LOCATARIO
+  IMOBILIARIA
 }
 
 enum ManutencaoStatus {
@@ -32,8 +33,14 @@ enum PedidoOrcamentoStatus {
   AGUARDANDO_ENTREGA
   NAO_ENTREGUE
   ENTREGUE_AGUARDANDO_APROVACAO
+  CONTRAOFERTA_ENVIADA
   APROVADO
   REPROVADO
+}
+
+enum PagamentoStatus {
+  PENDENTE
+  PAGO
 }
 
 enum AnexoTipo {
@@ -115,6 +122,7 @@ model Manutencao {
   pedidosOrcamento  PedidoOrcamento[]
   inicioServicos    InicioServico[]
   conclusoesServico ConclusaoServico[]
+  pagamentos        Pagamento[]
   historico         HistoricoEtapa[]
 }
 
@@ -127,6 +135,11 @@ model PedidoOrcamento {
   descricaoServico String?
   createdAt        DateTime              @default(now())
   entregueEm       DateTime?
+
+  contraOfertaValorMaoDeObra Float?
+  contraOfertaValorMaterial  Float?
+  contraOfertaObservacao     String?
+  contraOfertaRecusada       Boolean @default(false)
 
   manutencaoId String
   manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
@@ -180,6 +193,20 @@ model ConclusaoServico {
   manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
 
   anexos Anexo[]
+}
+
+model Pagamento {
+  id               String          @id @default(cuid())
+  status           PagamentoStatus @default(PENDENTE)
+  valor            Float?
+  dataPagamento    DateTime?
+  comprovanteUrl   String?
+  comprovanteNome  String?
+  comprovanteTipo  String?
+  createdAt        DateTime        @default(now())
+
+  manutencaoId String
+  manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
 }
 
 model HistoricoEtapa {

@@ -1,15 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { enviarOrcamentoProfissional } from "./actions";
+import { enviarOrcamentoProfissional, responderContraoferta } from "./actions";
 import MoedaInput from "@/components/inputs/MoedaInput";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { formatEndereco } from "@/lib/endereco";
-import { LABEL_PEDIDO_STATUS } from "@/lib/labels";
-
-const LABEL_PARTE: Record<string, string> = {
-  LOCADOR: "Locador",
-  LOCATARIO: "Locatário",
-};
+import { formatMoedaExibicao } from "@/lib/masks";
+import { LABEL_PEDIDO_STATUS, LABEL_PARTE } from "@/lib/labels";
 
 export default async function OrcamentoPublicoPage({
   params,
@@ -36,6 +32,7 @@ export default async function OrcamentoPublicoPage({
 
   const fotosVideos = pedido.anexos.filter((a) => a.tipo !== "ORCAMENTO");
   const podeEnviar = pedido.status === "AGUARDANDO_ENTREGA";
+  const aguardandoRespostaContraoferta = pedido.status === "CONTRAOFERTA_ENVIADA";
 
   return (
     <div className="mx-auto w-full max-w-2xl p-6">
@@ -186,6 +183,58 @@ export default async function OrcamentoPublicoPage({
             Enviar Orçamento
           </button>
         </form>
+      ) : aguardandoRespostaContraoferta ? (
+        <div className="mb-6 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-6">
+          <h2 className="mb-3 text-base font-semibold text-amber-900 dark:text-amber-300">
+            Contraoferta recebida
+          </h2>
+          <p className="mb-3 text-sm text-amber-800 dark:text-amber-400">
+            A imobiliária propôs os seguintes valores para este serviço:
+          </p>
+          <div className="mb-4 grid grid-cols-2 gap-1 text-sm text-amber-900 dark:text-amber-300">
+            <p>
+              <span className="text-amber-600 dark:text-amber-500">Mão de obra: </span>
+              R$ {formatMoedaExibicao(pedido.contraOfertaValorMaoDeObra)}
+            </p>
+            <p>
+              <span className="text-amber-600 dark:text-amber-500">Material: </span>
+              R$ {formatMoedaExibicao(pedido.contraOfertaValorMaterial)}
+            </p>
+          </div>
+          {pedido.contraOfertaObservacao && (
+            <p className="mb-4 text-sm text-amber-800 dark:text-amber-400">
+              {pedido.contraOfertaObservacao}
+            </p>
+          )}
+          <div className="flex gap-3">
+            <form
+              action={async () => {
+                "use server";
+                await responderContraoferta(token, true);
+              }}
+            >
+              <button
+                type="submit"
+                className="rounded bg-green-600 dark:bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 dark:hover:bg-green-800"
+              >
+                Aceitar contraoferta
+              </button>
+            </form>
+            <form
+              action={async () => {
+                "use server";
+                await responderContraoferta(token, false);
+              }}
+            >
+              <button
+                type="submit"
+                className="rounded border border-amber-400 dark:border-amber-600 px-4 py-2 text-sm font-medium text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+              >
+                Recusar
+              </button>
+            </form>
+          </div>
+        </div>
       ) : (
         <div className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-6 text-center text-sm text-slate-600 dark:text-slate-400">
           Este orçamento já foi enviado. Status atual:{" "}

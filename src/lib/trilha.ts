@@ -5,11 +5,13 @@ export const ETAPAS_TRILHA = [
   "Aprovação do Serviço",
   "Início do Serviço",
   "Conclusão do Serviço",
+  "Pagamento Efetuado",
 ] as const;
 
 export function etapaAtualIndex(
   status: string,
-  temPedidos: boolean
+  temPedidos: boolean,
+  pagamentoPago: boolean = false
 ): number {
   switch (status) {
     case "SOLICITACAO":
@@ -23,7 +25,7 @@ export function etapaAtualIndex(
     case "EM_ANDAMENTO":
       return 4;
     case "CONCLUIDA":
-      return 5;
+      return pagamentoPago ? 6 : 5;
     default:
       return 0;
   }

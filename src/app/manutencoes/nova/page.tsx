@@ -42,6 +42,7 @@ export default function NovaManutencaoPage() {
             >
               <option value="LOCADOR">Locador</option>
               <option value="LOCATARIO">Locatário</option>
+              <option value="IMOBILIARIA">Imobiliária</option>
             </select>
           </div>
           <div>
@@ -96,6 +97,7 @@ export default function NovaManutencaoPage() {
             >
               <option value="LOCADOR">Locador</option>
               <option value="LOCATARIO">Locatário</option>
+              <option value="IMOBILIARIA">Imobiliária</option>
             </select>
           </div>
           <div className="flex items-center gap-2 pt-6">

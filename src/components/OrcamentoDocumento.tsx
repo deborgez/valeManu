@@ -1,10 +1,6 @@
 import { formatMoedaExibicao } from "@/lib/masks";
 import { formatEndereco } from "@/lib/endereco";
-
-const LABEL_PARTE: Record<string, string> = {
-  LOCADOR: "Locador",
-  LOCATARIO: "Locatário",
-};
+import { LABEL_PARTE } from "@/lib/labels";
 
 type Imobiliaria = {
   nome: string;

@@ -8,10 +8,13 @@ import {
   marcarOrcamentoNaoEntregue,
   aprovarPedido,
   reprovarPedido,
+  fazerContraoferta,
   iniciarServicoImediato,
   agendarServico,
   concluirServico,
   reabrirServico,
+  gerarOrdemPagamento,
+  marcarPagamentoEfetuado,
 } from "../fluxo-actions";
 import { headers } from "next/headers";
 import MoedaInput from "@/components/inputs/MoedaInput";
@@ -23,15 +26,17 @@ import ReabrirServicoForm from "@/components/ReabrirServicoForm";
 import { atualizarEndereco } from "../actions";
 import TrilhaEtapas from "@/components/TrilhaEtapas";
 import { etapaAtualIndex } from "@/lib/trilha";
-import { LABEL_MANUTENCAO_STATUS, LABEL_PEDIDO_STATUS } from "@/lib/labels";
+import {
+  LABEL_MANUTENCAO_STATUS,
+  LABEL_PEDIDO_STATUS,
+  LABEL_PARTE,
+  LABEL_PAGAMENTO_STATUS,
+} from "@/lib/labels";
 import ImpressaoModal from "@/components/ImpressaoModal";
 import OrcamentoDocumento from "@/components/OrcamentoDocumento";
 import OrdemServicoDocumento from "@/components/OrdemServicoDocumento";
-
-const LABEL_PARTE: Record<string, string> = {
-  LOCADOR: "Locador",
-  LOCATARIO: "Locatário",
-};
+import ReciboPagamentoDocumento from "@/components/ReciboPagamentoDocumento";
+import ContraofertaForm from "@/components/ContraofertaForm";
 
 async function getBaseUrl() {
   const h = await headers();
@@ -63,6 +68,7 @@ export default async function ManutencaoDetalhePage({
         include: { anexos: true },
         orderBy: { dataConclusao: "desc" },
       },
+      pagamentos: { orderBy: { createdAt: "desc" } },
       historico: { orderBy: { createdAt: "asc" } },
     },
   });
@@ -71,6 +77,7 @@ export default async function ManutencaoDetalhePage({
 
   const inicioServicoAtual = manutencao.inicioServicos[0] ?? null;
   const conclusaoServicoAtual = manutencao.conclusoesServico[0] ?? null;
+  const pagamentoAtual = manutencao.pagamentos[0] ?? null;
 
   const prestadores = await prisma.prestador.findMany({
     orderBy: { nome: "asc" },
@@ -91,10 +98,14 @@ export default async function ManutencaoDetalhePage({
   const pedidosAguardandoAprovacao = manutencao.pedidosOrcamento.filter(
     (p) => p.status === "ENTREGUE_AGUARDANDO_APROVACAO"
   );
+  const pedidosAguardandoContraoferta = manutencao.pedidosOrcamento.filter(
+    (p) => p.status === "CONTRAOFERTA_ENVIADA"
+  );
 
   const etapaAtual = etapaAtualIndex(
     manutencao.status,
-    manutencao.pedidosOrcamento.length > 0
+    manutencao.pedidosOrcamento.length > 0,
+    pagamentoAtual?.status === "PAGO"
   );
 
   return (
@@ -327,7 +338,8 @@ export default async function ManutencaoDetalhePage({
       )}
 
       {/* Aprovação do Serviço */}
-      {pedidosAguardandoAprovacao.length > 0 && (
+      {(pedidosAguardandoAprovacao.length > 0 ||
+        pedidosAguardandoContraoferta.length > 0) && (
         <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
           <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
             Aprovação do Serviço
@@ -345,11 +357,17 @@ export default async function ManutencaoDetalhePage({
                     Material: R$ {formatMoedaExibicao(pedido.valorMaterial)}
                   </p>
                   <p className="text-slate-500 dark:text-slate-400">{pedido.descricaoServico}</p>
-                  <p className="text-xs text-amber-600 dark:text-amber-400">
-                    Aguardando aprovação
-                  </p>
+                  {pedido.contraOfertaRecusada ? (
+                    <p className="text-xs text-red-600 dark:text-red-400">
+                      Contraoferta recusada pelo prestador — decida sobre o valor original
+                    </p>
+                  ) : (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      Aguardando aprovação
+                    </p>
+                  )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap justify-end gap-2">
                   <form
                     action={async () => {
                       "use server";
@@ -376,7 +394,31 @@ export default async function ManutencaoDetalhePage({
                       Reprovado
                     </button>
                   </form>
+                  {!pedido.contraOfertaRecusada && (
+                    <ContraofertaForm
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await fazerContraoferta(pedido.id, manutencao.id, formData);
+                      }}
+                    />
+                  )}
                 </div>
+              </div>
+            ))}
+            {pedidosAguardandoContraoferta.map((pedido) => (
+              <div
+                key={pedido.id}
+                className="rounded border border-slate-100 dark:border-slate-700 p-4"
+              >
+                <p className="text-sm font-medium">{pedido.prestador.nome}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Contraoferta: Mão de obra R${" "}
+                  {formatMoedaExibicao(pedido.contraOfertaValorMaoDeObra)} | Material R${" "}
+                  {formatMoedaExibicao(pedido.contraOfertaValorMaterial)}
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Aguardando resposta do prestador
+                </p>
               </div>
             ))}
           </div>
@@ -546,6 +588,112 @@ export default async function ManutencaoDetalhePage({
                     />
                   </a>
                 )
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Pagamento */}
+      {manutencao.status === "CONCLUIDA" && (
+        <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Pagamento
+          </h2>
+
+          {!pagamentoAtual && (
+            <form
+              action={async () => {
+                "use server";
+                const valor = pedidoAprovado
+                  ? (pedidoAprovado.valorMaoDeObra ?? 0) +
+                    (pedidoAprovado.valorMaterial ?? 0)
+                  : null;
+                await gerarOrdemPagamento(manutencao.id, valor);
+              }}
+            >
+              <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">
+                Valor: R${" "}
+                {formatMoedaExibicao(
+                  pedidoAprovado
+                    ? (pedidoAprovado.valorMaoDeObra ?? 0) +
+                        (pedidoAprovado.valorMaterial ?? 0)
+                    : null
+                )}
+              </p>
+              <button
+                type="submit"
+                className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+              >
+                Gerar Ordem de Pagamento
+              </button>
+            </form>
+          )}
+
+          {pagamentoAtual?.status === "PENDENTE" && (
+            <form
+              action={async (formData: FormData) => {
+                "use server";
+                await marcarPagamentoEfetuado(
+                  pagamentoAtual.id,
+                  manutencao.id,
+                  formData
+                );
+              }}
+              className="flex flex-col gap-3"
+            >
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Valor: R$ {formatMoedaExibicao(pagamentoAtual.valor)} —{" "}
+                <span className="text-amber-600 dark:text-amber-400">
+                  {LABEL_PAGAMENTO_STATUS[pagamentoAtual.status]}
+                </span>
+              </p>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Comprovante de pagamento (opcional)
+                </label>
+                <BlobUploadInput
+                  name="comprovante"
+                  accept="image/*,application/pdf"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-fit rounded bg-green-600 dark:bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 dark:hover:bg-green-800"
+              >
+                Marcar como pago
+              </button>
+            </form>
+          )}
+
+          {pagamentoAtual?.status === "PAGO" && (
+            <div>
+              <p className="text-sm text-green-700 dark:text-green-400">
+                Pago em {pagamentoAtual.dataPagamento?.toLocaleString("pt-BR")}{" "}
+                — R$ {formatMoedaExibicao(pagamentoAtual.valor)}
+              </p>
+              {pagamentoAtual.comprovanteUrl && (
+                <a
+                  href={pagamentoAtual.comprovanteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-block text-xs text-slate-500 dark:text-slate-400 underline"
+                >
+                  Ver comprovante
+                </a>
+              )}
+              {pedidoAprovado && (
+                <div className="mt-3">
+                  <ImpressaoModal label="Imprimir Recibo">
+                    <ReciboPagamentoDocumento
+                      imobiliaria={imobiliaria}
+                      numeroProcesso={manutencao.numeroProcesso}
+                      prestador={pedidoAprovado.prestador}
+                      valor={pagamentoAtual.valor}
+                      dataPagamento={pagamentoAtual.dataPagamento}
+                    />
+                  </ImpressaoModal>
+                </div>
               )}
             </div>
           )}

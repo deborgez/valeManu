@@ -114,6 +114,36 @@ export async function aprovarPedido(pedidoId: string, manutencaoId: string) {
   await revalidarManutencao(manutencaoId);
 }
 
+export async function fazerContraoferta(
+  pedidoId: string,
+  manutencaoId: string,
+  formData: FormData
+) {
+  const valorMaoDeObra = parseMoeda(formData.get("contraOfertaValorMaoDeObra"));
+  const valorMaterial = parseMoeda(formData.get("contraOfertaValorMaterial"));
+  const observacao = (formData.get("contraOfertaObservacao") as string) || null;
+
+  const pedido = await prisma.pedidoOrcamento.update({
+    where: { id: pedidoId },
+    data: {
+      status: "CONTRAOFERTA_ENVIADA",
+      contraOfertaValorMaoDeObra: valorMaoDeObra,
+      contraOfertaValorMaterial: valorMaterial,
+      contraOfertaObservacao: observacao,
+      contraOfertaRecusada: false,
+    },
+    include: { prestador: true },
+  });
+
+  await registrarHistorico(
+    manutencaoId,
+    "Contraoferta enviada",
+    pedido.prestador.nome
+  );
+
+  await revalidarManutencao(manutencaoId);
+}
+
 export async function reprovarPedido(pedidoId: string, manutencaoId: string) {
   const pedido = await prisma.pedidoOrcamento.update({
     where: { id: pedidoId },
@@ -229,6 +259,44 @@ export async function reabrirServico(manutencaoId: string, formData: FormData) {
   });
 
   await registrarHistorico(manutencaoId, "Serviço reaberto", motivo);
+
+  await revalidarManutencao(manutencaoId);
+}
+
+export async function gerarOrdemPagamento(
+  manutencaoId: string,
+  valor: number | null
+) {
+  await prisma.pagamento.create({
+    data: { manutencaoId, valor, status: "PENDENTE" },
+  });
+
+  await registrarHistorico(manutencaoId, "Ordem de pagamento gerada");
+
+  await revalidarManutencao(manutencaoId);
+}
+
+export async function marcarPagamentoEfetuado(
+  pagamentoId: string,
+  manutencaoId: string,
+  formData: FormData
+) {
+  const comprovanteUrl = formData.get("comprovanteUrl") as string | null;
+  const comprovanteNome = formData.get("comprovanteNome") as string | null;
+  const comprovanteTipo = formData.get("comprovanteTipo") as string | null;
+
+  await prisma.pagamento.update({
+    where: { id: pagamentoId },
+    data: {
+      status: "PAGO",
+      dataPagamento: new Date(),
+      comprovanteUrl: comprovanteUrl || null,
+      comprovanteNome: comprovanteNome || null,
+      comprovanteTipo: comprovanteTipo || null,
+    },
+  });
+
+  await registrarHistorico(manutencaoId, "Pagamento efetuado");
 
   await revalidarManutencao(manutencaoId);
 }
