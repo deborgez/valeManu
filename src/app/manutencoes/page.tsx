@@ -46,7 +46,7 @@ const COLUNAS: {
       m.status === "EM_ANDAMENTO",
   },
   {
-    titulo: "Concluída",
+    titulo: "Serviço Concluído",
     filtro: (m) =>
       m.status === "CONCLUIDA" && m.pagamentos[0]?.status !== "PAGO",
   },
