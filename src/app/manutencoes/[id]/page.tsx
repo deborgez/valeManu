@@ -38,6 +38,7 @@ import OrdemServicoDocumento from "@/components/OrdemServicoDocumento";
 import ReciboPagamentoDocumento from "@/components/ReciboPagamentoDocumento";
 import ContraofertaForm from "@/components/ContraofertaForm";
 import { formatDataHora } from "@/lib/datahora";
+import RevelarConteudo from "@/components/RevelarConteudo";
 
 async function getBaseUrl() {
   const h = await headers();
@@ -263,62 +264,72 @@ export default async function ManutencaoDetalhePage({
                 key={pedido.id}
                 className="rounded border border-slate-100 dark:border-slate-700 p-4"
               >
-                <p className="mb-3 text-sm font-medium text-slate-800 dark:text-slate-100">
+                <p className="mb-1 text-sm font-medium text-slate-800 dark:text-slate-100">
                   {pedido.prestador.nome}
                 </p>
-                <form
-                  action={async (formData: FormData) => {
-                    "use server";
-                    await entregarOrcamento(pedido.id, manutencao.id, formData);
-                  }}
-                  className="mb-2 flex flex-wrap items-end gap-3"
-                >
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                      Mão de obra (R$)
-                    </label>
-                    <MoedaInput
-                      name="valorMaoDeObra"
-                      required
-                      className="w-32 rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                      Material (R$)
-                    </label>
-                    <MoedaInput
-                      name="valorMaterial"
-                      required
-                      className="w-32 rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div className="min-w-[200px] flex-1">
-                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                      Descrição do serviço
-                    </label>
-                    <input
-                      name="descricaoServico"
-                      required
-                      className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                      Arquivo do orçamento
-                    </label>
-                    <BlobUploadInput
-                      name="arquivoOrcamento"
-                      accept="image/*,application/pdf"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+                <div className="mb-3 flex items-center gap-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Envie o link abaixo para o prestador preencher o orçamento:
+                  </p>
+                  <CopyLinkButton link={`${baseUrl}/orcamento/${pedido.token}`} />
+                </div>
+
+                <RevelarConteudo rotulo="Preencher orçamento manualmente">
+                  <form
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await entregarOrcamento(pedido.id, manutencao.id, formData);
+                    }}
+                    className="mb-2 flex flex-wrap items-end gap-3"
                   >
-                    Salvar
-                  </button>
-                </form>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        Mão de obra (R$)
+                      </label>
+                      <MoedaInput
+                        name="valorMaoDeObra"
+                        required
+                        className="w-32 rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        Material (R$)
+                      </label>
+                      <MoedaInput
+                        name="valorMaterial"
+                        required
+                        className="w-32 rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+                    <div className="min-w-[200px] flex-1">
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        Descrição do serviço
+                      </label>
+                      <input
+                        name="descricaoServico"
+                        required
+                        className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        Arquivo do orçamento
+                      </label>
+                      <BlobUploadInput
+                        name="arquivoOrcamento"
+                        accept="image/*,application/pdf"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+                    >
+                      Salvar
+                    </button>
+                  </form>
+                </RevelarConteudo>
+
                 <form
                   action={async () => {
                     "use server";
