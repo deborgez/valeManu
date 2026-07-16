@@ -37,6 +37,7 @@ import OrcamentoDocumento from "@/components/OrcamentoDocumento";
 import OrdemServicoDocumento from "@/components/OrdemServicoDocumento";
 import ReciboPagamentoDocumento from "@/components/ReciboPagamentoDocumento";
 import ContraofertaForm from "@/components/ContraofertaForm";
+import { formatDataHora } from "@/lib/datahora";
 
 async function getBaseUrl() {
   const h = await headers();
@@ -475,7 +476,8 @@ export default async function ManutencaoDetalhePage({
                 {inicioAtual?.status === "AGENDADO" && (
                   <p className="text-sm text-amber-700 dark:text-amber-400">
                     Agendado para{" "}
-                    {inicioAtual.dataHoraAgendada?.toLocaleString("pt-BR")}
+                    {inicioAtual.dataHoraAgendada &&
+                      formatDataHora(inicioAtual.dataHoraAgendada)}
                   </p>
                 )}
 
@@ -561,7 +563,7 @@ export default async function ManutencaoDetalhePage({
           </div>
           <p className="text-sm text-green-800 dark:text-green-400">
             Em{" "}
-            {conclusaoServicoAtual.dataConclusao.toLocaleString("pt-BR")}
+            {formatDataHora(conclusaoServicoAtual.dataConclusao)}
           </p>
           {conclusaoServicoAtual.observacoes && (
             <p className="mt-1 text-sm text-green-800 dark:text-green-400">
@@ -669,7 +671,9 @@ export default async function ManutencaoDetalhePage({
           {pagamentoAtual?.status === "PAGO" && (
             <div>
               <p className="text-sm text-green-700 dark:text-green-400">
-                Pago em {pagamentoAtual.dataPagamento?.toLocaleString("pt-BR")}{" "}
+                Pago em{" "}
+                {pagamentoAtual.dataPagamento &&
+                  formatDataHora(pagamentoAtual.dataPagamento)}{" "}
                 — R$ {formatMoedaExibicao(pagamentoAtual.valor)}
               </p>
               {pagamentoAtual.comprovanteUrl && (
@@ -710,7 +714,7 @@ export default async function ManutencaoDetalhePage({
             {manutencao.historico.map((evento) => (
               <li key={evento.id} className="flex gap-3 text-sm">
                 <span className="w-40 shrink-0 text-slate-400 dark:text-slate-500">
-                  {evento.createdAt.toLocaleString("pt-BR")}
+                  {formatDataHora(evento.createdAt)}
                 </span>
                 <span className="text-slate-700 dark:text-slate-300">
                   {evento.etapa}

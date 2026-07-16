@@ -1,4 +1,5 @@
 import { formatMoedaExibicao } from "@/lib/masks";
+import { formatData } from "@/lib/datahora";
 
 type Imobiliaria = {
   nome: string;
@@ -81,7 +82,7 @@ export default function ReciboPagamentoDocumento({
         <p className="mt-1 text-sm font-medium">{prestador.nome}</p>
         <p className="mt-1 text-xs text-slate-500">
           Data:{" "}
-          {(dataPagamento ?? new Date()).toLocaleDateString("pt-BR")}
+          {formatData(dataPagamento ?? new Date())}
         </p>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { parseMoeda } from "@/lib/masks";
+import { formatDataHora } from "@/lib/datahora";
 import { revalidatePath } from "next/cache";
 
 async function revalidarManutencao(manutencaoId: string) {
@@ -208,7 +209,7 @@ export async function agendarServico(
   await registrarHistorico(
     manutencaoId,
     "Serviço agendado",
-    dataHoraAgendada.toLocaleString("pt-BR")
+    formatDataHora(dataHoraAgendada)
   );
 
   await revalidarManutencao(manutencaoId);

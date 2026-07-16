@@ -1,6 +1,7 @@
 import { formatMoedaExibicao } from "@/lib/masks";
 import { formatEndereco } from "@/lib/endereco";
 import { LABEL_PARTE } from "@/lib/labels";
+import { formatData, formatDataHora } from "@/lib/datahora";
 
 type Imobiliaria = {
   nome: string;
@@ -127,7 +128,7 @@ export default function OrdemServicoDocumento({
         {tipoInicio === "IMEDIATO" ? (
           <p>Início imediato</p>
         ) : (
-          <p>Agendado para {dataHoraAgendada?.toLocaleString("pt-BR")}</p>
+          <p>Agendado para {dataHoraAgendada && formatDataHora(dataHoraAgendada)}</p>
         )}
       </div>
 
@@ -161,7 +162,7 @@ export default function OrdemServicoDocumento({
         <div className="w-64 border-t border-slate-500" />
         <p className="mt-1 text-sm font-medium">{prestador.nome}</p>
         <p className="mt-1 text-xs text-slate-500">
-          Data: {new Date().toLocaleDateString("pt-BR")}
+          Data: {formatData(new Date())}
         </p>
       </div>
     </div>
