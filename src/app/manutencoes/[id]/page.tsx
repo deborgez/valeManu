@@ -236,6 +236,7 @@ export default async function ManutencaoDetalhePage({
                       prestador={pedido.prestador}
                       valorMaoDeObra={pedido.valorMaoDeObra}
                       valorMaterial={pedido.valorMaterial}
+                      percentualAdministracao={pedido.percentualAdministracao}
                       descricaoServico={pedido.descricaoServico}
                       geradoPorNome={pedido.geradoPor.nome}
                     />
