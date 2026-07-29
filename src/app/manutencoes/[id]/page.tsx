@@ -522,6 +522,7 @@ export default async function ManutencaoDetalhePage({
                         prestador={pedidoAprovado.prestador}
                         valorMaoDeObra={pedidoAprovado.valorMaoDeObra}
                         valorMaterial={pedidoAprovado.valorMaterial}
+                        percentualAdministracao={pedidoAprovado.percentualAdministracao}
                         descricaoServico={pedidoAprovado.descricaoServico}
                         tipoInicio={inicioAtual.tipo}
                         dataHoraAgendada={inicioAtual.dataHoraAgendada}

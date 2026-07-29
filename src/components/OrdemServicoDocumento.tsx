@@ -30,6 +30,7 @@ export default function OrdemServicoDocumento({
   prestador,
   valorMaoDeObra,
   valorMaterial,
+  percentualAdministracao,
   descricaoServico,
   tipoInicio,
   dataHoraAgendada,
@@ -48,11 +49,13 @@ export default function OrdemServicoDocumento({
   };
   valorMaoDeObra: number | null;
   valorMaterial: number | null;
+  percentualAdministracao: number;
   descricaoServico: string | null;
   tipoInicio: string;
   dataHoraAgendada: Date | null;
 }) {
-  const total = (valorMaoDeObra ?? 0) + (valorMaterial ?? 0);
+  const subtotal = (valorMaoDeObra ?? 0) + (valorMaterial ?? 0);
+  const total = subtotal * (1 + percentualAdministracao / 100);
 
   return (
     <div className="text-black">
@@ -134,20 +137,8 @@ export default function OrdemServicoDocumento({
 
       <table className="mb-6 w-full text-sm">
         <tbody>
-          <tr className="border-t border-slate-200">
-            <td className="py-2 text-slate-500">Mão de obra</td>
-            <td className="py-2 text-right">
-              R$ {formatMoedaExibicao(valorMaoDeObra)}
-            </td>
-          </tr>
-          <tr className="border-t border-slate-200">
-            <td className="py-2 text-slate-500">Material</td>
-            <td className="py-2 text-right">
-              R$ {formatMoedaExibicao(valorMaterial)}
-            </td>
-          </tr>
           <tr className="border-t border-b border-slate-300 font-semibold">
-            <td className="py-2">Total</td>
+            <td className="py-2">Valor total</td>
             <td className="py-2 text-right">R$ {formatMoedaExibicao(total)}</td>
           </tr>
         </tbody>
