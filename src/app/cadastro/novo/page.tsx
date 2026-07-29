@@ -1,8 +1,8 @@
 import { criarProcesso } from "../actions";
 import NumeroProcessoInput from "@/components/inputs/NumeroProcessoInput";
-import TelefoneInput from "@/components/inputs/TelefoneInput";
 import EnderecoComCep from "@/components/inputs/EnderecoComCep";
 import FiancaFields from "@/components/inputs/FiancaFields";
+import PartesFields from "@/components/inputs/PartesFields";
 
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
@@ -25,35 +25,7 @@ export default function NovoProcessoPage() {
           <NumeroProcessoInput name="numeroProcesso" required className={CAMPO_CLASSE} />
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Locador — Nome completo
-            </label>
-            <input name="locadorNome" required className={CAMPO_CLASSE} />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Locador — Telefone
-            </label>
-            <TelefoneInput name="locadorTelefone" required className={CAMPO_CLASSE} />
-          </div>
-        </div>
-
-        <div className="mb-4 grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Locatário — Nome completo
-            </label>
-            <input name="locatarioNome" required className={CAMPO_CLASSE} />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Locatário — Telefone
-            </label>
-            <TelefoneInput name="locatarioTelefone" required className={CAMPO_CLASSE} />
-          </div>
-        </div>
+        <PartesFields />
 
         <FiancaFields />
 

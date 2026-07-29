@@ -8,7 +8,6 @@ export default async function Sidebar() {
   const linksManutencoes = [
     { href: "/", label: "Painel" },
     { href: "/manutencoes", label: "Quadro de Manutenções" },
-    { href: "/prestadores", label: "Prestadores" },
     { href: "/relatorios", label: "Relatórios" },
   ];
 
@@ -19,6 +18,7 @@ export default async function Sidebar() {
 
   const linksCadastro = [
     { href: "/cadastro", label: "Processos" },
+    { href: "/prestadores", label: "Prestadores" },
   ];
 
   return (
