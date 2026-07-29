@@ -59,6 +59,12 @@ enum InicioServicoStatus {
   INICIADO_ANDAMENTO
 }
 
+enum TipoFianca {
+  FIADOR
+  SEGURO_FIANCA
+  FIANCA_ONEROSA
+}
+
 model Imobiliaria {
   id        String   @id @default("singleton")
   nome      String
@@ -79,6 +85,7 @@ model User {
 
   manutencoesCriadas Manutencao[]      @relation("CriadoPor")
   pedidosGerados     PedidoOrcamento[] @relation("GeradoPor")
+  processosCriados   Processo[]        @relation("ProcessoCriadoPor")
 }
 
 model Prestador {
@@ -224,4 +231,32 @@ model HistoricoEtapa {
 
   manutencaoId String
   manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
+}
+
+model Processo {
+  id             String @id @default(cuid())
+  numeroProcesso String @unique
+
+  locadorNome      String
+  locadorTelefone  String
+  locatarioNome    String
+  locatarioTelefone String
+
+  tipoFianca     TipoFianca
+  fiancaNome     String
+  fiancaTelefone String?
+
+  cep         String?
+  rua         String
+  numero      String?
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  criadoPorId String
+  criadoPor   User   @relation("ProcessoCriadoPor", fields: [criadoPorId], references: [id])
 }

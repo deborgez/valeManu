@@ -27,3 +27,9 @@ export const LABEL_PAGAMENTO_STATUS: Record<string, string> = {
   PENDENTE: "Pendente",
   PAGO: "Pago",
 };
+
+export const LABEL_TIPO_FIANCA: Record<string, string> = {
+  FIADOR: "Fiador",
+  SEGURO_FIANCA: "Seguro Fiança",
+  FIANCA_ONEROSA: "Fiança Onerosa",
+};
