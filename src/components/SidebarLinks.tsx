@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function NavLinks({
+export default function SidebarLinks({
   links,
 }: {
   links: { href: string; label: string }[];
@@ -11,7 +11,7 @@ export default function NavLinks({
   const pathname = usePathname();
 
   return (
-    <>
+    <div className="flex flex-col gap-0.5">
       {links.map((link) => {
         const ativo =
           link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
@@ -19,16 +19,16 @@ export default function NavLinks({
           <Link
             key={link.href}
             href={link.href}
-            className={`border-b-2 pb-0.5 text-sm ${
+            className={`rounded px-3 py-1.5 text-sm ${
               ativo
-                ? "border-slate-900 font-medium text-slate-900 dark:border-slate-100 dark:text-slate-100"
-                : "border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                ? "bg-slate-900 font-medium text-white dark:bg-slate-700 dark:text-white"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
             }`}
           >
             {link.label}
           </Link>
         );
       })}
-    </>
+    </div>
   );
 }
