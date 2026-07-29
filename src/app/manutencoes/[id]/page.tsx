@@ -37,6 +37,7 @@ import OrcamentoDocumento from "@/components/OrcamentoDocumento";
 import OrdemServicoDocumento from "@/components/OrdemServicoDocumento";
 import ReciboPagamentoDocumento from "@/components/ReciboPagamentoDocumento";
 import ContraofertaForm from "@/components/ContraofertaForm";
+import TaxaAdministracaoInput from "@/components/TaxaAdministracaoInput";
 import { formatDataHora } from "@/lib/datahora";
 import RevelarConteudo from "@/components/RevelarConteudo";
 
@@ -362,7 +363,7 @@ export default async function ManutencaoDetalhePage({
                 key={pedido.id}
                 className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 p-4"
               >
-                <div className="text-sm">
+                <div className="mb-3 text-sm">
                   <p className="font-medium">{pedido.prestador.nome}</p>
                   <p className="text-slate-500 dark:text-slate-400">
                     Mão de obra: R$ {formatMoedaExibicao(pedido.valorMaoDeObra)} |
@@ -379,33 +380,41 @@ export default async function ManutencaoDetalhePage({
                     </p>
                   )}
                 </div>
-                <div className="flex flex-wrap justify-end gap-2">
+                <div className="flex flex-wrap items-end justify-between gap-3">
                   <form
-                    action={async () => {
+                    id={`aprovar-${pedido.id}`}
+                    action={async (formData: FormData) => {
                       "use server";
-                      await aprovarPedido(pedido.id, manutencao.id);
+                      await aprovarPedido(pedido.id, manutencao.id, formData);
                     }}
                   >
+                    <TaxaAdministracaoInput
+                      valorMaoDeObra={pedido.valorMaoDeObra}
+                      valorMaterial={pedido.valorMaterial}
+                      percentualInicial={pedido.percentualAdministracao}
+                    />
+                  </form>
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="submit"
+                      form={`aprovar-${pedido.id}`}
                       className="rounded bg-green-600 dark:bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 dark:hover:bg-green-800"
                     >
                       Aprovado
                     </button>
-                  </form>
-                  <form
-                    action={async () => {
-                      "use server";
-                      await reprovarPedido(pedido.id, manutencao.id);
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      className="rounded bg-red-600 dark:bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-800"
+                    <form
+                      action={async () => {
+                        "use server";
+                        await reprovarPedido(pedido.id, manutencao.id);
+                      }}
                     >
-                      Reprovado
-                    </button>
-                  </form>
+                      <button
+                        type="submit"
+                        className="rounded bg-red-600 dark:bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-800"
+                      >
+                        Reprovado
+                      </button>
+                    </form>
                   {!pedido.contraOfertaRecusada && (
                     <ContraofertaForm
                       action={async (formData: FormData) => {
@@ -414,6 +423,7 @@ export default async function ManutencaoDetalhePage({
                       }}
                     />
                   )}
+                  </div>
                 </div>
               </div>
             ))}

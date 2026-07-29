@@ -141,6 +141,8 @@ model PedidoOrcamento {
   contraOfertaObservacao     String?
   contraOfertaRecusada       Boolean @default(false)
 
+  percentualAdministracao Float @default(15)
+
   manutencaoId String
   manutencao   Manutencao @relation(fields: [manutencaoId], references: [id])
 

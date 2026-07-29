@@ -84,10 +84,19 @@ export async function marcarOrcamentoNaoEntregue(
   await revalidarManutencao(manutencaoId);
 }
 
-export async function aprovarPedido(pedidoId: string, manutencaoId: string) {
+export async function aprovarPedido(
+  pedidoId: string,
+  manutencaoId: string,
+  formData: FormData
+) {
+  const percentualBruto = Number(formData.get("percentualAdministracao"));
+  const percentualAdministracao = Number.isFinite(percentualBruto)
+    ? percentualBruto
+    : 15;
+
   const pedido = await prisma.pedidoOrcamento.update({
     where: { id: pedidoId },
-    data: { status: "APROVADO" },
+    data: { status: "APROVADO", percentualAdministracao },
     include: { prestador: true },
   });
 
