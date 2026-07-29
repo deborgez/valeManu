@@ -212,40 +212,64 @@ export default async function ManutencaoDetalhePage({
         )}
 
         <div className="flex flex-col gap-2">
-          {manutencao.pedidosOrcamento.map((pedido) => (
-            <div
-              key={pedido.id}
-              className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
-            >
-              <div>
-                <span className="font-medium">{pedido.prestador.nome}</span>{" "}
-                <span className="text-slate-400 dark:text-slate-500">
-                  — {LABEL_PEDIDO_STATUS[pedido.status]}
-                </span>
+          {manutencao.pedidosOrcamento.map((pedido) => {
+            const inicioDoPedido = manutencao.inicioServicos.find(
+              (i) => i.pedidoOrcamentoAprovadoId === pedido.id
+            );
+            return (
+              <div
+                key={pedido.id}
+                className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+              >
+                <div>
+                  <span className="font-medium">{pedido.prestador.nome}</span>{" "}
+                  <span className="text-slate-400 dark:text-slate-500">
+                    — {LABEL_PEDIDO_STATUS[pedido.status]}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pedido.status !== "AGUARDANDO_ENTREGA" && (
+                    <ImpressaoModal label="Imprimir orçamento">
+                      <OrcamentoDocumento
+                        imobiliaria={imobiliaria}
+                        numeroProcesso={manutencao.numeroProcesso}
+                        descricaoProblema={manutencao.descricaoProblema}
+                        natureza={manutencao.natureza}
+                        competencia={manutencao.competencia}
+                        endereco={manutencao}
+                        prestador={pedido.prestador}
+                        valorMaoDeObra={pedido.valorMaoDeObra}
+                        valorMaterial={pedido.valorMaterial}
+                        percentualAdministracao={pedido.percentualAdministracao}
+                        descricaoServico={pedido.descricaoServico}
+                        geradoPorNome={pedido.geradoPor.nome}
+                      />
+                    </ImpressaoModal>
+                  )}
+                  {inicioDoPedido && (
+                    <ImpressaoModal label="Imprimir OS">
+                      <OrdemServicoDocumento
+                        imobiliaria={imobiliaria}
+                        numeroProcesso={manutencao.numeroProcesso}
+                        descricaoProblema={manutencao.descricaoProblema}
+                        natureza={manutencao.natureza}
+                        competencia={manutencao.competencia}
+                        endereco={manutencao}
+                        prestador={pedido.prestador}
+                        valorMaoDeObra={pedido.valorMaoDeObra}
+                        valorMaterial={pedido.valorMaterial}
+                        percentualAdministracao={pedido.percentualAdministracao}
+                        descricaoServico={pedido.descricaoServico}
+                        tipoInicio={inicioDoPedido.tipo}
+                        dataHoraAgendada={inicioDoPedido.dataHoraAgendada}
+                      />
+                    </ImpressaoModal>
+                  )}
+                  <CopyLinkButton link={`${baseUrl}/orcamento/${pedido.token}`} />
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {pedido.status !== "AGUARDANDO_ENTREGA" && (
-                  <ImpressaoModal label="Imprimir">
-                    <OrcamentoDocumento
-                      imobiliaria={imobiliaria}
-                      numeroProcesso={manutencao.numeroProcesso}
-                      descricaoProblema={manutencao.descricaoProblema}
-                      natureza={manutencao.natureza}
-                      competencia={manutencao.competencia}
-                      endereco={manutencao}
-                      prestador={pedido.prestador}
-                      valorMaoDeObra={pedido.valorMaoDeObra}
-                      valorMaterial={pedido.valorMaterial}
-                      percentualAdministracao={pedido.percentualAdministracao}
-                      descricaoServico={pedido.descricaoServico}
-                      geradoPorNome={pedido.geradoPor.nome}
-                    />
-                  </ImpressaoModal>
-                )}
-                <CopyLinkButton link={`${baseUrl}/orcamento/${pedido.token}`} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {manutencao.pedidosOrcamento.length === 0 && (
             <p className="text-sm text-slate-400 dark:text-slate-500">
               Nenhum pedido de orçamento gerado ainda.
