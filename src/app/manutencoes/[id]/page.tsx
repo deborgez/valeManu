@@ -226,6 +226,23 @@ export default async function ManutencaoDetalhePage({
                   <span className="text-slate-400 dark:text-slate-500">
                     — {LABEL_PEDIDO_STATUS[pedido.status]}
                   </span>
+                  {pedido.status === "APROVADO" && (
+                    <span
+                      className={`ml-2 rounded px-1.5 py-0.5 text-xs font-medium ${
+                        !inicioDoPedido
+                          ? "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                          : inicioDoPedido.status === "AGENDADO"
+                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-400"
+                            : "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-400"
+                      }`}
+                    >
+                      {!inicioDoPedido
+                        ? "Não iniciado"
+                        : inicioDoPedido.status === "AGENDADO"
+                          ? `Agendado para ${formatDataHora(inicioDoPedido.dataHoraAgendada!)}`
+                          : "Iniciado"}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {pedido.status !== "AGUARDANDO_ENTREGA" && (
