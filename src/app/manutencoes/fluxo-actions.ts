@@ -225,6 +225,7 @@ export async function agendarServico(
 }
 
 export async function concluirServico(
+  inicioServicoId: string,
   manutencaoId: string,
   formData: FormData
 ) {
@@ -233,8 +234,13 @@ export async function concluirServico(
   const nomes = formData.getAll("fotosNome") as string[];
   const tipos = formData.getAll("fotosTipo") as string[];
 
+  const inicioServico = await prisma.inicioServico.findUniqueOrThrow({
+    where: { id: inicioServicoId },
+    include: { pedidoOrcamentoAprovado: { include: { prestador: true } } },
+  });
+
   const conclusao = await prisma.conclusaoServico.create({
-    data: { manutencaoId, observacoes },
+    data: { manutencaoId, inicioServicoId, observacoes },
   });
 
   for (let i = 0; i < urls.length; i++) {
@@ -249,12 +255,25 @@ export async function concluirServico(
     });
   }
 
-  await prisma.manutencao.update({
-    where: { id: manutencaoId },
-    data: { status: "CONCLUIDA" },
+  // A manutenção só é dada como concluída quando todas as rodadas
+  // iniciadas (aprovadas + com serviço iniciado/agendado) já tiverem
+  // sua própria conclusão registrada.
+  const rodadasPendentes = await prisma.inicioServico.count({
+    where: { manutencaoId, conclusao: null },
   });
 
-  await registrarHistorico(manutencaoId, "Serviço concluído", observacoes);
+  if (rodadasPendentes === 0) {
+    await prisma.manutencao.update({
+      where: { id: manutencaoId },
+      data: { status: "CONCLUIDA" },
+    });
+  }
+
+  await registrarHistorico(
+    manutencaoId,
+    "Serviço concluído",
+    `${inicioServico.pedidoOrcamentoAprovado.prestador.nome}${observacoes ? ` — ${observacoes}` : ""}`
+  );
 
   await revalidarManutencao(manutencaoId);
 }

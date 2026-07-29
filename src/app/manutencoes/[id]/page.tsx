@@ -64,12 +64,11 @@ export default async function ManutencaoDetalhePage({
         orderBy: { createdAt: "asc" },
       },
       inicioServicos: {
-        include: { pedidoOrcamentoAprovado: true },
+        include: {
+          pedidoOrcamentoAprovado: { include: { prestador: true } },
+          conclusao: { include: { anexos: true } },
+        },
         orderBy: { createdAt: "desc" },
-      },
-      conclusoesServico: {
-        include: { anexos: true },
-        orderBy: { dataConclusao: "desc" },
       },
       pagamentos: { orderBy: { createdAt: "desc" } },
       historico: { orderBy: { createdAt: "asc" } },
@@ -78,8 +77,6 @@ export default async function ManutencaoDetalhePage({
 
   if (!manutencao) notFound();
 
-  const inicioServicoAtual = manutencao.inicioServicos[0] ?? null;
-  const conclusaoServicoAtual = manutencao.conclusoesServico[0] ?? null;
   const pagamentoAtual = manutencao.pagamentos[0] ?? null;
 
   const prestadores = await prisma.prestador.findMany({
@@ -231,16 +228,20 @@ export default async function ManutencaoDetalhePage({
                       className={`ml-2 rounded px-1.5 py-0.5 text-xs font-medium ${
                         !inicioDoPedido
                           ? "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
-                          : inicioDoPedido.status === "AGENDADO"
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-400"
-                            : "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-400"
+                          : inicioDoPedido.conclusao
+                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400"
+                            : inicioDoPedido.status === "AGENDADO"
+                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-400"
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-400"
                       }`}
                     >
                       {!inicioDoPedido
                         ? "Não iniciado"
-                        : inicioDoPedido.status === "AGENDADO"
-                          ? `Agendado para ${formatDataHora(inicioDoPedido.dataHoraAgendada!)}`
-                          : "Iniciado"}
+                        : inicioDoPedido.conclusao
+                          ? "Concluído"
+                          : inicioDoPedido.status === "AGENDADO"
+                            ? `Agendado para ${formatDataHora(inicioDoPedido.dataHoraAgendada!)}`
+                            : "Iniciado"}
                     </span>
                   )}
                 </div>
@@ -489,8 +490,11 @@ export default async function ManutencaoDetalhePage({
         </section>
       )}
 
-      {/* Início do Serviço */}
+      {/* Início do Serviço (disparo de uma nova rodada) */}
       {pedidoAprovado &&
+        !manutencao.inicioServicos.some(
+          (i) => i.pedidoOrcamentoAprovadoId === pedidoAprovado.id
+        ) &&
         ["APROVADA", "AGENDADA", "EM_ANDAMENTO"].includes(manutencao.status) && (
         <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
           <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -500,123 +504,156 @@ export default async function ManutencaoDetalhePage({
             Orçamento aprovado: {pedidoAprovado.prestador.nome}
           </p>
 
-          {(() => {
-            const inicioAtual =
-              inicioServicoAtual?.pedidoOrcamentoAprovadoId === pedidoAprovado.id
-                ? inicioServicoAtual
-                : null;
+          <div className="flex gap-3">
+            <form
+              action={async () => {
+                "use server";
+                await iniciarServicoImediato(manutencao.id, pedidoAprovado.id);
+              }}
+            >
+              <button
+                type="submit"
+                className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+              >
+                Início imediato
+              </button>
+            </form>
+            <AgendarServicoForm
+              action={async (formData: FormData) => {
+                "use server";
+                await agendarServico(manutencao.id, pedidoAprovado.id, formData);
+              }}
+            />
+          </div>
+        </section>
+      )}
 
-            return (
-              <>
-                {!inicioAtual && (
-                  <div className="flex gap-3">
-                    <form
-                      action={async () => {
-                        "use server";
-                        await iniciarServicoImediato(manutencao.id, pedidoAprovado.id);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
-                      >
-                        Início imediato
-                      </button>
-                    </form>
-                    <AgendarServicoForm
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await agendarServico(
-                          manutencao.id,
-                          pedidoAprovado.id,
-                          formData
-                        );
-                      }}
+      {/* Serviços iniciados: um por rodada de aprovação, cada um com sua própria conclusão */}
+      {manutencao.inicioServicos.length > 0 && (
+        <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Serviços Iniciados
+          </h2>
+          <div className="flex flex-col gap-4">
+            {[...manutencao.inicioServicos].reverse().map((inicio) => (
+              <div
+                key={inicio.id}
+                className={`rounded border p-4 ${
+                  inicio.conclusao
+                    ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950"
+                    : "border-slate-100 dark:border-slate-700"
+                }`}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    {inicio.pedidoOrcamentoAprovado.prestador.nome}
+                  </p>
+                  <ImpressaoModal label="Imprimir OS">
+                    <OrdemServicoDocumento
+                      imobiliaria={imobiliaria}
+                      numeroProcesso={manutencao.numeroProcesso}
+                      descricaoProblema={manutencao.descricaoProblema}
+                      natureza={manutencao.natureza}
+                      competencia={manutencao.competencia}
+                      endereco={manutencao}
+                      prestador={inicio.pedidoOrcamentoAprovado.prestador}
+                      valorMaoDeObra={inicio.pedidoOrcamentoAprovado.valorMaoDeObra}
+                      valorMaterial={inicio.pedidoOrcamentoAprovado.valorMaterial}
+                      percentualAdministracao={
+                        inicio.pedidoOrcamentoAprovado.percentualAdministracao
+                      }
+                      descricaoServico={inicio.pedidoOrcamentoAprovado.descricaoServico}
+                      tipoInicio={inicio.tipo}
+                      dataHoraAgendada={inicio.dataHoraAgendada}
                     />
-                  </div>
-                )}
+                  </ImpressaoModal>
+                </div>
 
-                {inicioAtual?.status === "AGENDADO" && (
-                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                {!inicio.conclusao && inicio.status === "AGENDADO" && (
+                  <p className="mb-2 text-sm text-amber-700 dark:text-amber-400">
                     Agendado para{" "}
-                    {inicioAtual.dataHoraAgendada &&
-                      formatDataHora(inicioAtual.dataHoraAgendada)}
+                    {inicio.dataHoraAgendada && formatDataHora(inicio.dataHoraAgendada)}
                   </p>
                 )}
-
-                {inicioAtual?.status === "INICIADO_ANDAMENTO" && (
-                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                {!inicio.conclusao && inicio.status === "INICIADO_ANDAMENTO" && (
+                  <p className="mb-2 text-sm text-blue-700 dark:text-blue-400">
                     Iniciado - em andamento
                   </p>
                 )}
 
-                {inicioAtual && (
-                  <div className="mt-3">
-                    <ImpressaoModal label="Imprimir Ordem de Serviço">
-                      <OrdemServicoDocumento
-                        imobiliaria={imobiliaria}
-                        numeroProcesso={manutencao.numeroProcesso}
-                        descricaoProblema={manutencao.descricaoProblema}
-                        natureza={manutencao.natureza}
-                        competencia={manutencao.competencia}
-                        endereco={manutencao}
-                        prestador={pedidoAprovado.prestador}
-                        valorMaoDeObra={pedidoAprovado.valorMaoDeObra}
-                        valorMaterial={pedidoAprovado.valorMaterial}
-                        percentualAdministracao={pedidoAprovado.percentualAdministracao}
-                        descricaoServico={pedidoAprovado.descricaoServico}
-                        tipoInicio={inicioAtual.tipo}
-                        dataHoraAgendada={inicioAtual.dataHoraAgendada}
-                      />
-                    </ImpressaoModal>
+                {!inicio.conclusao ? (
+                  <form
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await concluirServico(inicio.id, manutencao.id, formData);
+                    }}
+                    className="flex flex-col gap-3"
+                  >
+                    <textarea
+                      name="observacoes"
+                      placeholder="Observações (opcional)"
+                      rows={2}
+                      className="rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
+                    />
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        Fotos do serviço concluído (opcional)
+                      </label>
+                      <BlobUploadInput name="fotos" multiple accept="image/*,video/*" />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+                    >
+                      Concluir Serviço
+                    </button>
+                  </form>
+                ) : (
+                  <div>
+                    <p className="text-sm text-green-800 dark:text-green-400">
+                      Concluído em {formatDataHora(inicio.conclusao.dataConclusao)}
+                    </p>
+                    {inicio.conclusao.observacoes && (
+                      <p className="mt-1 text-sm text-green-800 dark:text-green-400">
+                        {inicio.conclusao.observacoes}
+                      </p>
+                    )}
+                    {inicio.conclusao.anexos.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {inicio.conclusao.anexos.map((anexo) =>
+                          anexo.tipo === "VIDEO" ? (
+                            <video
+                              key={anexo.id}
+                              src={anexo.path}
+                              controls
+                              className="h-24 w-24 rounded object-cover"
+                            />
+                          ) : (
+                            <a key={anexo.id} href={anexo.path} target="_blank" rel="noreferrer">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={anexo.path}
+                                alt={anexo.filename}
+                                className="h-24 w-24 rounded object-cover"
+                              />
+                            </a>
+                          )
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
-              </>
-            );
-          })()}
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
-      {/* Conclusão do Serviço */}
-      {manutencao.status === "EM_ANDAMENTO" && (
-          <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
-            <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Conclusão do Serviço
-            </h2>
-            <form
-              action={async (formData: FormData) => {
-                "use server";
-                await concluirServico(manutencao.id, formData);
-              }}
-              className="flex flex-col gap-3"
-            >
-              <textarea
-                name="observacoes"
-                placeholder="Observações (opcional)"
-                rows={3}
-                className="rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
-              />
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Fotos do serviço concluído (opcional)
-                </label>
-                <BlobUploadInput name="fotos" multiple accept="image/*,video/*" />
-              </div>
-              <button
-                type="submit"
-                className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
-              >
-                Concluir Serviço
-              </button>
-            </form>
-          </section>
-        )}
-
-      {manutencao.status === "CONCLUIDA" && conclusaoServicoAtual && (
+      {manutencao.status === "CONCLUIDA" && (
         <section className="mb-6 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 p-6">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-green-900 dark:text-green-300">
-              Serviço Concluído
+              Todos os serviços foram concluídos
             </h2>
             <ReabrirServicoForm
               action={async (formData: FormData) => {
@@ -625,38 +662,6 @@ export default async function ManutencaoDetalhePage({
               }}
             />
           </div>
-          <p className="text-sm text-green-800 dark:text-green-400">
-            Em{" "}
-            {formatDataHora(conclusaoServicoAtual.dataConclusao)}
-          </p>
-          {conclusaoServicoAtual.observacoes && (
-            <p className="mt-1 text-sm text-green-800 dark:text-green-400">
-              {conclusaoServicoAtual.observacoes}
-            </p>
-          )}
-          {conclusaoServicoAtual.anexos.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {conclusaoServicoAtual.anexos.map((anexo) =>
-                anexo.tipo === "VIDEO" ? (
-                  <video
-                    key={anexo.id}
-                    src={anexo.path}
-                    controls
-                    className="h-24 w-24 rounded object-cover"
-                  />
-                ) : (
-                  <a key={anexo.id} href={anexo.path} target="_blank" rel="noreferrer">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={anexo.path}
-                      alt={anexo.filename}
-                      className="h-24 w-24 rounded object-cover"
-                    />
-                  </a>
-                )
-              )}
-            </div>
-          )}
         </section>
       )}
 
