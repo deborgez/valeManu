@@ -237,26 +237,33 @@ model Processo {
   id             String @id @default(cuid())
   numeroProcesso String @unique
 
-  locadorNome      String
-  locadorTelefone  String
-  locatarioNome    String
-  locatarioTelefone String
-
-  tipoFianca     TipoFianca
-  fiancaNome     String
+  tipoFianca     TipoFianca?
+  fiancaNome     String?
   fiancaTelefone String?
 
   cep         String?
-  rua         String
+  rua         String?
   numero      String?
   complemento String?
-  bairro      String
-  cidade      String
-  estado      String
+  bairro      String?
+  cidade      String?
+  estado      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   criadoPorId String
   criadoPor   User   @relation("ProcessoCriadoPor", fields: [criadoPorId], references: [id])
+
+  partes ParteProcesso[]
+}
+
+model ParteProcesso {
+  id       String           @id @default(cuid())
+  tipo     ParteInteressada
+  nome     String
+  telefone String
+
+  processoId String
+  processo   Processo @relation(fields: [processoId], references: [id])
 }

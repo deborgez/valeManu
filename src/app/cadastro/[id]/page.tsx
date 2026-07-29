@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
-import { LABEL_TIPO_FIANCA } from "@/lib/labels";
+import { LABEL_TIPO_FIANCA, LABEL_PARTE } from "@/lib/labels";
 import { formatData } from "@/lib/datahora";
 
 export default async function ProcessoDetalhePage({
@@ -13,7 +13,7 @@ export default async function ProcessoDetalhePage({
 
   const processo = await prisma.processo.findUnique({
     where: { id },
-    include: { criadoPor: true },
+    include: { criadoPor: true, partes: true },
   });
 
   if (!processo) notFound();
@@ -32,26 +32,35 @@ export default async function ProcessoDetalhePage({
           </p>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="mb-1 text-slate-400 dark:text-slate-500">Locador</p>
-            <p className="text-slate-700 dark:text-slate-300">{processo.locadorNome}</p>
-            <p className="text-slate-500 dark:text-slate-400">{processo.locadorTelefone}</p>
-          </div>
-          <div>
-            <p className="mb-1 text-slate-400 dark:text-slate-500">Locatário</p>
-            <p className="text-slate-700 dark:text-slate-300">{processo.locatarioNome}</p>
-            <p className="text-slate-500 dark:text-slate-400">{processo.locatarioTelefone}</p>
-          </div>
+        <div className="mb-4">
+          <p className="mb-2 text-sm text-slate-400 dark:text-slate-500">Locador(es) e Locatário(s)</p>
+          {processo.partes.length === 0 ? (
+            <p className="text-sm text-slate-400 dark:text-slate-500">Nenhuma parte cadastrada.</p>
+          ) : (
+            <ul className="flex flex-col gap-1 text-sm">
+              {processo.partes.map((parte) => (
+                <li key={parte.id} className="text-slate-700 dark:text-slate-300">
+                  <span className="font-medium">{LABEL_PARTE[parte.tipo]}: </span>
+                  {parte.nome} — {parte.telefone}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="mb-4 text-sm">
           <p className="mb-1 text-slate-400 dark:text-slate-500">
-            {LABEL_TIPO_FIANCA[processo.tipoFianca]}
+            {processo.tipoFianca ? LABEL_TIPO_FIANCA[processo.tipoFianca] : "Fiança"}
           </p>
-          <p className="text-slate-700 dark:text-slate-300">{processo.fiancaNome}</p>
-          {processo.fiancaTelefone && (
-            <p className="text-slate-500 dark:text-slate-400">{processo.fiancaTelefone}</p>
+          {processo.fiancaNome ? (
+            <>
+              <p className="text-slate-700 dark:text-slate-300">{processo.fiancaNome}</p>
+              {processo.fiancaTelefone && (
+                <p className="text-slate-500 dark:text-slate-400">{processo.fiancaTelefone}</p>
+              )}
+            </>
+          ) : (
+            <p className="text-slate-400 dark:text-slate-500">Não informada.</p>
           )}
         </div>
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 
 export default async function CadastroPage() {
   const processos = await prisma.processo.findMany({
+    include: { partes: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -34,30 +35,34 @@ export default async function CadastroPage() {
             </tr>
           </thead>
           <tbody>
-            {processos.map((p) => (
-              <tr
-                key={p.id}
-                className="border-t border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900"
-              >
-                <td className="px-4 py-2">
-                  <Link href={`/cadastro/${p.id}`} className="font-medium hover:underline">
-                    {p.numeroProcesso}
-                  </Link>
-                </td>
-                <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
-                  {formatEndereco(p)}
-                </td>
-                <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
-                  {p.locadorNome}
-                </td>
-                <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
-                  {p.locatarioNome}
-                </td>
-                <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
-                  {LABEL_TIPO_FIANCA[p.tipoFianca]}
-                </td>
-              </tr>
-            ))}
+            {processos.map((p) => {
+              const locadores = p.partes.filter((parte) => parte.tipo === "LOCADOR");
+              const locatarios = p.partes.filter((parte) => parte.tipo === "LOCATARIO");
+              return (
+                <tr
+                  key={p.id}
+                  className="border-t border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900"
+                >
+                  <td className="px-4 py-2">
+                    <Link href={`/cadastro/${p.id}`} className="font-medium hover:underline">
+                      {p.numeroProcesso}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                    {formatEndereco(p)}
+                  </td>
+                  <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                    {locadores.map((l) => l.nome).join(", ") || "—"}
+                  </td>
+                  <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                    {locatarios.map((l) => l.nome).join(", ") || "—"}
+                  </td>
+                  <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                    {p.tipoFianca ? LABEL_TIPO_FIANCA[p.tipoFianca] : "—"}
+                  </td>
+                </tr>
+              );
+            })}
             {processos.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
