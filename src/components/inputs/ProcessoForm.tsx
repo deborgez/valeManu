@@ -62,8 +62,15 @@ export default function ProcessoForm({
 
       {/* Partes */}
       <div className="mb-6">
-        <div className="mb-2">
-          <ParteModal onSalvar={(p) => setPartes((atual) => [...atual, p])} />
+        <div className="mb-2 flex gap-2">
+          <ParteModal
+            tipo="LOCADOR"
+            onSalvar={(p) => setPartes((atual) => [...atual, p])}
+          />
+          <ParteModal
+            tipo="LOCATARIO"
+            onSalvar={(p) => setPartes((atual) => [...atual, p])}
+          />
         </div>
         {partes.length > 0 && (
           <ul className="flex flex-col gap-2">
