@@ -5,8 +5,9 @@ import NumeroProcessoInput from "./NumeroProcessoInput";
 import ImovelModal, { type Endereco } from "./ImovelModal";
 import ParteModal, { type Parte } from "./ParteModal";
 import FiancaModal, { type Fianca } from "./FiancaModal";
+import CaptadorModal from "./CaptadorModal";
 import { formatEndereco } from "@/lib/endereco";
-import { LABEL_TIPO_FIANCA, LABEL_PARTE } from "@/lib/labels";
+import { LABEL_TIPO_FIANCA } from "@/lib/labels";
 
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
@@ -24,10 +25,18 @@ export default function ProcessoForm({
   const [endereco, setEndereco] = useState<Endereco | null>(null);
   const [partes, setPartes] = useState<Parte[]>([]);
   const [fianca, setFianca] = useState<Fianca | null>(null);
+  const [captador, setCaptador] = useState<string | null>(null);
 
   function removerParte(index: number) {
     setPartes((atual) => atual.filter((_, i) => i !== index));
   }
+
+  const locadores = partes
+    .map((p, i) => ({ ...p, i }))
+    .filter((p) => p.tipo === "LOCADOR");
+  const locatarios = partes
+    .map((p, i) => ({ ...p, i }))
+    .filter((p) => p.tipo === "LOCATARIO");
 
   const faltando = [
     !endereco && "imóvel",
@@ -58,7 +67,11 @@ export default function ProcessoForm({
           <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Captador
           </label>
-          <input name="captador" className={CAMPO_CLASSE} />
+          <CaptadorModal valorAtual={captador} onSalvar={setCaptador} />
+          {captador && (
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{captador}</p>
+          )}
+          <input type="hidden" name="captador" value={captador ?? ""} />
         </div>
       </section>
 
@@ -90,27 +103,21 @@ export default function ProcessoForm({
       </section>
 
       <section className={SECAO_CLASSE}>
-        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-          Locador e Locatário
-        </h2>
-        <div className="flex gap-2">
-          <ParteModal tipo="LOCADOR" onSalvar={(p) => setPartes((atual) => [...atual, p])} />
-          <ParteModal tipo="LOCATARIO" onSalvar={(p) => setPartes((atual) => [...atual, p])} />
-        </div>
-        {partes.length > 0 ? (
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Locador</h2>
+        <ParteModal tipo="LOCADOR" onSalvar={(p) => setPartes((atual) => [...atual, p])} />
+        {locadores.length > 0 ? (
           <ul className="mt-3 flex flex-col gap-2">
-            {partes.map((p, i) => (
+            {locadores.map((p) => (
               <li
-                key={i}
+                key={p.i}
                 className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
               >
                 <span>
-                  <span className="font-medium">{LABEL_PARTE[p.tipo]}</span> — {p.nome} (
-                  {p.telefone})
+                  {p.nome} ({p.telefone})
                 </span>
                 <button
                   type="button"
-                  onClick={() => removerParte(i)}
+                  onClick={() => removerParte(p.i)}
                   className="text-xs text-red-600 dark:text-red-400 underline"
                 >
                   Remover
@@ -123,7 +130,42 @@ export default function ProcessoForm({
           </ul>
         ) : (
           <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
-            Nenhuma parte adicionada ainda.
+            Nenhum locador adicionado ainda.
+          </p>
+        )}
+      </section>
+
+      <section className={SECAO_CLASSE}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          Locatário
+        </h2>
+        <ParteModal tipo="LOCATARIO" onSalvar={(p) => setPartes((atual) => [...atual, p])} />
+        {locatarios.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-2">
+            {locatarios.map((p) => (
+              <li
+                key={p.i}
+                className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+              >
+                <span>
+                  {p.nome} ({p.telefone})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removerParte(p.i)}
+                  className="text-xs text-red-600 dark:text-red-400 underline"
+                >
+                  Remover
+                </button>
+                <input type="hidden" name="parteTipo" value={p.tipo} />
+                <input type="hidden" name="parteNome" value={p.nome} />
+                <input type="hidden" name="parteTelefone" value={p.telefone} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
+            Nenhum locatário adicionado ainda.
           </p>
         )}
       </section>
