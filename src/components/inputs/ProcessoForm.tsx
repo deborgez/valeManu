@@ -8,6 +8,12 @@ import FiancaModal, { type Fianca } from "./FiancaModal";
 import { formatEndereco } from "@/lib/endereco";
 import { LABEL_TIPO_FIANCA, LABEL_PARTE } from "@/lib/labels";
 
+const CAMPO_CLASSE =
+  "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
+
+const SECAO_CLASSE =
+  "mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6";
+
 export default function ProcessoForm({
   action,
 }: {
@@ -21,54 +27,52 @@ export default function ProcessoForm({
     setPartes((atual) => atual.filter((_, i) => i !== index));
   }
 
+  const faltando = [
+    !endereco && "imóvel",
+    partes.length === 0 && "ao menos um locador ou locatário",
+  ].filter(Boolean) as string[];
+
   return (
-    <form
-      action={action}
-      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6"
-    >
-      <div className="mb-4 grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Número do Processo
-          </label>
-          <NumeroProcessoInput
-            name="numeroProcesso"
-            required
-            className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
-          />
+    <form action={action}>
+      <section className={SECAO_CLASSE}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          Dados do Processo
+        </h2>
+        <div className="mb-4 grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Número do Processo
+            </label>
+            <NumeroProcessoInput name="numeroProcesso" required className={CAMPO_CLASSE} />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Unidade
+            </label>
+            <input name="unidade" className={CAMPO_CLASSE} />
+          </div>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Unidade
+            Captador
           </label>
-          <input
-            name="unidade"
-            className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
-          />
+          <input name="captador" className={CAMPO_CLASSE} />
         </div>
-      </div>
+      </section>
 
-      <div className="mb-6">
-        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-          Captador
-        </label>
-        <input
-          name="captador"
-          className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
-        />
-      </div>
-
-      {/* Imóvel */}
-      <div className="mb-6">
-        <div className="mb-2 flex items-center gap-3">
-          <ImovelModal valorAtual={endereco} onSalvar={setEndereco} />
-          {endereco && (
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {endereco.codigoImovel && `Código ${endereco.codigoImovel} — `}
-              {formatEndereco(endereco)}
-            </p>
-          )}
-        </div>
+      <section className={SECAO_CLASSE}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Imóvel</h2>
+        <ImovelModal valorAtual={endereco} onSalvar={setEndereco} />
+        {endereco ? (
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+            {endereco.codigoImovel && `Código ${endereco.codigoImovel} — `}
+            {formatEndereco(endereco)}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
+            Nenhum imóvel cadastrado ainda.
+          </p>
+        )}
         {endereco && (
           <>
             <input type="hidden" name="codigoImovel" value={endereco.codigoImovel} />
@@ -81,22 +85,18 @@ export default function ProcessoForm({
             <input type="hidden" name="estado" value={endereco.estado} />
           </>
         )}
-      </div>
+      </section>
 
-      {/* Partes */}
-      <div className="mb-6">
-        <div className="mb-2 flex gap-2">
-          <ParteModal
-            tipo="LOCADOR"
-            onSalvar={(p) => setPartes((atual) => [...atual, p])}
-          />
-          <ParteModal
-            tipo="LOCATARIO"
-            onSalvar={(p) => setPartes((atual) => [...atual, p])}
-          />
+      <section className={SECAO_CLASSE}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          Locador e Locatário
+        </h2>
+        <div className="flex gap-2">
+          <ParteModal tipo="LOCADOR" onSalvar={(p) => setPartes((atual) => [...atual, p])} />
+          <ParteModal tipo="LOCATARIO" onSalvar={(p) => setPartes((atual) => [...atual, p])} />
         </div>
-        {partes.length > 0 && (
-          <ul className="flex flex-col gap-2">
+        {partes.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-2">
             {partes.map((p, i) => (
               <li
                 key={i}
@@ -119,20 +119,29 @@ export default function ProcessoForm({
               </li>
             ))}
           </ul>
+        ) : (
+          <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
+            Nenhuma parte adicionada ainda.
+          </p>
         )}
-      </div>
+      </section>
 
-      {/* Fiança */}
-      <div className="mb-6">
-        <div className="mb-2 flex items-center gap-3">
-          <FiancaModal valorAtual={fianca} onSalvar={setFianca} />
-          {fianca && (
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {LABEL_TIPO_FIANCA[fianca.tipo]} — {fianca.nome}
-              {fianca.telefone ? ` (${fianca.telefone})` : ""}
-            </p>
-          )}
-        </div>
+      <section className={SECAO_CLASSE}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          Garantia
+        </h2>
+        <FiancaModal valorAtual={fianca} onSalvar={setFianca} />
+        {fianca ? (
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+            {LABEL_TIPO_FIANCA[fianca.tipo]}
+            {fianca.nome ? ` — ${fianca.nome}` : ""}
+            {fianca.telefone ? ` (${fianca.telefone})` : ""}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
+            Nenhuma garantia cadastrada ainda.
+          </p>
+        )}
         {fianca && (
           <>
             <input type="hidden" name="tipoFianca" value={fianca.tipo} />
@@ -140,15 +149,22 @@ export default function ProcessoForm({
             <input type="hidden" name="fiancaTelefone" value={fianca.telefone} />
           </>
         )}
-      </div>
+      </section>
 
-      <button
-        type="submit"
-        disabled={!endereco || partes.length === 0}
-        className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-50"
-      >
-        Cadastrar Processo
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={faltando.length > 0}
+          className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-50"
+        >
+          Cadastrar Processo
+        </button>
+        {faltando.length > 0 && (
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Falta cadastrar: {faltando.join(" e ")}.
+          </p>
+        )}
+      </div>
     </form>
   );
 }
