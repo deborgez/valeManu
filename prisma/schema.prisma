@@ -63,6 +63,10 @@ enum TipoFianca {
   FIADOR
   SEGURO_FIANCA
   FIANCA_ONEROSA
+  TITULO_CAPITALIZACAO
+  CAUCAO_IMOBILIARIA
+  CAUCAO_DINHEIRO
+  SEM_GARANTIA
 }
 
 model Imobiliaria {
@@ -236,6 +240,10 @@ model HistoricoEtapa {
 model Processo {
   id             String @id @default(cuid())
   numeroProcesso String @unique
+
+  unidade     String?
+  codigoImovel String?
+  captador    String?
 
   tipoFianca     TipoFianca?
   fiancaNome     String?

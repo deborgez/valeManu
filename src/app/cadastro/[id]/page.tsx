@@ -25,9 +25,21 @@ export default async function ProcessoDetalhePage({
       </h1>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+        <div className="mb-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="mb-1 text-slate-400 dark:text-slate-500">Unidade</p>
+            <p className="text-slate-700 dark:text-slate-300">{processo.unidade || "—"}</p>
+          </div>
+          <div>
+            <p className="mb-1 text-slate-400 dark:text-slate-500">Captador</p>
+            <p className="text-slate-700 dark:text-slate-300">{processo.captador || "—"}</p>
+          </div>
+        </div>
+
         <div className="mb-4">
           <p className="mb-1 text-sm text-slate-400 dark:text-slate-500">Endereço do imóvel</p>
           <p className="text-sm text-slate-700 dark:text-slate-300">
+            {processo.codigoImovel && `Código ${processo.codigoImovel} — `}
             {formatEndereco(processo)}
           </p>
         </div>

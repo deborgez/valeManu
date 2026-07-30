@@ -4,17 +4,31 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+const TIPOS_FIANCA = [
+  "FIADOR",
+  "SEGURO_FIANCA",
+  "FIANCA_ONEROSA",
+  "TITULO_CAPITALIZACAO",
+  "CAUCAO_IMOBILIARIA",
+  "CAUCAO_DINHEIRO",
+  "SEM_GARANTIA",
+];
+
 export async function criarProcesso(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
 
   const tipoFiancaBruto = formData.get("tipoFianca") as string | null;
-  const tipoFianca =
-    tipoFiancaBruto === "FIADOR" ||
-    tipoFiancaBruto === "SEGURO_FIANCA" ||
-    tipoFiancaBruto === "FIANCA_ONEROSA"
-      ? tipoFiancaBruto
-      : null;
+  const tipoFianca = TIPOS_FIANCA.includes(tipoFiancaBruto || "")
+    ? (tipoFiancaBruto as
+        | "FIADOR"
+        | "SEGURO_FIANCA"
+        | "FIANCA_ONEROSA"
+        | "TITULO_CAPITALIZACAO"
+        | "CAUCAO_IMOBILIARIA"
+        | "CAUCAO_DINHEIRO"
+        | "SEM_GARANTIA")
+    : null;
 
   const partesTipo = formData.getAll("parteTipo") as string[];
   const partesNome = formData.getAll("parteNome") as string[];
@@ -23,6 +37,9 @@ export async function criarProcesso(formData: FormData) {
   const processo = await prisma.processo.create({
     data: {
       numeroProcesso: String(formData.get("numeroProcesso")),
+      unidade: (formData.get("unidade") as string) || null,
+      captador: (formData.get("captador") as string) || null,
+      codigoImovel: (formData.get("codigoImovel") as string) || null,
       tipoFianca,
       fiancaNome: (formData.get("fiancaNome") as string) || null,
       fiancaTelefone: (formData.get("fiancaTelefone") as string) || null,

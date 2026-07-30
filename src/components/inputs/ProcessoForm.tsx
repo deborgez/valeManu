@@ -26,13 +26,34 @@ export default function ProcessoForm({
       action={action}
       className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6"
     >
+      <div className="mb-4 grid grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Número do Processo
+          </label>
+          <NumeroProcessoInput
+            name="numeroProcesso"
+            required
+            className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Unidade
+          </label>
+          <input
+            name="unidade"
+            className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
+          />
+        </div>
+      </div>
+
       <div className="mb-6">
         <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-          Número do Processo
+          Captador
         </label>
-        <NumeroProcessoInput
-          name="numeroProcesso"
-          required
+        <input
+          name="captador"
           className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
         />
       </div>
@@ -43,12 +64,14 @@ export default function ProcessoForm({
           <ImovelModal valorAtual={endereco} onSalvar={setEndereco} />
           {endereco && (
             <p className="text-sm text-slate-600 dark:text-slate-400">
+              {endereco.codigoImovel && `Código ${endereco.codigoImovel} — `}
               {formatEndereco(endereco)}
             </p>
           )}
         </div>
         {endereco && (
           <>
+            <input type="hidden" name="codigoImovel" value={endereco.codigoImovel} />
             <input type="hidden" name="cep" value={endereco.cep} />
             <input type="hidden" name="rua" value={endereco.rua} />
             <input type="hidden" name="numero" value={endereco.numero} />

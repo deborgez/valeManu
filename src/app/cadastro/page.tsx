@@ -28,6 +28,7 @@ export default async function CadastroPage() {
           <thead className="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400">
             <tr>
               <th className="px-4 py-2">Processo</th>
+              <th className="px-4 py-2">Unidade</th>
               <th className="px-4 py-2">Endereço</th>
               <th className="px-4 py-2">Locador</th>
               <th className="px-4 py-2">Locatário</th>
@@ -49,6 +50,9 @@ export default async function CadastroPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                    {p.unidade || "—"}
+                  </td>
+                  <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
                     {formatEndereco(p)}
                   </td>
                   <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
@@ -65,7 +69,7 @@ export default async function CadastroPage() {
             })}
             {processos.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
+                <td colSpan={6} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
                   Nenhum processo cadastrado ainda.
                 </td>
               </tr>

@@ -32,4 +32,8 @@ export const LABEL_TIPO_FIANCA: Record<string, string> = {
   FIADOR: "Fiador",
   SEGURO_FIANCA: "Seguro Fiança",
   FIANCA_ONEROSA: "Fiança Onerosa",
+  TITULO_CAPITALIZACAO: "Título de Capitalização",
+  CAUCAO_IMOBILIARIA: "Caução Imobiliária",
+  CAUCAO_DINHEIRO: "Caução em Dinheiro",
+  SEM_GARANTIA: "Sem Garantia",
 };

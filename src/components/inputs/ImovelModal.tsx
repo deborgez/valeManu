@@ -7,6 +7,7 @@ const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
 export type Endereco = {
+  codigoImovel: string;
   cep: string;
   rua: string;
   numero: string;
@@ -17,6 +18,7 @@ export type Endereco = {
 };
 
 const ENDERECO_VAZIO: Endereco = {
+  codigoImovel: "",
   cep: "",
   rua: "",
   numero: "",
@@ -103,6 +105,17 @@ export default function ImovelModal({
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
               Endereço do Imóvel
             </h3>
+
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Código do Imóvel
+              </label>
+              <input
+                value={form.codigoImovel}
+                onChange={(e) => setForm({ ...form, codigoImovel: e.target.value })}
+                className={CAMPO_CLASSE}
+              />
+            </div>
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">

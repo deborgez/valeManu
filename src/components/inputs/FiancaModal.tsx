@@ -2,15 +2,39 @@
 
 import { useState } from "react";
 import { formatTelefone } from "@/lib/masks";
+import { LABEL_TIPO_FIANCA } from "@/lib/labels";
 
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
+export type TipoGarantia =
+  | "FIADOR"
+  | "SEGURO_FIANCA"
+  | "FIANCA_ONEROSA"
+  | "TITULO_CAPITALIZACAO"
+  | "CAUCAO_IMOBILIARIA"
+  | "CAUCAO_DINHEIRO"
+  | "SEM_GARANTIA";
+
 export type Fianca = {
-  tipo: "FIADOR" | "SEGURO_FIANCA" | "FIANCA_ONEROSA";
+  tipo: TipoGarantia;
   nome: string;
   telefone: string;
 };
+
+const TIPOS: TipoGarantia[] = [
+  "FIADOR",
+  "SEGURO_FIANCA",
+  "FIANCA_ONEROSA",
+  "TITULO_CAPITALIZACAO",
+  "CAUCAO_IMOBILIARIA",
+  "CAUCAO_DINHEIRO",
+  "SEM_GARANTIA",
+];
+
+function precisaNome(tipo: TipoGarantia | ""): boolean {
+  return tipo !== "" && tipo !== "SEM_GARANTIA";
+}
 
 export default function FiancaModal({
   valorAtual,
@@ -20,7 +44,7 @@ export default function FiancaModal({
   onSalvar: (fianca: Fianca) => void;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [tipo, setTipo] = useState<Fianca["tipo"] | "">("");
+  const [tipo, setTipo] = useState<TipoGarantia | "">("");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
 
@@ -31,9 +55,15 @@ export default function FiancaModal({
     setAberto(true);
   }
 
+  function podeSalvar() {
+    if (!tipo) return false;
+    if (precisaNome(tipo) && !nome) return false;
+    if (tipo === "FIADOR" && !telefone) return false;
+    return true;
+  }
+
   function salvar() {
-    if (!tipo || !nome) return;
-    if (tipo === "FIADOR" && !telefone) return;
+    if (!podeSalvar() || !tipo) return;
     onSalvar({ tipo, nome, telefone });
     setAberto(false);
   }
@@ -45,14 +75,14 @@ export default function FiancaModal({
         onClick={abrir}
         className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
       >
-        {valorAtual ? "Editar Fiança" : "Fiança"}
+        {valorAtual ? "Editar Garantia" : "Garantia"}
       </button>
 
       {aberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="w-full max-w-sm rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg">
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Fiança
+              Garantia
             </h3>
 
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -60,18 +90,20 @@ export default function FiancaModal({
             </label>
             <select
               value={tipo}
-              onChange={(e) => setTipo(e.target.value as Fianca["tipo"])}
+              onChange={(e) => setTipo(e.target.value as TipoGarantia)}
               className={`${CAMPO_CLASSE} mb-4`}
             >
               <option value="" disabled>
                 Selecione o tipo de garantia
               </option>
-              <option value="FIADOR">Fiador</option>
-              <option value="SEGURO_FIANCA">Seguro Fiança</option>
-              <option value="FIANCA_ONEROSA">Fiança Onerosa</option>
+              {TIPOS.map((t) => (
+                <option key={t} value={t}>
+                  {LABEL_TIPO_FIANCA[t]}
+                </option>
+              ))}
             </select>
 
-            {tipo && (
+            {precisaNome(tipo) && (
               <>
                 <div className="mb-4">
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -112,7 +144,7 @@ export default function FiancaModal({
               <button
                 type="button"
                 onClick={salvar}
-                disabled={!tipo || !nome || (tipo === "FIADOR" && !telefone)}
+                disabled={!podeSalvar()}
                 className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-50"
               >
                 Salvar
