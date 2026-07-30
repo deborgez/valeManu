@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatTelefone } from "@/lib/masks";
+import { formatTelefone, formatCPF } from "@/lib/masks";
 import { LABEL_TIPO_FIANCA } from "@/lib/labels";
 
 const CAMPO_CLASSE =
@@ -20,6 +20,8 @@ export type Fianca = {
   tipo: TipoGarantia;
   nome: string;
   telefone: string;
+  rg: string;
+  cpf: string;
 };
 
 const TIPOS: TipoGarantia[] = [
@@ -47,24 +49,28 @@ export default function FiancaModal({
   const [tipo, setTipo] = useState<TipoGarantia | "">("");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [rg, setRg] = useState("");
+  const [cpf, setCpf] = useState("");
 
   function abrir() {
     setTipo(valorAtual?.tipo ?? "");
     setNome(valorAtual?.nome ?? "");
     setTelefone(valorAtual?.telefone ?? "");
+    setRg(valorAtual?.rg ?? "");
+    setCpf(valorAtual?.cpf ?? "");
     setAberto(true);
   }
 
   function podeSalvar() {
     if (!tipo) return false;
     if (precisaNome(tipo) && !nome) return false;
-    if (tipo === "FIADOR" && !telefone) return false;
+    if (tipo === "FIADOR" && (!telefone || !rg || !cpf)) return false;
     return true;
   }
 
   function salvar() {
     if (!podeSalvar() || !tipo) return;
-    onSalvar({ tipo, nome, telefone });
+    onSalvar({ tipo, nome, telefone, rg, cpf });
     setAberto(false);
   }
 
@@ -107,7 +113,7 @@ export default function FiancaModal({
               <>
                 <div className="mb-4">
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Nome
+                    {tipo === "FIADOR" ? "Nome" : "Empresa"}
                   </label>
                   <input
                     value={nome}
@@ -116,19 +122,46 @@ export default function FiancaModal({
                   />
                 </div>
                 {tipo === "FIADOR" && (
-                  <div className="mb-6">
-                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Telefone
-                    </label>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      placeholder="(00) 00000-0000"
-                      value={telefone}
-                      onChange={(e) => setTelefone(formatTelefone(e.target.value))}
-                      className={CAMPO_CLASSE}
-                    />
-                  </div>
+                  <>
+                    <div className="mb-4">
+                      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Telefone
+                      </label>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        placeholder="(00) 00000-0000"
+                        value={telefone}
+                        onChange={(e) => setTelefone(formatTelefone(e.target.value))}
+                        className={CAMPO_CLASSE}
+                      />
+                    </div>
+                    <div className="mb-6 grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                          RG
+                        </label>
+                        <input
+                          value={rg}
+                          onChange={(e) => setRg(e.target.value)}
+                          className={CAMPO_CLASSE}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                          CPF
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="000.000.000-00"
+                          value={cpf}
+                          onChange={(e) => setCpf(formatCPF(e.target.value))}
+                          className={CAMPO_CLASSE}
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
               </>
             )}

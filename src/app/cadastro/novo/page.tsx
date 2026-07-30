@@ -1,9 +1,12 @@
-import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { criarProcesso } from "../actions";
 import ProcessoForm from "@/components/inputs/ProcessoForm";
 
 export default async function NovoProcessoPage() {
-  const session = await auth();
+  const imobiliaria = await prisma.imobiliaria.findUnique({
+    where: { id: "singleton" },
+    select: { nome: true },
+  });
 
   return (
     <div className="mx-auto w-full max-w-2xl p-6">
@@ -11,7 +14,7 @@ export default async function NovoProcessoPage() {
         Novo Processo — Cadastro
       </h1>
 
-      <ProcessoForm action={criarProcesso} unidadePadrao={session?.user.unidade ?? ""} />
+      <ProcessoForm action={criarProcesso} unidadePadrao={imobiliaria?.nome ?? ""} />
     </div>
   );
 }

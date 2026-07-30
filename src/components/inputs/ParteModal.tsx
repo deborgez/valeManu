@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { formatTelefone } from "@/lib/masks";
+import { formatTelefone, formatCPF } from "@/lib/masks";
 
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
-export type Parte = { tipo: "LOCADOR" | "LOCATARIO"; nome: string; telefone: string };
+export type Parte = {
+  tipo: "LOCADOR" | "LOCATARIO";
+  nome: string;
+  telefone: string;
+  rg: string;
+  cpf: string;
+};
 
 const LABEL_PARTE: Record<"LOCADOR" | "LOCATARIO", string> = {
   LOCADOR: "Locador",
@@ -23,16 +29,24 @@ export default function ParteModal({
   const [aberto, setAberto] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [rg, setRg] = useState("");
+  const [cpf, setCpf] = useState("");
 
   function abrir() {
     setNome("");
     setTelefone("");
+    setRg("");
+    setCpf("");
     setAberto(true);
   }
 
+  function podeSalvar() {
+    return Boolean(nome && telefone && rg && cpf);
+  }
+
   function salvar() {
-    if (!nome || !telefone) return;
-    onSalvar({ tipo, nome, telefone });
+    if (!podeSalvar()) return;
+    onSalvar({ tipo, nome, telefone, rg, cpf });
     setAberto(false);
   }
 
@@ -64,7 +78,7 @@ export default function ParteModal({
                 className={CAMPO_CLASSE}
               />
             </div>
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Telefone
               </label>
@@ -76,6 +90,27 @@ export default function ParteModal({
                 onChange={(e) => setTelefone(formatTelefone(e.target.value))}
                 className={CAMPO_CLASSE}
               />
+            </div>
+            <div className="mb-4 grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  RG
+                </label>
+                <input value={rg} onChange={(e) => setRg(e.target.value)} className={CAMPO_CLASSE} />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  CPF
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCPF(e.target.value))}
+                  className={CAMPO_CLASSE}
+                />
+              </div>
             </div>
 
             <div className="flex justify-end gap-2">
@@ -89,7 +124,7 @@ export default function ParteModal({
               <button
                 type="button"
                 onClick={salvar}
-                disabled={!nome || !telefone}
+                disabled={!podeSalvar()}
                 className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-50"
               >
                 Adicionar

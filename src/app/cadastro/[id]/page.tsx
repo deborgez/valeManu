@@ -53,7 +53,7 @@ export default async function ProcessoDetalhePage({
               {processo.partes.map((parte) => (
                 <li key={parte.id} className="text-slate-700 dark:text-slate-300">
                   <span className="font-medium">{LABEL_PARTE[parte.tipo]}: </span>
-                  {parte.nome} — {parte.telefone}
+                  {parte.nome} — {parte.telefone} — RG {parte.rg}, CPF {parte.cpf}
                 </li>
               ))}
             </ul>
@@ -69,6 +69,13 @@ export default async function ProcessoDetalhePage({
               <p className="text-slate-700 dark:text-slate-300">{processo.fiancaNome}</p>
               {processo.fiancaTelefone && (
                 <p className="text-slate-500 dark:text-slate-400">{processo.fiancaTelefone}</p>
+              )}
+              {(processo.fiancaRg || processo.fiancaCpf) && (
+                <p className="text-slate-500 dark:text-slate-400">
+                  {processo.fiancaRg && `RG ${processo.fiancaRg}`}
+                  {processo.fiancaRg && processo.fiancaCpf ? ", " : ""}
+                  {processo.fiancaCpf && `CPF ${processo.fiancaCpf}`}
+                </p>
               )}
             </>
           ) : (

@@ -33,6 +33,8 @@ export async function criarProcesso(formData: FormData) {
   const partesTipo = formData.getAll("parteTipo") as string[];
   const partesNome = formData.getAll("parteNome") as string[];
   const partesTelefone = formData.getAll("parteTelefone") as string[];
+  const partesRg = formData.getAll("parteRg") as string[];
+  const partesCpf = formData.getAll("parteCpf") as string[];
 
   const processo = await prisma.processo.create({
     data: {
@@ -43,6 +45,8 @@ export async function criarProcesso(formData: FormData) {
       tipoFianca,
       fiancaNome: (formData.get("fiancaNome") as string) || null,
       fiancaTelefone: (formData.get("fiancaTelefone") as string) || null,
+      fiancaRg: (formData.get("fiancaRg") as string) || null,
+      fiancaCpf: (formData.get("fiancaCpf") as string) || null,
       cep: (formData.get("cep") as string) || null,
       rua: (formData.get("rua") as string) || null,
       numero: (formData.get("numero") as string) || null,
@@ -56,6 +60,8 @@ export async function criarProcesso(formData: FormData) {
           tipo: tipo as "LOCADOR" | "LOCATARIO" | "IMOBILIARIA",
           nome: partesNome[i],
           telefone: partesTelefone[i],
+          rg: partesRg[i],
+          cpf: partesCpf[i],
         })),
       },
     },

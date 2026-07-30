@@ -49,7 +49,7 @@ export default function ProcessoForm({
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
           Dados do Processo
         </h2>
-        <div className="mb-4 grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Número do Processo
@@ -62,16 +62,6 @@ export default function ProcessoForm({
             </label>
             <input name="unidade" defaultValue={unidadePadrao} className={CAMPO_CLASSE} />
           </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Captador
-          </label>
-          <CaptadorModal valorAtual={captador} onSalvar={setCaptador} />
-          {captador && (
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{captador}</p>
-          )}
-          <input type="hidden" name="captador" value={captador ?? ""} />
         </div>
       </section>
 
@@ -103,6 +93,21 @@ export default function ProcessoForm({
       </section>
 
       <section className={SECAO_CLASSE}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          Captador
+        </h2>
+        <CaptadorModal valorAtual={captador} onSalvar={setCaptador} />
+        {captador ? (
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">{captador}</p>
+        ) : (
+          <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
+            Nenhum captador cadastrado ainda.
+          </p>
+        )}
+        <input type="hidden" name="captador" value={captador ?? ""} />
+      </section>
+
+      <section className={SECAO_CLASSE}>
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Locador</h2>
         <ParteModal tipo="LOCADOR" onSalvar={(p) => setPartes((atual) => [...atual, p])} />
         {locadores.length > 0 ? (
@@ -113,7 +118,7 @@ export default function ProcessoForm({
                 className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
               >
                 <span>
-                  {p.nome} ({p.telefone})
+                  {p.nome} ({p.telefone}) — RG {p.rg}, CPF {p.cpf}
                 </span>
                 <button
                   type="button"
@@ -125,6 +130,8 @@ export default function ProcessoForm({
                 <input type="hidden" name="parteTipo" value={p.tipo} />
                 <input type="hidden" name="parteNome" value={p.nome} />
                 <input type="hidden" name="parteTelefone" value={p.telefone} />
+                <input type="hidden" name="parteRg" value={p.rg} />
+                <input type="hidden" name="parteCpf" value={p.cpf} />
               </li>
             ))}
           </ul>
@@ -148,7 +155,7 @@ export default function ProcessoForm({
                 className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
               >
                 <span>
-                  {p.nome} ({p.telefone})
+                  {p.nome} ({p.telefone}) — RG {p.rg}, CPF {p.cpf}
                 </span>
                 <button
                   type="button"
@@ -160,6 +167,8 @@ export default function ProcessoForm({
                 <input type="hidden" name="parteTipo" value={p.tipo} />
                 <input type="hidden" name="parteNome" value={p.nome} />
                 <input type="hidden" name="parteTelefone" value={p.telefone} />
+                <input type="hidden" name="parteRg" value={p.rg} />
+                <input type="hidden" name="parteCpf" value={p.cpf} />
               </li>
             ))}
           </ul>
@@ -191,6 +200,8 @@ export default function ProcessoForm({
             <input type="hidden" name="tipoFianca" value={fianca.tipo} />
             <input type="hidden" name="fiancaNome" value={fianca.nome} />
             <input type="hidden" name="fiancaTelefone" value={fianca.telefone} />
+            <input type="hidden" name="fiancaRg" value={fianca.rg} />
+            <input type="hidden" name="fiancaCpf" value={fianca.cpf} />
           </>
         )}
       </section>

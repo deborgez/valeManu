@@ -249,6 +249,8 @@ model Processo {
   tipoFianca     TipoFianca?
   fiancaNome     String?
   fiancaTelefone String?
+  fiancaRg       String?
+  fiancaCpf      String?
 
   cep         String?
   rua         String?
@@ -272,6 +274,8 @@ model ParteProcesso {
   tipo     ParteInteressada
   nome     String
   telefone String
+  rg       String
+  cpf      String
 
   processoId String
   processo   Processo @relation(fields: [processoId], references: [id])
