@@ -69,6 +69,17 @@ enum TipoFianca {
   SEM_GARANTIA
 }
 
+enum FormaAviso {
+  EMAIL
+  WHATSAPP
+  TERMO
+}
+
+enum FormaContato {
+  LIGACAO
+  WHATSAPP
+}
+
 model Imobiliaria {
   id        String   @id @default("singleton")
   nome      String
@@ -91,6 +102,7 @@ model User {
   manutencoesCriadas Manutencao[]      @relation("CriadoPor")
   pedidosGerados     PedidoOrcamento[] @relation("GeradoPor")
   processosCriados   Processo[]        @relation("ProcessoCriadoPor")
+  distratosCriados   Distrato[]        @relation("DistratoCriadoPor")
 }
 
 model Prestador {
@@ -269,7 +281,8 @@ model Processo {
   criadoPorId String
   criadoPor   User   @relation("ProcessoCriadoPor", fields: [criadoPorId], references: [id])
 
-  partes ParteProcesso[]
+  partes    ParteProcesso[]
+  distratos Distrato[]
 }
 
 model ParteProcesso {
@@ -282,4 +295,129 @@ model ParteProcesso {
 
   processoId String
   processo   Processo @relation(fields: [processoId], references: [id])
+}
+
+model Distrato {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  processoId String
+  processo   Processo @relation(fields: [processoId], references: [id])
+
+  criadoPorId String
+  criadoPor   User   @relation("DistratoCriadoPor", fields: [criadoPorId], references: [id])
+
+  avisoPrevio         AvisoPrevioLocatario?
+  comunicadoLocador   ComunicadoLocador?
+  contatos            ContatoAcompanhamento[]
+  agendamentoVistoria AgendamentoVistoriaSaida?
+  entregaChaves       EntregaChaves?
+  vistoriaSaida       VistoriaSaida?
+}
+
+model AvisoPrevioLocatario {
+  id            String     @id @default(cuid())
+  data          DateTime
+  forma         FormaAviso
+  arquivoUrl    String?
+  arquivoNome   String?
+  arquivoTipo   String?
+  diasForaPrazo Int?
+  createdAt     DateTime   @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+}
+
+model ComunicadoLocador {
+  id            String     @id @default(cuid())
+  data          DateTime
+  forma         FormaAviso
+  arquivoUrl    String?
+  arquivoNome   String?
+  arquivoTipo   String?
+  diasForaPrazo Int?
+  createdAt     DateTime   @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+}
+
+model ContatoAcompanhamento {
+  id          String       @id @default(cuid())
+  data        DateTime     @default(now())
+  forma       FormaContato
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
+
+  dataPrevistaEntregaChaves DateTime?
+  dataPrevistaVistoriaSaida DateTime?
+
+  distratoId String
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+}
+
+model AgendamentoVistoriaSaida {
+  id   String   @id @default(cuid())
+  data DateTime
+
+  comunicacaoData        DateTime?
+  comunicacaoArquivoUrl  String?
+  comunicacaoArquivoNome String?
+  comunicacaoArquivoTipo String?
+
+  locadorNaoQuerParticipar        Boolean @default(false)
+  naoParticiparArquivoUrl  String?
+  naoParticiparArquivoNome String?
+  naoParticiparArquivoTipo String?
+
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+}
+
+model EntregaChaves {
+  id        String   @id @default(cuid())
+  data      DateTime
+  termoUrl  String?
+  termoNome String?
+  termoTipo String?
+
+  informeData        DateTime?
+  informeArquivoUrl  String?
+  informeArquivoNome String?
+  informeArquivoTipo String?
+
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+}
+
+model VistoriaSaida {
+  id          String   @id @default(cuid())
+  data        DateTime
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
+
+  locadorCompareceu   Boolean?
+  locatarioParticipou Boolean?
+
+  informeData        DateTime?
+  informeArquivoUrl  String?
+  informeArquivoNome String?
+  informeArquivoTipo String?
+
+  dataEntregaLaudo DateTime?
+  laudoArquivoUrl  String?
+  laudoArquivoNome String?
+  laudoArquivoTipo String?
+
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
 }

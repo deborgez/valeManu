@@ -37,3 +37,14 @@ export const LABEL_TIPO_FIANCA: Record<string, string> = {
   CAUCAO_DINHEIRO: "Caução em Dinheiro",
   SEM_GARANTIA: "Sem Garantia",
 };
+
+export const LABEL_FORMA_AVISO: Record<string, string> = {
+  EMAIL: "E-mail",
+  WHATSAPP: "WhatsApp",
+  TERMO: "Termo",
+};
+
+export const LABEL_FORMA_CONTATO: Record<string, string> = {
+  LIGACAO: "Ligação",
+  WHATSAPP: "WhatsApp",
+};

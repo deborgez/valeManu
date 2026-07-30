@@ -16,6 +16,11 @@ export default async function Sidebar() {
     { href: "/relatorios", label: "Relatórios" },
   ];
 
+  const linksDistrato = [
+    { href: "/distrato/novo", label: "Novo Distrato" },
+    { href: "/distrato", label: "Distratos" },
+  ];
+
   const linksConfiguracoes = [
     { href: "/configuracoes", label: "Unidade" },
     { href: "/usuarios", label: "Usuários" },
@@ -36,6 +41,11 @@ export default async function Sidebar() {
         Manutenções
       </div>
       <SidebarLinks links={linksManutencoes} />
+
+      <div className="mt-4 mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
+        Distrato
+      </div>
+      <SidebarLinks links={linksDistrato} />
 
       {session.user.role === "ADMIN" && (
         <>
