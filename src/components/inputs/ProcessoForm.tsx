@@ -118,7 +118,7 @@ export default function ProcessoForm({
                 className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
               >
                 <span>
-                  {p.nome} ({p.telefone}) — RG {p.rg}, CPF {p.cpf}
+                  {p.nome} | {p.telefone} — RG {p.rg}, CPF {p.cpf}
                 </span>
                 <button
                   type="button"
@@ -155,7 +155,7 @@ export default function ProcessoForm({
                 className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
               >
                 <span>
-                  {p.nome} ({p.telefone}) — RG {p.rg}, CPF {p.cpf}
+                  {p.nome} | {p.telefone} — RG {p.rg}, CPF {p.cpf}
                 </span>
                 <button
                   type="button"
