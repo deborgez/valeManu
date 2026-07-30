@@ -103,10 +103,10 @@ export default function ImovelModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="w-full max-w-lg rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg">
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Endereço do Imóvel
+              Imóvel
             </h3>
 
-            <div className="mb-4">
+            <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Código do Imóvel
               </label>
@@ -116,6 +116,10 @@ export default function ImovelModal({
                 className={CAMPO_CLASSE}
               />
             </div>
+
+            <h4 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Endereço do Imóvel
+            </h4>
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
