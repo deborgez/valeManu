@@ -5,20 +5,20 @@ export default async function Sidebar() {
   const session = await auth();
   if (!session) return null;
 
+  const linksCadastro = [
+    { href: "/cadastro", label: "Processos" },
+    { href: "/prestadores", label: "Prestadores" },
+  ];
+
   const linksManutencoes = [
     { href: "/", label: "Painel" },
     { href: "/manutencoes", label: "Quadro de Manutenções" },
     { href: "/relatorios", label: "Relatórios" },
   ];
 
-  if (session.user.role === "ADMIN") {
-    linksManutencoes.push({ href: "/configuracoes", label: "Configurações" });
-    linksManutencoes.push({ href: "/usuarios", label: "Usuários" });
-  }
-
-  const linksCadastro = [
-    { href: "/cadastro", label: "Processos" },
-    { href: "/prestadores", label: "Prestadores" },
+  const linksConfiguracoes = [
+    { href: "/configuracoes", label: "Unidade" },
+    { href: "/usuarios", label: "Usuários" },
   ];
 
   return (
@@ -36,6 +36,15 @@ export default async function Sidebar() {
         Manutenções
       </div>
       <SidebarLinks links={linksManutencoes} />
+
+      {session.user.role === "ADMIN" && (
+        <>
+          <div className="mt-4 mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
+            Configurações
+          </div>
+          <SidebarLinks links={linksConfiguracoes} />
+        </>
+      )}
     </aside>
   );
 }
