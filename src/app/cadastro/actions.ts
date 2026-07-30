@@ -30,6 +30,9 @@ export async function criarProcesso(formData: FormData) {
         | "SEM_GARANTIA")
     : null;
 
+  const prazoContratoInicio = (formData.get("prazoContratoInicio") as string) || null;
+  const prazoContratoFim = (formData.get("prazoContratoFim") as string) || null;
+
   const partesTipo = formData.getAll("parteTipo") as string[];
   const partesNome = formData.getAll("parteNome") as string[];
   const partesTelefone = formData.getAll("parteTelefone") as string[];
@@ -41,6 +44,8 @@ export async function criarProcesso(formData: FormData) {
       numeroProcesso: String(formData.get("numeroProcesso")),
       unidade: (formData.get("unidade") as string) || null,
       captador: (formData.get("captador") as string) || null,
+      prazoContratoInicio: prazoContratoInicio ? new Date(prazoContratoInicio) : null,
+      prazoContratoFim: prazoContratoFim ? new Date(prazoContratoFim) : null,
       codigoImovel: (formData.get("codigoImovel") as string) || null,
       tipoFianca,
       fiancaNome: (formData.get("fiancaNome") as string) || null,

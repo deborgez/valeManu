@@ -246,6 +246,9 @@ model Processo {
   codigoImovel String?
   captador    String?
 
+  prazoContratoInicio DateTime?
+  prazoContratoFim    DateTime?
+
   tipoFianca     TipoFianca?
   fiancaNome     String?
   fiancaTelefone String?

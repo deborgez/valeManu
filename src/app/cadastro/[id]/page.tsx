@@ -34,6 +34,14 @@ export default async function ProcessoDetalhePage({
             <p className="mb-1 text-slate-400 dark:text-slate-500">Captador</p>
             <p className="text-slate-700 dark:text-slate-300">{processo.captador || "—"}</p>
           </div>
+          <div>
+            <p className="mb-1 text-slate-400 dark:text-slate-500">Prazo de Contrato</p>
+            <p className="text-slate-700 dark:text-slate-300">
+              {processo.prazoContratoInicio && processo.prazoContratoFim
+                ? `${formatData(processo.prazoContratoInicio)} a ${formatData(processo.prazoContratoFim)}`
+                : "—"}
+            </p>
+          </div>
         </div>
 
         <div className="mb-4">

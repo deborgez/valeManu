@@ -63,6 +63,20 @@ export default function ProcessoForm({
             <input name="unidade" defaultValue={unidadePadrao} className={CAMPO_CLASSE} />
           </div>
         </div>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Prazo de Contrato — Início
+            </label>
+            <input type="date" name="prazoContratoInicio" className={CAMPO_CLASSE} />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Prazo de Contrato — Fim
+            </label>
+            <input type="date" name="prazoContratoFim" className={CAMPO_CLASSE} />
+          </div>
+        </div>
       </section>
 
       <section className={SECAO_CLASSE}>
