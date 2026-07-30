@@ -25,6 +25,7 @@ export async function criarUsuario(formData: FormData) {
       email: String(formData.get("email")),
       senhaHash,
       role: formData.get("role") === "ADMIN" ? "ADMIN" : "USER",
+      unidade: (formData.get("unidade") as string) || null,
     },
   });
 
@@ -49,6 +50,7 @@ export async function atualizarUsuario(id: string, formData: FormData) {
       nome: String(formData.get("nome")),
       email: String(formData.get("email")),
       role: formData.get("role") === "ADMIN" ? "ADMIN" : "USER",
+      unidade: (formData.get("unidade") as string) || null,
       ...(senha ? { senhaHash: await bcrypt.hash(senha, 10) } : {}),
     },
   });

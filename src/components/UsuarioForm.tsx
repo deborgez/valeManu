@@ -5,6 +5,7 @@ type Usuario = {
   nome: string;
   email: string;
   role: string;
+  unidade: string | null;
 };
 
 export default function UsuarioForm({
@@ -55,6 +56,17 @@ export default function UsuarioForm({
           type="password"
           required={!editando}
           minLength={6}
+          className={CAMPO_CLASSE}
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+          Unidade
+        </label>
+        <input
+          name="unidade"
+          defaultValue={usuario?.unidade ?? ""}
           className={CAMPO_CLASSE}
         />
       </div>

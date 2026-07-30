@@ -16,8 +16,10 @@ const SECAO_CLASSE =
 
 export default function ProcessoForm({
   action,
+  unidadePadrao,
 }: {
   action: (formData: FormData) => Promise<void>;
+  unidadePadrao?: string;
 }) {
   const [endereco, setEndereco] = useState<Endereco | null>(null);
   const [partes, setPartes] = useState<Parte[]>([]);
@@ -49,7 +51,7 @@ export default function ProcessoForm({
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Unidade
             </label>
-            <input name="unidade" className={CAMPO_CLASSE} />
+            <input name="unidade" defaultValue={unidadePadrao} className={CAMPO_CLASSE} />
           </div>
         </div>
         <div>
