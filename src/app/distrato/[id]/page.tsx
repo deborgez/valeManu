@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
-import { formatData, formatSistema, diasEntreDatas } from "@/lib/datahora";
+import { formatData, formatSistema, diasEntreDatas, hojeSaoPaulo } from "@/lib/datahora";
 import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
@@ -97,6 +97,7 @@ export default async function DistratoDetalhePage({
 
   if (!distrato) notFound();
 
+  const hoje = hojeSaoPaulo();
   const { processo } = distrato;
   const locadores = processo.partes.filter((p) => p.tipo === "LOCADOR");
   const locatarios = processo.partes.filter((p) => p.tipo === "LOCATARIO");
@@ -198,6 +199,7 @@ export default async function DistratoDetalhePage({
         />
         {!distrato.avisoPrevio ? (
           <AvisoPrevioModal
+            hoje={hoje}
             action={async (formData: FormData) => {
               "use server";
               await registrarAvisoPrevio(distrato.id, formData);
@@ -225,6 +227,7 @@ export default async function DistratoDetalhePage({
               <div className="flex shrink-0 items-center gap-2">
                 <AvisoPrevioModal
                   registro={distrato.avisoPrevio}
+                  hoje={hoje}
                   action={async (formData: FormData) => {
                     "use server";
                     await editarAvisoPrevio(distrato.id, formData);
@@ -257,6 +260,7 @@ export default async function DistratoDetalhePage({
           )}
           {!distrato.comunicadoLocador ? (
             <ComunicadoModal
+              hoje={hoje}
               action={async (formData: FormData) => {
                 "use server";
                 await registrarComunicado(distrato.id, formData);
@@ -284,6 +288,7 @@ export default async function DistratoDetalhePage({
                 <div className="flex shrink-0 items-center gap-2">
                   <ComunicadoModal
                     registro={distrato.comunicadoLocador}
+                    hoje={hoje}
                     action={async (formData: FormData) => {
                       "use server";
                       await editarComunicado(distrato.id, formData);
@@ -415,6 +420,7 @@ export default async function DistratoDetalhePage({
             <AuditoriaButton entradas={auditoriaPorSecao("AGENDAMENTO_VISTORIA")} />
           </div>
           <AgendamentoVistoriaModal
+            hoje={hoje}
             action={async (formData: FormData) => {
               "use server";
               await agendarVistoriaSaida(distrato.id, formData);
@@ -434,6 +440,7 @@ export default async function DistratoDetalhePage({
                 <div className="flex shrink-0 items-center gap-2">
                   <AgendamentoVistoriaModal
                     registro={distrato.agendamentoVistoria}
+                    hoje={hoje}
                     action={async (formData: FormData) => {
                       "use server";
                       await editarAgendamentoVistoria(distrato.id, formData);
@@ -460,6 +467,7 @@ export default async function DistratoDetalhePage({
             <AuditoriaButton entradas={auditoriaPorSecao("ENTREGA_CHAVES")} />
           </div>
           <EntregaChavesModal
+            hoje={hoje}
             action={async (formData: FormData) => {
               "use server";
               await registrarEntregaChaves(distrato.id, formData);
@@ -472,6 +480,7 @@ export default async function DistratoDetalhePage({
                 <div className="flex shrink-0 items-center gap-2">
                   <EntregaChavesModal
                     registro={distrato.entregaChaves}
+                    hoje={hoje}
                     action={async (formData: FormData) => {
                       "use server";
                       await editarEntregaChaves(distrato.id, formData);
@@ -499,6 +508,7 @@ export default async function DistratoDetalhePage({
           </div>
           {!distrato.vistoriaSaida ? (
             <VistoriaSaidaModal
+              hoje={hoje}
               action={async (formData: FormData) => {
                 "use server";
                 await registrarVistoriaSaida(distrato.id, formData);
@@ -513,6 +523,7 @@ export default async function DistratoDetalhePage({
                 <div className="flex shrink-0 items-center gap-2">
                   <VistoriaSaidaModal
                     registro={distrato.vistoriaSaida}
+                    hoje={hoje}
                     action={async (formData: FormData) => {
                       "use server";
                       await editarVistoriaSaida(distrato.id, formData);
@@ -569,6 +580,7 @@ export default async function DistratoDetalhePage({
                     <input
                       type="date"
                       name="informeData"
+                      max={hoje}
                       defaultValue={
                         distrato.vistoriaSaida.informeData
                           ? distrato.vistoriaSaida.informeData.toISOString().slice(0, 10)
@@ -600,6 +612,7 @@ export default async function DistratoDetalhePage({
                     <input
                       type="date"
                       name="dataEntregaLaudo"
+                      max={hoje}
                       defaultValue={
                         distrato.vistoriaSaida.dataEntregaLaudo
                           ? distrato.vistoriaSaida.dataEntregaLaudo.toISOString().slice(0, 10)

@@ -23,9 +23,11 @@ type Registro = {
 export default function AgendamentoVistoriaModal({
   action,
   registro,
+  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
+  hoje?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [naoQuerParticipar, setNaoQuerParticipar] = useState(
@@ -97,6 +99,7 @@ export default function AgendamentoVistoriaModal({
               <input
                 type="date"
                 name="comunicacaoData"
+                max={hoje}
                 defaultValue={
                   registro?.comunicacaoData
                     ? registro.comunicacaoData.toISOString().slice(0, 10)

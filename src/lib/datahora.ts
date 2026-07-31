@@ -8,6 +8,10 @@ export function formatData(data: Date): string {
   return data.toLocaleDateString("pt-BR", { timeZone: FUSO });
 }
 
+export function hojeSaoPaulo(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: FUSO });
+}
+
 export function diasEntreDatas(a: Date, b: Date): number {
   const ms = a.getTime() - b.getTime();
   return Math.round(ms / (1000 * 60 * 60 * 24));

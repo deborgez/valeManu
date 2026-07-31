@@ -19,9 +19,11 @@ type Registro = {
 export default function AvisoPrevioModal({
   action,
   registro,
+  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
+  hoje?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -73,6 +75,7 @@ export default function AvisoPrevioModal({
                 type="date"
                 name="data"
                 required
+                max={hoje}
                 defaultValue={
                   registro ? registro.data.toISOString().slice(0, 10) : undefined
                 }

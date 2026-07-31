@@ -22,9 +22,11 @@ type Registro = {
 export default function EntregaChavesModal({
   action,
   registro,
+  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
+  hoje?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -76,6 +78,7 @@ export default function EntregaChavesModal({
                 type="date"
                 name="data"
                 required
+                max={hoje}
                 defaultValue={
                   registro ? registro.data.toISOString().slice(0, 10) : undefined
                 }
@@ -112,6 +115,7 @@ export default function EntregaChavesModal({
               <input
                 type="date"
                 name="informeData"
+                max={hoje}
                 defaultValue={
                   registro?.informeData
                     ? registro.informeData.toISOString().slice(0, 10)

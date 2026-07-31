@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { formatData } from "@/lib/datahora";
+import { formatData, hojeSaoPaulo } from "@/lib/datahora";
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
 
 const SECAO = {
@@ -34,6 +34,12 @@ async function logAuditoria(
       usuarioId: session.user.id,
     },
   });
+}
+
+function validarNaoFutura(dataStr: string, campo: string) {
+  if (dataStr > hojeSaoPaulo()) {
+    throw new Error(`A data de ${campo} não pode ser no futuro.`);
+  }
 }
 
 function formatarValor(v: unknown): string {
@@ -96,6 +102,7 @@ export async function registrarAvisoPrevio(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Aviso Prévio");
   const data = new Date(`${dataStr}T00:00:00`);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
 
@@ -124,6 +131,7 @@ export async function editarAvisoPrevio(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Aviso Prévio");
   const data = new Date(`${dataStr}T00:00:00`);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
@@ -168,6 +176,7 @@ export async function registrarComunicado(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Comunicado");
   const data = new Date(`${dataStr}T00:00:00`);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
 
@@ -205,6 +214,7 @@ export async function editarComunicado(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Comunicado");
   const data = new Date(`${dataStr}T00:00:00`);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
@@ -355,6 +365,7 @@ export async function agendarVistoriaSaida(
   const dataStr = String(formData.get("data"));
   const data = new Date(`${dataStr}T00:00:00`);
   const comunicacaoDataStr = formData.get("comunicacaoData") as string | null;
+  if (comunicacaoDataStr) validarNaoFutura(comunicacaoDataStr, "comunicação ao proprietário");
   const locadorNaoQuerParticipar = formData.get("locadorNaoQuerParticipar") === "on";
 
   await prisma.agendamentoVistoriaSaida.create({
@@ -390,6 +401,7 @@ export async function editarAgendamentoVistoria(
   const dataStr = String(formData.get("data"));
   const data = new Date(`${dataStr}T00:00:00`);
   const comunicacaoDataStr = formData.get("comunicacaoData") as string | null;
+  if (comunicacaoDataStr) validarNaoFutura(comunicacaoDataStr, "comunicação ao proprietário");
   const comunicacaoData = comunicacaoDataStr
     ? new Date(`${comunicacaoDataStr}T00:00:00`)
     : null;
@@ -455,8 +467,10 @@ export async function registrarEntregaChaves(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Entrega das Chaves");
   const data = new Date(`${dataStr}T00:00:00`);
   const informeDataStr = formData.get("informeData") as string | null;
+  if (informeDataStr) validarNaoFutura(informeDataStr, "informe ao locador");
 
   await prisma.entregaChaves.create({
     data: {
@@ -486,11 +500,13 @@ export async function editarEntregaChaves(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Entrega das Chaves");
   const data = new Date(`${dataStr}T00:00:00`);
   const termoUrl = (formData.get("termoUrl") as string) || null;
   const termoNome = (formData.get("termoNome") as string) || null;
   const termoTipo = (formData.get("termoTipo") as string) || null;
   const informeDataStr = formData.get("informeData") as string | null;
+  if (informeDataStr) validarNaoFutura(informeDataStr, "informe ao locador");
   const informeData = informeDataStr ? new Date(`${informeDataStr}T00:00:00`) : null;
   const informeArquivoUrl = (formData.get("informeArquivoUrl") as string) || null;
   const informeArquivoNome = (formData.get("informeArquivoNome") as string) || null;
@@ -548,6 +564,7 @@ export async function registrarVistoriaSaida(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Vistoria de Saída");
   const data = new Date(`${dataStr}T00:00:00`);
 
   await prisma.vistoriaSaida.create({
@@ -574,6 +591,7 @@ export async function editarVistoriaSaida(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Vistoria de Saída");
   const data = new Date(`${dataStr}T00:00:00`);
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
@@ -619,11 +637,13 @@ export async function atualizarVistoriaSaida(
   const locadorCompareceu = formData.get("locadorCompareceu") === "on";
   const locatarioParticipou = formData.get("locatarioParticipou") === "on";
   const informeDataStr = formData.get("informeData") as string | null;
+  if (informeDataStr) validarNaoFutura(informeDataStr, "informe ao locador");
   const informeData = informeDataStr ? new Date(`${informeDataStr}T00:00:00`) : null;
   const informeArquivoUrl = (formData.get("informeArquivoUrl") as string) || null;
   const informeArquivoNome = (formData.get("informeArquivoNome") as string) || null;
   const informeArquivoTipo = (formData.get("informeArquivoTipo") as string) || null;
   const dataEntregaLaudoStr = formData.get("dataEntregaLaudo") as string | null;
+  if (dataEntregaLaudoStr) validarNaoFutura(dataEntregaLaudoStr, "entrega do laudo");
   const dataEntregaLaudo = dataEntregaLaudoStr
     ? new Date(`${dataEntregaLaudoStr}T00:00:00`)
     : null;
