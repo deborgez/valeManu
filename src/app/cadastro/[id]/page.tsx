@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
-import { LABEL_TIPO_FIANCA, LABEL_PARTE } from "@/lib/labels";
+import { LABEL_TIPO_FIANCA } from "@/lib/labels";
 import { formatData } from "@/lib/datahora";
 
 export default async function ProcessoDetalhePage({
@@ -17,6 +17,9 @@ export default async function ProcessoDetalhePage({
   });
 
   if (!processo) notFound();
+
+  const locadores = processo.partes.filter((p) => p.tipo === "LOCADOR");
+  const locatarios = processo.partes.filter((p) => p.tipo === "LOCATARIO");
 
   return (
     <div className="mx-auto w-full max-w-2xl p-6">
@@ -62,20 +65,35 @@ export default async function ProcessoDetalhePage({
           </p>
         </div>
 
-        <div className="mb-4">
-          <p className="mb-2 text-sm text-slate-400 dark:text-slate-500">Locador(es) e Locatário(s)</p>
-          {processo.partes.length === 0 ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500">Nenhuma parte cadastrada.</p>
-          ) : (
-            <ul className="flex flex-col gap-1 text-sm">
-              {processo.partes.map((parte) => (
-                <li key={parte.id} className="text-slate-700 dark:text-slate-300">
-                  <span className="font-medium">{LABEL_PARTE[parte.tipo]}: </span>
-                  {parte.nome} — {parte.telefone} — RG {parte.rg}, CPF {parte.cpf}
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="mb-4 grid grid-cols-2 gap-4">
+          <div>
+            <p className="mb-2 text-sm text-slate-400 dark:text-slate-500">Locador(es)</p>
+            {locadores.length === 0 ? (
+              <p className="text-sm text-slate-400 dark:text-slate-500">Nenhum locador cadastrado.</p>
+            ) : (
+              <ul className="flex flex-col gap-1 text-sm">
+                {locadores.map((parte) => (
+                  <li key={parte.id} className="text-slate-700 dark:text-slate-300">
+                    {parte.nome} — {parte.telefone} — RG {parte.rg}, CPF {parte.cpf}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <p className="mb-2 text-sm text-slate-400 dark:text-slate-500">Locatário(s)</p>
+            {locatarios.length === 0 ? (
+              <p className="text-sm text-slate-400 dark:text-slate-500">Nenhum locatário cadastrado.</p>
+            ) : (
+              <ul className="flex flex-col gap-1 text-sm">
+                {locatarios.map((parte) => (
+                  <li key={parte.id} className="text-slate-700 dark:text-slate-300">
+                    {parte.nome} — {parte.telefone} — RG {parte.rg}, CPF {parte.cpf}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
 
         <div className="mb-4 text-sm">
