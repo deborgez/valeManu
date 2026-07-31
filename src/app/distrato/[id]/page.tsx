@@ -52,7 +52,13 @@ function SecaoTitulo({
   auditoria,
 }: {
   titulo: string;
-  auditoria: { id: string; acao: string; createdAt: Date; usuario: { nome: string } }[];
+  auditoria: {
+    id: string;
+    acao: string;
+    detalhe: string | null;
+    createdAt: Date;
+    usuario: { nome: string };
+  }[];
 }) {
   return (
     <div className="mb-4 flex items-center justify-between">
@@ -199,34 +205,38 @@ export default async function DistratoDetalhePage({
           />
         ) : (
           <div className="text-sm">
-            <p className="text-slate-700 dark:text-slate-300">
-              Data: {formatData(distrato.avisoPrevio.data)} — Forma:{" "}
-              {LABEL_FORMA_AVISO[distrato.avisoPrevio.forma]}
-            </p>
-            {distrato.avisoPrevio.arquivoUrl && (
-              <a
-                href={distrato.avisoPrevio.arquivoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-slate-500 dark:text-slate-400 underline"
-              >
-                Ver arquivo
-              </a>
-            )}
-            <div className="mt-2 flex items-center gap-3">
-              <AvisoPrevioModal
-                registro={distrato.avisoPrevio}
-                action={async (formData: FormData) => {
-                  "use server";
-                  await editarAvisoPrevio(distrato.id, formData);
-                }}
-              />
-              <ExcluirBotao
-                onExcluir={async () => {
-                  "use server";
-                  await excluirAvisoPrevio(distrato.id);
-                }}
-              />
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-slate-700 dark:text-slate-300">
+                  Data: {formatData(distrato.avisoPrevio.data)} — Forma:{" "}
+                  {LABEL_FORMA_AVISO[distrato.avisoPrevio.forma]}
+                </p>
+                {distrato.avisoPrevio.arquivoUrl && (
+                  <a
+                    href={distrato.avisoPrevio.arquivoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-slate-500 dark:text-slate-400 underline"
+                  >
+                    Ver arquivo
+                  </a>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <AvisoPrevioModal
+                  registro={distrato.avisoPrevio}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarAvisoPrevio(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirAvisoPrevio(distrato.id);
+                  }}
+                />
+              </div>
             </div>
             <InfoSistema data={distrato.avisoPrevio.createdAt} />
           </div>
@@ -254,20 +264,39 @@ export default async function DistratoDetalhePage({
             />
           ) : (
             <div className="text-sm">
-              <p className="text-slate-700 dark:text-slate-300">
-                Data: {formatData(distrato.comunicadoLocador.data)} — Forma:{" "}
-                {LABEL_FORMA_AVISO[distrato.comunicadoLocador.forma]}
-              </p>
-              {distrato.comunicadoLocador.arquivoUrl && (
-                <a
-                  href={distrato.comunicadoLocador.arquivoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-slate-500 dark:text-slate-400 underline"
-                >
-                  Ver arquivo
-                </a>
-              )}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    Data: {formatData(distrato.comunicadoLocador.data)} — Forma:{" "}
+                    {LABEL_FORMA_AVISO[distrato.comunicadoLocador.forma]}
+                  </p>
+                  {distrato.comunicadoLocador.arquivoUrl && (
+                    <a
+                      href={distrato.comunicadoLocador.arquivoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-slate-500 dark:text-slate-400 underline"
+                    >
+                      Ver arquivo
+                    </a>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <ComunicadoModal
+                    registro={distrato.comunicadoLocador}
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await editarComunicado(distrato.id, formData);
+                    }}
+                  />
+                  <ExcluirBotao
+                    onExcluir={async () => {
+                      "use server";
+                      await excluirComunicado(distrato.id);
+                    }}
+                  />
+                </div>
+              </div>
               {distrato.avisoPrevio &&
                 (() => {
                   const diferenca = diasEntreDatas(
@@ -284,21 +313,6 @@ export default async function DistratoDetalhePage({
                     </p>
                   );
                 })()}
-              <div className="mt-2 flex items-center gap-3">
-                <ComunicadoModal
-                  registro={distrato.comunicadoLocador}
-                  action={async (formData: FormData) => {
-                    "use server";
-                    await editarComunicado(distrato.id, formData);
-                  }}
-                />
-                <ExcluirBotao
-                  onExcluir={async () => {
-                    "use server";
-                    await excluirComunicado(distrato.id);
-                  }}
-                />
-              </div>
               <InfoSistema data={distrato.comunicadoLocador.createdAt} />
             </div>
           )}
@@ -326,47 +340,51 @@ export default async function DistratoDetalhePage({
                   key={c.id}
                   className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
                 >
-                  <p className="text-slate-700 dark:text-slate-300">
-                    {formatData(c.data)} — {LABEL_FORMA_CONTATO[c.forma]}
-                  </p>
-                  {c.arquivoUrl && (
-                    <a
-                      href={c.arquivoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-slate-500 dark:text-slate-400 underline"
-                    >
-                      Ver arquivo
-                    </a>
-                  )}
-                  {(c.dataPrevistaEntregaChaves || c.dataPrevistaVistoriaSaida) && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {c.dataPrevistaEntregaChaves &&
-                        `Previsão entrega de chaves: ${formatData(c.dataPrevistaEntregaChaves)}`}
-                      {c.dataPrevistaEntregaChaves && c.dataPrevistaVistoriaSaida ? " · " : ""}
-                      {c.dataPrevistaVistoriaSaida &&
-                        `Previsão vistoria de saída: ${formatData(c.dataPrevistaVistoriaSaida)}`}
-                    </p>
-                  )}
-                  {c.anotacoes && (
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                      {c.anotacoes}
-                    </p>
-                  )}
-                  <div className="mt-2 flex items-center gap-3">
-                    <ContatoModal
-                      registro={c}
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await editarContato(c.id, distrato.id, formData);
-                      }}
-                    />
-                    <ExcluirBotao
-                      onExcluir={async () => {
-                        "use server";
-                        await excluirContato(c.id, distrato.id);
-                      }}
-                    />
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-slate-700 dark:text-slate-300">
+                        {formatData(c.data)} — {LABEL_FORMA_CONTATO[c.forma]}
+                      </p>
+                      {c.arquivoUrl && (
+                        <a
+                          href={c.arquivoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-slate-500 dark:text-slate-400 underline"
+                        >
+                          Ver arquivo
+                        </a>
+                      )}
+                      {(c.dataPrevistaEntregaChaves || c.dataPrevistaVistoriaSaida) && (
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          {c.dataPrevistaEntregaChaves &&
+                            `Previsão entrega de chaves: ${formatData(c.dataPrevistaEntregaChaves)}`}
+                          {c.dataPrevistaEntregaChaves && c.dataPrevistaVistoriaSaida ? " · " : ""}
+                          {c.dataPrevistaVistoriaSaida &&
+                            `Previsão vistoria de saída: ${formatData(c.dataPrevistaVistoriaSaida)}`}
+                        </p>
+                      )}
+                      {c.anotacoes && (
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                          {c.anotacoes}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <ContatoModal
+                        registro={c}
+                        action={async (formData: FormData) => {
+                          "use server";
+                          await editarContato(c.id, distrato.id, formData);
+                        }}
+                      />
+                      <ExcluirBotao
+                        onExcluir={async () => {
+                          "use server";
+                          await excluirContato(c.id, distrato.id);
+                        }}
+                      />
+                    </div>
                   </div>
                   <InfoSistema data={c.data} />
                 </li>
@@ -404,26 +422,30 @@ export default async function DistratoDetalhePage({
           />
           {distrato.agendamentoVistoria && (
             <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              <p>Vistoria agendada para {formatData(distrato.agendamentoVistoria.data)}</p>
-              {distrato.agendamentoVistoria.locadorNaoQuerParticipar && (
-                <p className="text-amber-600 dark:text-amber-400">
-                  Locador não quer participar
-                </p>
-              )}
-              <div className="mt-2 flex items-center gap-3">
-                <AgendamentoVistoriaModal
-                  registro={distrato.agendamentoVistoria}
-                  action={async (formData: FormData) => {
-                    "use server";
-                    await editarAgendamentoVistoria(distrato.id, formData);
-                  }}
-                />
-                <ExcluirBotao
-                  onExcluir={async () => {
-                    "use server";
-                    await excluirAgendamentoVistoria(distrato.id);
-                  }}
-                />
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p>Vistoria agendada para {formatData(distrato.agendamentoVistoria.data)}</p>
+                  {distrato.agendamentoVistoria.locadorNaoQuerParticipar && (
+                    <p className="text-amber-600 dark:text-amber-400">
+                      Locador não quer participar
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <AgendamentoVistoriaModal
+                    registro={distrato.agendamentoVistoria}
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await editarAgendamentoVistoria(distrato.id, formData);
+                    }}
+                  />
+                  <ExcluirBotao
+                    onExcluir={async () => {
+                      "use server";
+                      await excluirAgendamentoVistoria(distrato.id);
+                    }}
+                  />
+                </div>
               </div>
               <InfoSistema data={distrato.agendamentoVistoria.createdAt} />
             </div>
@@ -445,21 +467,23 @@ export default async function DistratoDetalhePage({
           />
           {distrato.entregaChaves && (
             <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              <p>Chaves entregues em {formatData(distrato.entregaChaves.data)}</p>
-              <div className="mt-2 flex items-center gap-3">
-                <EntregaChavesModal
-                  registro={distrato.entregaChaves}
-                  action={async (formData: FormData) => {
-                    "use server";
-                    await editarEntregaChaves(distrato.id, formData);
-                  }}
-                />
-                <ExcluirBotao
-                  onExcluir={async () => {
-                    "use server";
-                    await excluirEntregaChaves(distrato.id);
-                  }}
-                />
+              <div className="flex items-start justify-between gap-4">
+                <p>Chaves entregues em {formatData(distrato.entregaChaves.data)}</p>
+                <div className="flex shrink-0 items-center gap-2">
+                  <EntregaChavesModal
+                    registro={distrato.entregaChaves}
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await editarEntregaChaves(distrato.id, formData);
+                    }}
+                  />
+                  <ExcluirBotao
+                    onExcluir={async () => {
+                      "use server";
+                      await excluirEntregaChaves(distrato.id);
+                    }}
+                  />
+                </div>
               </div>
               <InfoSistema data={distrato.entregaChaves.createdAt} />
             </div>
@@ -482,23 +506,25 @@ export default async function DistratoDetalhePage({
             />
           ) : (
             <div className="rounded border border-slate-100 dark:border-slate-700 p-4">
-              <p className="text-sm text-slate-700 dark:text-slate-300">
-                Vistoria realizada em {formatData(distrato.vistoriaSaida.data)}
-              </p>
-              <div className="mt-2 flex items-center gap-3">
-                <VistoriaSaidaModal
-                  registro={distrato.vistoriaSaida}
-                  action={async (formData: FormData) => {
-                    "use server";
-                    await editarVistoriaSaida(distrato.id, formData);
-                  }}
-                />
-                <ExcluirBotao
-                  onExcluir={async () => {
-                    "use server";
-                    await excluirVistoriaSaida(distrato.id);
-                  }}
-                />
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-sm text-slate-700 dark:text-slate-300">
+                  Vistoria realizada em {formatData(distrato.vistoriaSaida.data)}
+                </p>
+                <div className="flex shrink-0 items-center gap-2">
+                  <VistoriaSaidaModal
+                    registro={distrato.vistoriaSaida}
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await editarVistoriaSaida(distrato.id, formData);
+                    }}
+                  />
+                  <ExcluirBotao
+                    onExcluir={async () => {
+                      "use server";
+                      await excluirVistoriaSaida(distrato.id);
+                    }}
+                  />
+                </div>
               </div>
               <div className="mb-3">
                 <InfoSistema data={distrato.vistoriaSaida.createdAt} />

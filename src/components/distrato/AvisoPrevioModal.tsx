@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
+import { IconeEditar } from "./icones";
 
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
@@ -30,9 +31,10 @@ export default function AvisoPrevioModal({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="text-xs text-slate-500 dark:text-slate-400 underline"
+          title="Editar"
+          className="rounded border border-slate-200 dark:border-slate-700 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
         >
-          Editar
+          <IconeEditar />
         </button>
       ) : (
         <button

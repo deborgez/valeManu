@@ -6,6 +6,7 @@ import { formatSistema } from "@/lib/datahora";
 type Entrada = {
   id: string;
   acao: string;
+  detalhe: string | null;
   createdAt: Date;
   usuario: { nome: string };
 };
@@ -48,7 +49,10 @@ export default function AuditoriaButton({ entradas }: { entradas: Entrada[] }) {
                     className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
                   >
                     <p className="text-slate-700 dark:text-slate-300">
-                      <span className="font-medium">{e.acao}</span> — {e.usuario.nome}
+                      <span className="font-medium">
+                        {e.detalhe ? e.detalhe : e.acao}
+                      </span>{" "}
+                      — {e.usuario.nome}
                     </p>
                     <p className="text-xs text-slate-400 dark:text-slate-500">
                       {formatSistema(e.createdAt)}

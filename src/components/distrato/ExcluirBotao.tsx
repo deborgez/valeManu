@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconeExcluir } from "./icones";
 
 export default function ExcluirBotao({
   onExcluir,
@@ -20,10 +21,11 @@ export default function ExcluirBotao({
     >
       <button
         type="submit"
+        title="Excluir"
         disabled={excluindo}
-        className="text-xs text-red-600 dark:text-red-400 underline disabled:opacity-50"
+        className="rounded border border-slate-200 dark:border-slate-700 p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
       >
-        Excluir
+        <IconeExcluir />
       </button>
     </form>
   );
