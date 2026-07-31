@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
-import { formatData } from "@/lib/datahora";
+import { formatData, formatSistema } from "@/lib/datahora";
 import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
@@ -23,11 +23,9 @@ const SECAO_CLASSE =
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
-function AlertaForaPrazo({ dias }: { dias: number }) {
+function InfoSistema({ data }: { data: Date }) {
   return (
-    <p className="mt-2 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-xs font-medium text-red-700 dark:text-red-400">
-      {Math.abs(dias)} {Math.abs(dias) === 1 ? "dia" : "dias"} fora do prazo.
-    </p>
+    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{formatSistema(data)}</p>
   );
 }
 
@@ -191,9 +189,7 @@ export default async function DistratoDetalhePage({
                 Ver arquivo
               </a>
             )}
-            {distrato.avisoPrevio.diasForaPrazo !== null && (
-              <AlertaForaPrazo dias={distrato.avisoPrevio.diasForaPrazo} />
-            )}
+            <InfoSistema data={distrato.avisoPrevio.createdAt} />
           </div>
         )}
       </section>
@@ -256,9 +252,7 @@ export default async function DistratoDetalhePage({
                   Ver arquivo
                 </a>
               )}
-              {distrato.comunicadoLocador.diasForaPrazo !== null && (
-                <AlertaForaPrazo dias={distrato.comunicadoLocador.diasForaPrazo} />
-              )}
+              <InfoSistema data={distrato.comunicadoLocador.createdAt} />
             </div>
           )}
         </section>
@@ -311,6 +305,7 @@ export default async function DistratoDetalhePage({
                       {c.anotacoes}
                     </p>
                   )}
+                  <InfoSistema data={c.data} />
                 </li>
               ))}
             </ul>
@@ -346,6 +341,7 @@ export default async function DistratoDetalhePage({
                   Locador não quer participar
                 </p>
               )}
+              <InfoSistema data={distrato.agendamentoVistoria.createdAt} />
             </div>
           )}
         </div>
@@ -358,9 +354,10 @@ export default async function DistratoDetalhePage({
             }}
           />
           {distrato.entregaChaves && (
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Chaves entregues em {formatData(distrato.entregaChaves.data)}
-            </p>
+            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              <p>Chaves entregues em {formatData(distrato.entregaChaves.data)}</p>
+              <InfoSistema data={distrato.entregaChaves.createdAt} />
+            </div>
           )}
         </div>
 
@@ -374,9 +371,12 @@ export default async function DistratoDetalhePage({
             />
           ) : (
             <div className="rounded border border-slate-100 dark:border-slate-700 p-4">
-              <p className="mb-3 text-sm text-slate-700 dark:text-slate-300">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
                 Vistoria realizada em {formatData(distrato.vistoriaSaida.data)}
               </p>
+              <div className="mb-3">
+                <InfoSistema data={distrato.vistoriaSaida.createdAt} />
+              </div>
               <form
                 action={async (formData: FormData) => {
                   "use server";

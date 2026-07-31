@@ -324,7 +324,6 @@ model AvisoPrevioLocatario {
   arquivoUrl    String?
   arquivoNome   String?
   arquivoTipo   String?
-  diasForaPrazo Int?
   createdAt     DateTime   @default(now())
 
   distratoId String   @unique
@@ -338,7 +337,6 @@ model ComunicadoLocador {
   arquivoUrl    String?
   arquivoNome   String?
   arquivoTipo   String?
-  diasForaPrazo Int?
   createdAt     DateTime   @default(now())
 
   distratoId String   @unique

@@ -5,19 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-function diasEntre(a: Date, b: Date): number {
-  const ms = a.getTime() - b.getTime();
-  return Math.round(ms / (1000 * 60 * 60 * 24));
-}
-
-function mesmoDia(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
 export async function criarDistrato(processoId: string) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
@@ -35,10 +22,6 @@ export async function registrarAvisoPrevio(
 ) {
   const dataStr = String(formData.get("data"));
   const data = new Date(`${dataStr}T00:00:00`);
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  const diasForaPrazo = data < hoje ? diasEntre(hoje, data) * -1 : null;
 
   await prisma.avisoPrevioLocatario.create({
     data: {
@@ -48,7 +31,6 @@ export async function registrarAvisoPrevio(
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
       arquivoTipo: (formData.get("arquivoTipo") as string) || null,
-      diasForaPrazo,
     },
   });
 
@@ -59,18 +41,8 @@ export async function registrarComunicado(
   distratoId: string,
   formData: FormData
 ) {
-  const distrato = await prisma.distrato.findUniqueOrThrow({
-    where: { id: distratoId },
-    include: { avisoPrevio: true },
-  });
-
   const dataStr = String(formData.get("data"));
   const data = new Date(`${dataStr}T00:00:00`);
-
-  let diasForaPrazo: number | null = null;
-  if (distrato.avisoPrevio && !mesmoDia(data, distrato.avisoPrevio.data)) {
-    diasForaPrazo = diasEntre(data, distrato.avisoPrevio.data);
-  }
 
   await prisma.comunicadoLocador.create({
     data: {
@@ -80,7 +52,6 @@ export async function registrarComunicado(
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
       arquivoTipo: (formData.get("arquivoTipo") as string) || null,
-      diasForaPrazo,
     },
   });
 
