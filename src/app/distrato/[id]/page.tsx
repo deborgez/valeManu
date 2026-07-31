@@ -39,10 +39,12 @@ const SECAO_CLASSE =
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
-function InfoSistema({ data }: { data: Date }) {
+function InfoSistema({ data, usuario }: { data: Date; usuario?: string | null }) {
   return (
-    <p className="mt-1 text-right text-[10px] italic text-slate-400 dark:text-slate-500">
-      {formatSistema(data)}
+    <p className="mt-1 text-right text-[10px] text-slate-400 dark:text-slate-500">
+      {usuario && <span className="font-bold italic">{usuario}</span>}
+      {usuario ? " — " : ""}
+      <span className="italic">{formatSistema(data)}</span>
     </p>
   );
 }
@@ -82,12 +84,15 @@ export default async function DistratoDetalhePage({
     where: { id },
     include: {
       processo: { include: { partes: true } },
-      avisoPrevio: true,
-      comunicadoLocador: true,
-      contatos: { orderBy: { data: "desc" } },
-      agendamentoVistoria: true,
-      entregaChaves: true,
-      vistoriaSaida: true,
+      avisoPrevio: { include: { criadoPor: { select: { nome: true } } } },
+      comunicadoLocador: { include: { criadoPor: { select: { nome: true } } } },
+      contatos: {
+        orderBy: { data: "desc" },
+        include: { criadoPor: { select: { nome: true } } },
+      },
+      agendamentoVistoria: { include: { criadoPor: { select: { nome: true } } } },
+      entregaChaves: { include: { criadoPor: { select: { nome: true } } } },
+      vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
       auditorias: {
         orderBy: { createdAt: "desc" },
         include: { usuario: { select: { nome: true } } },
@@ -191,7 +196,7 @@ export default async function DistratoDetalhePage({
         </div>
       </section>
 
-      {/* Aviso Prévio do Locatário */}
+      {/* Aviso Prévio do Locatário + Comunicado ao Locador */}
       <section className={SECAO_CLASSE}>
         <SecaoTitulo
           titulo="Aviso Prévio do Locatário"
@@ -241,88 +246,93 @@ export default async function DistratoDetalhePage({
                 />
               </div>
             </div>
-            <InfoSistema data={distrato.avisoPrevio.createdAt} />
+            <InfoSistema
+              data={distrato.avisoPrevio.createdAt}
+              usuario={distrato.avisoPrevio.criadoPor?.nome}
+            />
+          </div>
+        )}
+
+        {podeComunicado && (
+          <div className="mt-6 border-t border-slate-100 dark:border-slate-700 pt-6">
+            <SecaoTitulo
+              titulo="Comunicado ao Locador"
+              auditoria={auditoriaPorSecao("COMUNICADO")}
+            />
+            {erroComunicado && (
+              <p className="mb-4 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+                Não é possível registrar uma data anterior à do Aviso Prévio.
+              </p>
+            )}
+            {!distrato.comunicadoLocador ? (
+              <ComunicadoModal
+                hoje={hoje}
+                action={async (formData: FormData) => {
+                  "use server";
+                  await registrarComunicado(distrato.id, formData);
+                }}
+              />
+            ) : (
+              <div className="text-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-slate-700 dark:text-slate-300">
+                      Data: {formatData(distrato.comunicadoLocador.data)} — Forma:{" "}
+                      {LABEL_FORMA_AVISO[distrato.comunicadoLocador.forma]}
+                    </p>
+                    {distrato.comunicadoLocador.arquivoUrl && (
+                      <a
+                        href={distrato.comunicadoLocador.arquivoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-slate-500 dark:text-slate-400 underline"
+                      >
+                        Ver arquivo
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <ComunicadoModal
+                      registro={distrato.comunicadoLocador}
+                      hoje={hoje}
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await editarComunicado(distrato.id, formData);
+                      }}
+                    />
+                    <ExcluirBotao
+                      onExcluir={async () => {
+                        "use server";
+                        await excluirComunicado(distrato.id);
+                      }}
+                    />
+                  </div>
+                </div>
+                {distrato.avisoPrevio &&
+                  (() => {
+                    const diferenca = diasEntreDatas(
+                      distrato.comunicadoLocador.data,
+                      distrato.avisoPrevio.data
+                    );
+                    return diferenca === 0 ? (
+                      <p className="mt-2 rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-xs font-medium text-green-700 dark:text-green-400">
+                        Comunicado no prazo.
+                      </p>
+                    ) : (
+                      <p className="mt-2 rounded bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+                        Comunicado {diferenca} {diferenca === 1 ? "dia" : "dias"} fora do prazo.
+                      </p>
+                    );
+                  })()}
+                <InfoSistema
+                  data={distrato.comunicadoLocador.createdAt}
+                  usuario={distrato.comunicadoLocador.criadoPor?.nome}
+                />
+              </div>
+            )}
           </div>
         )}
       </section>
-
-      {/* Comunicado ao Locador */}
-      {podeComunicado && (
-        <section className={SECAO_CLASSE}>
-          <SecaoTitulo
-            titulo="Comunicado ao Locador"
-            auditoria={auditoriaPorSecao("COMUNICADO")}
-          />
-          {erroComunicado && (
-            <p className="mb-4 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
-              Não é possível registrar uma data anterior à do Aviso Prévio.
-            </p>
-          )}
-          {!distrato.comunicadoLocador ? (
-            <ComunicadoModal
-              hoje={hoje}
-              action={async (formData: FormData) => {
-                "use server";
-                await registrarComunicado(distrato.id, formData);
-              }}
-            />
-          ) : (
-            <div className="text-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-slate-700 dark:text-slate-300">
-                    Data: {formatData(distrato.comunicadoLocador.data)} — Forma:{" "}
-                    {LABEL_FORMA_AVISO[distrato.comunicadoLocador.forma]}
-                  </p>
-                  {distrato.comunicadoLocador.arquivoUrl && (
-                    <a
-                      href={distrato.comunicadoLocador.arquivoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-slate-500 dark:text-slate-400 underline"
-                    >
-                      Ver arquivo
-                    </a>
-                  )}
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <ComunicadoModal
-                    registro={distrato.comunicadoLocador}
-                    hoje={hoje}
-                    action={async (formData: FormData) => {
-                      "use server";
-                      await editarComunicado(distrato.id, formData);
-                    }}
-                  />
-                  <ExcluirBotao
-                    onExcluir={async () => {
-                      "use server";
-                      await excluirComunicado(distrato.id);
-                    }}
-                  />
-                </div>
-              </div>
-              {distrato.avisoPrevio &&
-                (() => {
-                  const diferenca = diasEntreDatas(
-                    distrato.comunicadoLocador.data,
-                    distrato.avisoPrevio.data
-                  );
-                  return diferenca === 0 ? (
-                    <p className="mt-2 rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-xs font-medium text-green-700 dark:text-green-400">
-                      Comunicado no prazo.
-                    </p>
-                  ) : (
-                    <p className="mt-2 rounded bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400">
-                      Comunicado {diferenca} {diferenca === 1 ? "dia" : "dias"} fora do prazo.
-                    </p>
-                  );
-                })()}
-              <InfoSistema data={distrato.comunicadoLocador.createdAt} />
-            </div>
-          )}
-        </section>
-      )}
 
       {/* Acompanhamento do Aviso Prévio */}
       {podeAcompanhamento && (
@@ -391,7 +401,7 @@ export default async function DistratoDetalhePage({
                       />
                     </div>
                   </div>
-                  <InfoSistema data={c.data} />
+                  <InfoSistema data={c.data} usuario={c.criadoPor?.nome} />
                 </li>
               ))}
             </ul>
@@ -454,7 +464,10 @@ export default async function DistratoDetalhePage({
                   />
                 </div>
               </div>
-              <InfoSistema data={distrato.agendamentoVistoria.createdAt} />
+              <InfoSistema
+                data={distrato.agendamentoVistoria.createdAt}
+                usuario={distrato.agendamentoVistoria.criadoPor?.nome}
+              />
             </div>
           )}
         </div>
@@ -494,7 +507,10 @@ export default async function DistratoDetalhePage({
                   />
                 </div>
               </div>
-              <InfoSistema data={distrato.entregaChaves.createdAt} />
+              <InfoSistema
+                data={distrato.entregaChaves.createdAt}
+                usuario={distrato.entregaChaves.criadoPor?.nome}
+              />
             </div>
           )}
         </div>
@@ -538,7 +554,10 @@ export default async function DistratoDetalhePage({
                 </div>
               </div>
               <div className="mb-3">
-                <InfoSistema data={distrato.vistoriaSaida.createdAt} />
+                <InfoSistema
+                  data={distrato.vistoriaSaida.createdAt}
+                  usuario={distrato.vistoriaSaida.criadoPor?.nome}
+                />
               </div>
               <form
                 action={async (formData: FormData) => {

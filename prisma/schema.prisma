@@ -105,6 +105,13 @@ model User {
   processosCriados   Processo[]        @relation("ProcessoCriadoPor")
   distratosCriados   Distrato[]        @relation("DistratoCriadoPor")
   distratoAuditorias DistratoAuditoria[] @relation("DistratoAuditoriaUsuario")
+
+  avisosPrevioCriados      AvisoPrevioLocatario[]     @relation("AvisoPrevioCriadoPor")
+  comunicadosCriados       ComunicadoLocador[]        @relation("ComunicadoCriadoPor")
+  contatosCriados          ContatoAcompanhamento[]    @relation("ContatoCriadoPor")
+  agendamentosVistoriaCriados AgendamentoVistoriaSaida[] @relation("AgendamentoVistoriaCriadoPor")
+  entregasChavesCriadas    EntregaChaves[]            @relation("EntregaChavesCriadoPor")
+  vistoriasSaidaCriadas    VistoriaSaida[]            @relation("VistoriaSaidaCriadoPor")
 }
 
 model Prestador {
@@ -344,6 +351,9 @@ model AvisoPrevioLocatario {
 
   distratoId String   @unique
   distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("AvisoPrevioCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model ComunicadoLocador {
@@ -357,6 +367,9 @@ model ComunicadoLocador {
 
   distratoId String   @unique
   distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("ComunicadoCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model ContatoAcompanhamento {
@@ -374,6 +387,9 @@ model ContatoAcompanhamento {
 
   distratoId String
   distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("ContatoCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model AgendamentoVistoriaSaida {
@@ -394,6 +410,9 @@ model AgendamentoVistoriaSaida {
 
   distratoId String   @unique
   distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("AgendamentoVistoriaCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model EntregaChaves {
@@ -412,6 +431,9 @@ model EntregaChaves {
 
   distratoId String   @unique
   distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("EntregaChavesCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model VistoriaSaida {
@@ -438,4 +460,7 @@ model VistoriaSaida {
 
   distratoId String   @unique
   distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("VistoriaSaidaCriadoPor", fields: [criadoPorId], references: [id])
 }

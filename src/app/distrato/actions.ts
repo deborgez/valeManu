@@ -101,6 +101,9 @@ export async function registrarAvisoPrevio(
   distratoId: string,
   formData: FormData
 ) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Aviso Prévio");
   const data = new Date(`${dataStr}T00:00:00`);
@@ -114,6 +117,7 @@ export async function registrarAvisoPrevio(
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
       arquivoTipo: (formData.get("arquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
     },
   });
 
@@ -175,6 +179,9 @@ export async function registrarComunicado(
   distratoId: string,
   formData: FormData
 ) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Comunicado");
   const data = new Date(`${dataStr}T00:00:00`);
@@ -197,6 +204,7 @@ export async function registrarComunicado(
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
       arquivoTipo: (formData.get("arquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
     },
   });
 
@@ -264,6 +272,9 @@ export async function excluirComunicado(distratoId: string) {
 }
 
 export async function registrarContato(distratoId: string, formData: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
   const dataPrevistaEntregaChaves = formData.get("dataPrevistaEntregaChaves")
     ? new Date(`${formData.get("dataPrevistaEntregaChaves")}T00:00:00`)
     : null;
@@ -282,6 +293,7 @@ export async function registrarContato(distratoId: string, formData: FormData) {
       dataPrevistaEntregaChaves,
       dataPrevistaVistoriaSaida,
       anotacoes: (formData.get("anotacoes") as string) || null,
+      criadoPorId: session.user.id,
     },
   });
 
@@ -362,6 +374,9 @@ export async function agendarVistoriaSaida(
   distratoId: string,
   formData: FormData
 ) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
   const dataStr = String(formData.get("data"));
   const data = new Date(`${dataStr}T00:00:00`);
   const comunicacaoDataStr = formData.get("comunicacaoData") as string | null;
@@ -382,6 +397,7 @@ export async function agendarVistoriaSaida(
       naoParticiparArquivoUrl: (formData.get("naoParticiparArquivoUrl") as string) || null,
       naoParticiparArquivoNome: (formData.get("naoParticiparArquivoNome") as string) || null,
       naoParticiparArquivoTipo: (formData.get("naoParticiparArquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
     },
   });
 
@@ -466,6 +482,9 @@ export async function registrarEntregaChaves(
   distratoId: string,
   formData: FormData
 ) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Entrega das Chaves");
   const data = new Date(`${dataStr}T00:00:00`);
@@ -483,6 +502,7 @@ export async function registrarEntregaChaves(
       informeArquivoUrl: (formData.get("informeArquivoUrl") as string) || null,
       informeArquivoNome: (formData.get("informeArquivoNome") as string) || null,
       informeArquivoTipo: (formData.get("informeArquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
     },
   });
 
@@ -563,6 +583,9 @@ export async function registrarVistoriaSaida(
   distratoId: string,
   formData: FormData
 ) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Vistoria de Saída");
   const data = new Date(`${dataStr}T00:00:00`);
@@ -574,6 +597,7 @@ export async function registrarVistoriaSaida(
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
       arquivoTipo: (formData.get("arquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
     },
   });
 
