@@ -49,8 +49,10 @@ export default function AuditoriaButton({ entradas }: { entradas: Entrada[] }) {
                     className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
                   >
                     <p className="text-slate-700 dark:text-slate-300">
-                      {e.detalhe ? e.detalhe : e.acao} —{" "}
-                      <span className="font-medium">{e.usuario.nome}</span>
+                      {e.acao === "Editou"
+                        ? (e.detalhe ?? e.acao)
+                        : `${e.acao}${e.detalhe ? ` — ${e.detalhe}` : ""}`}{" "}
+                      — <span className="font-medium">{e.usuario.nome}</span>
                     </p>
                     <p className="text-xs italic text-slate-400 dark:text-slate-500">
                       {formatDataHoraCurta(e.createdAt)}
