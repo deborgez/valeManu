@@ -13,12 +13,16 @@ export function diasEntreDatas(a: Date, b: Date): number {
   return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
-export function formatSistema(data: Date): string {
+export function formatDataHoraCurta(data: Date): string {
   const dataStr = data.toLocaleDateString("pt-BR", { timeZone: FUSO });
   const horaStr = data.toLocaleTimeString("pt-BR", {
     timeZone: FUSO,
     hour: "2-digit",
     minute: "2-digit",
   });
-  return `Sistema: ${dataStr} - ${horaStr.replace(":", "h")}`;
+  return `${dataStr} - ${horaStr.replace(":", "h")}`;
+}
+
+export function formatSistema(data: Date): string {
+  return `Sistema: ${formatDataHoraCurta(data)}`;
 }

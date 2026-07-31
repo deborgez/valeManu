@@ -49,11 +49,12 @@ export default function ComunicadoModal({
       {aberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <form
-            action={(formData) => {
+            action={async (formData) => {
               if (enviando) return;
               setEnviando(true);
-              action(formData);
+              await action(formData);
               setAberto(false);
+              setEnviando(false);
             }}
             className="w-full max-w-md rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >

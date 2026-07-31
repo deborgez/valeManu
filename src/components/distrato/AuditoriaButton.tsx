@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatSistema } from "@/lib/datahora";
+import { formatDataHoraCurta } from "@/lib/datahora";
 
 type Entrada = {
   id: string;
@@ -54,8 +54,8 @@ export default function AuditoriaButton({ entradas }: { entradas: Entrada[] }) {
                       </span>{" "}
                       — {e.usuario.nome}
                     </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
-                      {formatSistema(e.createdAt)}
+                    <p className="text-xs italic text-slate-400 dark:text-slate-500">
+                      {formatDataHoraCurta(e.createdAt)}
                     </p>
                   </li>
                 ))}
