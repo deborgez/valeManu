@@ -1,6 +1,6 @@
 import TelefoneInput from "@/components/inputs/TelefoneInput";
 import CpfInput from "@/components/inputs/CpfInput";
-import { ESPECIALIDADES_PRESTADOR } from "@/lib/labels";
+import EspecialidadeSelect from "@/components/inputs/EspecialidadeSelect";
 
 type Prestador = {
   nome: string;
@@ -42,27 +42,11 @@ export default function PrestadorForm({
         <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
           Especialidade
         </label>
-        <select
+        <EspecialidadeSelect
           name="especialidade"
           required
-          defaultValue={prestador?.especialidade ?? ""}
-          className={CAMPO_CLASSE}
-        >
-          <option value="" disabled>
-            Selecione uma especialidade
-          </option>
-          {prestador?.especialidade &&
-            !ESPECIALIDADES_PRESTADOR.includes(prestador.especialidade) && (
-              <option value={prestador.especialidade}>
-                {prestador.especialidade}
-              </option>
-            )}
-          {ESPECIALIDADES_PRESTADOR.map((esp) => (
-            <option key={esp} value={esp}>
-              {esp}
-            </option>
-          ))}
-        </select>
+          defaultValue={prestador?.especialidade}
+        />
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-4">
