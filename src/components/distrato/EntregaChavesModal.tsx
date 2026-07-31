@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { IconeEditar } from "./icones";
 
@@ -27,6 +28,7 @@ export default function EntregaChavesModal({
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -56,6 +58,7 @@ export default function EntregaChavesModal({
               if (enviando) return;
               setEnviando(true);
               await action(formData);
+              router.refresh();
               setAberto(false);
               setEnviando(false);
             }}

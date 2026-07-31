@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { IconeExcluir } from "./icones";
 
 export default function ExcluirBotao({
@@ -9,6 +10,7 @@ export default function ExcluirBotao({
   onExcluir: () => Promise<void>;
 }) {
   const [excluindo, setExcluindo] = useState(false);
+  const router = useRouter();
 
   return (
     <form
@@ -17,6 +19,8 @@ export default function ExcluirBotao({
         if (!confirm("Excluir este registro? Essa ação não pode ser desfeita.")) return;
         setExcluindo(true);
         await onExcluir();
+        router.refresh();
+        setExcluindo(false);
       }}
     >
       <button

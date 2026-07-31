@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { IconeEditar } from "./icones";
 
@@ -31,6 +32,7 @@ export default function AgendamentoVistoriaModal({
     registro?.locadorNaoQuerParticipar ?? false
   );
   const [enviando, setEnviando] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -60,6 +62,7 @@ export default function AgendamentoVistoriaModal({
               if (enviando) return;
               setEnviando(true);
               await action(formData);
+              router.refresh();
               setAberto(false);
               setEnviando(false);
             }}
