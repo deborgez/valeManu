@@ -6,24 +6,50 @@ import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
+type Registro = {
+  data: Date;
+  comunicacaoData: Date | null;
+  comunicacaoArquivoUrl: string | null;
+  comunicacaoArquivoNome: string | null;
+  comunicacaoArquivoTipo: string | null;
+  locadorNaoQuerParticipar: boolean;
+  naoParticiparArquivoUrl: string | null;
+  naoParticiparArquivoNome: string | null;
+  naoParticiparArquivoTipo: string | null;
+};
+
 export default function AgendamentoVistoriaModal({
   action,
+  registro,
 }: {
   action: (formData: FormData) => Promise<void>;
+  registro?: Registro | null;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [naoQuerParticipar, setNaoQuerParticipar] = useState(false);
+  const [naoQuerParticipar, setNaoQuerParticipar] = useState(
+    registro?.locadorNaoQuerParticipar ?? false
+  );
   const [enviando, setEnviando] = useState(false);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setAberto(true)}
-        className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-      >
-        Agendamento de Vistoria de Saída
-      </button>
+      {registro ? (
+        <button
+          type="button"
+          onClick={() => setAberto(true)}
+          className="text-xs text-slate-500 dark:text-slate-400 underline"
+        >
+          Editar
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAberto(true)}
+          className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          Agendamento de Vistoria de Saída
+        </button>
+      )}
 
       {aberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
@@ -37,14 +63,22 @@ export default function AgendamentoVistoriaModal({
             className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Agendamento de Vistoria de Saída
+              {registro ? "Editar Agendamento de Vistoria de Saída" : "Agendamento de Vistoria de Saída"}
             </h3>
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Data da vistoria
               </label>
-              <input type="date" name="data" required className={CAMPO_CLASSE} />
+              <input
+                type="date"
+                name="data"
+                required
+                defaultValue={
+                  registro ? registro.data.toISOString().slice(0, 10) : undefined
+                }
+                className={CAMPO_CLASSE}
+              />
             </div>
 
             <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -54,13 +88,34 @@ export default function AgendamentoVistoriaModal({
               <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
                 Data
               </label>
-              <input type="date" name="comunicacaoData" className={CAMPO_CLASSE} />
+              <input
+                type="date"
+                name="comunicacaoData"
+                defaultValue={
+                  registro?.comunicacaoData
+                    ? registro.comunicacaoData.toISOString().slice(0, 10)
+                    : undefined
+                }
+                className={CAMPO_CLASSE}
+              />
             </div>
             <div className="mb-4">
               <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
                 Arquivo
               </label>
-              <BlobUploadInput name="comunicacaoArquivo" accept="image/*,application/pdf" />
+              <BlobUploadInput
+                name="comunicacaoArquivo"
+                accept="image/*,application/pdf"
+                defaultValue={
+                  registro?.comunicacaoArquivoUrl
+                    ? {
+                        url: registro.comunicacaoArquivoUrl,
+                        nome: registro.comunicacaoArquivoNome ?? "arquivo",
+                        tipo: registro.comunicacaoArquivoTipo ?? "",
+                      }
+                    : undefined
+                }
+              />
             </div>
 
             <div className="mb-4 flex items-center gap-2">
@@ -85,7 +140,19 @@ export default function AgendamentoVistoriaModal({
                 <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
                   Arquivo
                 </label>
-                <BlobUploadInput name="naoParticiparArquivo" accept="image/*,application/pdf" />
+                <BlobUploadInput
+                  name="naoParticiparArquivo"
+                  accept="image/*,application/pdf"
+                  defaultValue={
+                    registro?.naoParticiparArquivoUrl
+                      ? {
+                          url: registro.naoParticiparArquivoUrl,
+                          nome: registro.naoParticiparArquivoNome ?? "arquivo",
+                          tipo: registro.naoParticiparArquivoTipo ?? "",
+                        }
+                      : undefined
+                  }
+                />
               </div>
             )}
 

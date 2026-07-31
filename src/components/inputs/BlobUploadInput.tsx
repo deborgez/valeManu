@@ -11,13 +11,17 @@ export default function BlobUploadInput({
   multiple = false,
   accept,
   required = false,
+  defaultValue,
 }: {
   name: string;
   multiple?: boolean;
   accept?: string;
   required?: boolean;
+  defaultValue?: ArquivoEnviado | null;
 }) {
-  const [arquivos, setArquivos] = useState<ArquivoEnviado[]>([]);
+  const [arquivos, setArquivos] = useState<ArquivoEnviado[]>(
+    defaultValue ? [defaultValue] : []
+  );
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 

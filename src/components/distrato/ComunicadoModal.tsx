@@ -8,12 +8,13 @@ const CAMPO_CLASSE =
 
 type Registro = {
   data: Date;
+  forma: string;
   arquivoUrl: string | null;
   arquivoNome: string | null;
   arquivoTipo: string | null;
 };
 
-export default function VistoriaSaidaModal({
+export default function ComunicadoModal({
   action,
   registro,
 }: {
@@ -37,9 +38,9 @@ export default function VistoriaSaidaModal({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
-          Registrar a Vistoria de Saída
+          Registrar Comunicado
         </button>
       )}
 
@@ -55,7 +56,7 @@ export default function VistoriaSaidaModal({
             className="w-full max-w-md rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {registro ? "Editar Vistoria de Saída" : "Vistoria de Saída"}
+              {registro ? "Editar Comunicado ao Locador" : "Registrar Comunicado ao Locador"}
             </h3>
 
             <div className="mb-4">
@@ -72,7 +73,20 @@ export default function VistoriaSaidaModal({
                 className={CAMPO_CLASSE}
               />
             </div>
-
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Forma do Aviso
+              </label>
+              <select
+                name="forma"
+                required
+                defaultValue={registro?.forma ?? "LIGACAO"}
+                className={CAMPO_CLASSE}
+              >
+                <option value="LIGACAO">Ligação</option>
+                <option value="WHATSAPP">WhatsApp</option>
+              </select>
+            </div>
             <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Arquivo
@@ -105,7 +119,7 @@ export default function VistoriaSaidaModal({
                 disabled={enviando}
                 className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-60"
               >
-                Salvar
+                {registro ? "Salvar" : "Registrar Comunicado"}
               </button>
             </div>
           </form>

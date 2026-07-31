@@ -4,17 +4,33 @@ import { formatEndereco } from "@/lib/endereco";
 import { formatData, formatSistema, diasEntreDatas } from "@/lib/datahora";
 import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
+import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
+import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
+import ExcluirBotao from "@/components/distrato/ExcluirBotao";
+import AuditoriaButton from "@/components/distrato/AuditoriaButton";
 import {
   registrarAvisoPrevio,
+  editarAvisoPrevio,
+  excluirAvisoPrevio,
   registrarComunicado,
+  editarComunicado,
+  excluirComunicado,
   registrarContato,
+  editarContato,
+  excluirContato,
   agendarVistoriaSaida,
+  editarAgendamentoVistoria,
+  excluirAgendamentoVistoria,
   registrarEntregaChaves,
+  editarEntregaChaves,
+  excluirEntregaChaves,
   registrarVistoriaSaida,
+  editarVistoriaSaida,
+  excluirVistoriaSaida,
   atualizarVistoriaSaida,
 } from "../actions";
 
@@ -28,6 +44,21 @@ function InfoSistema({ data }: { data: Date }) {
     <p className="mt-1 text-right text-[10px] italic text-slate-400 dark:text-slate-500">
       {formatSistema(data)}
     </p>
+  );
+}
+
+function SecaoTitulo({
+  titulo,
+  auditoria,
+}: {
+  titulo: string;
+  auditoria: { id: string; acao: string; createdAt: Date; usuario: { nome: string } }[];
+}) {
+  return (
+    <div className="mb-4 flex items-center justify-between">
+      <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{titulo}</h2>
+      <AuditoriaButton entradas={auditoria} />
+    </div>
   );
 }
 
@@ -51,6 +82,10 @@ export default async function DistratoDetalhePage({
       agendamentoVistoria: true,
       entregaChaves: true,
       vistoriaSaida: true,
+      auditorias: {
+        orderBy: { createdAt: "desc" },
+        include: { usuario: { select: { nome: true } } },
+      },
     },
   });
 
@@ -62,6 +97,9 @@ export default async function DistratoDetalhePage({
 
   const podeComunicado = Boolean(distrato.avisoPrevio);
   const podeAcompanhamento = Boolean(distrato.comunicadoLocador);
+
+  const auditoriaPorSecao = (secao: string) =>
+    distrato.auditorias.filter((a) => a.secao === secao);
 
   let alertaContato: string | null = null;
   if (distrato.avisoPrevio) {
@@ -148,46 +186,17 @@ export default async function DistratoDetalhePage({
 
       {/* Aviso Prévio do Locatário */}
       <section className={SECAO_CLASSE}>
-        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-          Aviso Prévio do Locatário
-        </h2>
+        <SecaoTitulo
+          titulo="Aviso Prévio do Locatário"
+          auditoria={auditoriaPorSecao("AVISO_PREVIO")}
+        />
         {!distrato.avisoPrevio ? (
-          <form
+          <AvisoPrevioModal
             action={async (formData: FormData) => {
               "use server";
               await registrarAvisoPrevio(distrato.id, formData);
             }}
-            className="flex flex-col gap-4"
-          >
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Data
-              </label>
-              <input type="date" name="data" required className={CAMPO_CLASSE} />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Forma do Aviso
-              </label>
-              <select name="forma" required className={CAMPO_CLASSE}>
-                <option value="EMAIL">E-mail</option>
-                <option value="WHATSAPP">WhatsApp</option>
-                <option value="TERMO">Termo</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Arquivo
-              </label>
-              <BlobUploadInput name="arquivo" accept="image/*,application/pdf" />
-            </div>
-            <button
-              type="submit"
-              className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
-            >
-              Registrar Aviso Prévio
-            </button>
-          </form>
+          />
         ) : (
           <div className="text-sm">
             <p className="text-slate-700 dark:text-slate-300">
@@ -204,6 +213,21 @@ export default async function DistratoDetalhePage({
                 Ver arquivo
               </a>
             )}
+            <div className="mt-2 flex items-center gap-3">
+              <AvisoPrevioModal
+                registro={distrato.avisoPrevio}
+                action={async (formData: FormData) => {
+                  "use server";
+                  await editarAvisoPrevio(distrato.id, formData);
+                }}
+              />
+              <ExcluirBotao
+                onExcluir={async () => {
+                  "use server";
+                  await excluirAvisoPrevio(distrato.id);
+                }}
+              />
+            </div>
             <InfoSistema data={distrato.avisoPrevio.createdAt} />
           </div>
         )}
@@ -212,50 +236,22 @@ export default async function DistratoDetalhePage({
       {/* Comunicado ao Locador */}
       {podeComunicado && (
         <section className={SECAO_CLASSE}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Comunicado ao Locador
-          </h2>
+          <SecaoTitulo
+            titulo="Comunicado ao Locador"
+            auditoria={auditoriaPorSecao("COMUNICADO")}
+          />
+          {erroComunicado && (
+            <p className="mb-4 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+              Não é possível registrar uma data anterior à do Aviso Prévio.
+            </p>
+          )}
           {!distrato.comunicadoLocador ? (
-            <form
+            <ComunicadoModal
               action={async (formData: FormData) => {
                 "use server";
                 await registrarComunicado(distrato.id, formData);
               }}
-              className="flex flex-col gap-4"
-            >
-              {erroComunicado && (
-                <p className="rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
-                  Não é possível registrar uma data anterior à do Aviso Prévio.
-                </p>
-              )}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Data
-                </label>
-                <input type="date" name="data" required className={CAMPO_CLASSE} />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Forma do Aviso
-                </label>
-                <select name="forma" required className={CAMPO_CLASSE}>
-                  <option value="LIGACAO">Ligação</option>
-                  <option value="WHATSAPP">WhatsApp</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Arquivo
-                </label>
-                <BlobUploadInput name="arquivo" accept="image/*,application/pdf" />
-              </div>
-              <button
-                type="submit"
-                className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
-              >
-                Registrar Comunicado
-              </button>
-            </form>
+            />
           ) : (
             <div className="text-sm">
               <p className="text-slate-700 dark:text-slate-300">
@@ -288,6 +284,21 @@ export default async function DistratoDetalhePage({
                     </p>
                   );
                 })()}
+              <div className="mt-2 flex items-center gap-3">
+                <ComunicadoModal
+                  registro={distrato.comunicadoLocador}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarComunicado(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirComunicado(distrato.id);
+                  }}
+                />
+              </div>
               <InfoSistema data={distrato.comunicadoLocador.createdAt} />
             </div>
           )}
@@ -297,9 +308,10 @@ export default async function DistratoDetalhePage({
       {/* Acompanhamento do Aviso Prévio */}
       {podeAcompanhamento && (
         <section className={SECAO_CLASSE}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Acompanhamento do Aviso Prévio
-          </h2>
+          <SecaoTitulo
+            titulo="Acompanhamento do Aviso Prévio"
+            auditoria={auditoriaPorSecao("ACOMPANHAMENTO")}
+          />
 
           {alertaContato && (
             <p className="mb-4 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-xs font-medium text-red-700 dark:text-red-400">
@@ -341,6 +353,21 @@ export default async function DistratoDetalhePage({
                       {c.anotacoes}
                     </p>
                   )}
+                  <div className="mt-2 flex items-center gap-3">
+                    <ContatoModal
+                      registro={c}
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await editarContato(c.id, distrato.id, formData);
+                      }}
+                    />
+                    <ExcluirBotao
+                      onExcluir={async () => {
+                        "use server";
+                        await excluirContato(c.id, distrato.id);
+                      }}
+                    />
+                  </div>
                   <InfoSistema data={c.data} />
                 </li>
               ))}
@@ -363,6 +390,12 @@ export default async function DistratoDetalhePage({
         </h2>
 
         <div className="mb-4">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Agendamento de Vistoria de Saída
+            </p>
+            <AuditoriaButton entradas={auditoriaPorSecao("AGENDAMENTO_VISTORIA")} />
+          </div>
           <AgendamentoVistoriaModal
             action={async (formData: FormData) => {
               "use server";
@@ -377,12 +410,33 @@ export default async function DistratoDetalhePage({
                   Locador não quer participar
                 </p>
               )}
+              <div className="mt-2 flex items-center gap-3">
+                <AgendamentoVistoriaModal
+                  registro={distrato.agendamentoVistoria}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarAgendamentoVistoria(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirAgendamentoVistoria(distrato.id);
+                  }}
+                />
+              </div>
               <InfoSistema data={distrato.agendamentoVistoria.createdAt} />
             </div>
           )}
         </div>
 
         <div className="mb-4">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Entrega das Chaves
+            </p>
+            <AuditoriaButton entradas={auditoriaPorSecao("ENTREGA_CHAVES")} />
+          </div>
           <EntregaChavesModal
             action={async (formData: FormData) => {
               "use server";
@@ -392,12 +446,33 @@ export default async function DistratoDetalhePage({
           {distrato.entregaChaves && (
             <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               <p>Chaves entregues em {formatData(distrato.entregaChaves.data)}</p>
+              <div className="mt-2 flex items-center gap-3">
+                <EntregaChavesModal
+                  registro={distrato.entregaChaves}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarEntregaChaves(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirEntregaChaves(distrato.id);
+                  }}
+                />
+              </div>
               <InfoSistema data={distrato.entregaChaves.createdAt} />
             </div>
           )}
         </div>
 
         <div>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Vistoria de Saída
+            </p>
+            <AuditoriaButton entradas={auditoriaPorSecao("VISTORIA_SAIDA")} />
+          </div>
           {!distrato.vistoriaSaida ? (
             <VistoriaSaidaModal
               action={async (formData: FormData) => {
@@ -410,6 +485,21 @@ export default async function DistratoDetalhePage({
               <p className="text-sm text-slate-700 dark:text-slate-300">
                 Vistoria realizada em {formatData(distrato.vistoriaSaida.data)}
               </p>
+              <div className="mt-2 flex items-center gap-3">
+                <VistoriaSaidaModal
+                  registro={distrato.vistoriaSaida}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarVistoriaSaida(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirVistoriaSaida(distrato.id);
+                  }}
+                />
+              </div>
               <div className="mb-3">
                 <InfoSistema data={distrato.vistoriaSaida.createdAt} />
               </div>
@@ -461,7 +551,19 @@ export default async function DistratoDetalhePage({
                       className={CAMPO_CLASSE}
                     />
                   </div>
-                  <BlobUploadInput name="informeArquivo" accept="image/*,application/pdf" />
+                  <BlobUploadInput
+                    name="informeArquivo"
+                    accept="image/*,application/pdf"
+                    defaultValue={
+                      distrato.vistoriaSaida.informeArquivoUrl
+                        ? {
+                            url: distrato.vistoriaSaida.informeArquivoUrl,
+                            nome: distrato.vistoriaSaida.informeArquivoNome ?? "arquivo",
+                            tipo: distrato.vistoriaSaida.informeArquivoTipo ?? "",
+                          }
+                        : undefined
+                    }
+                  />
                 </div>
 
                 <div>
@@ -480,7 +582,19 @@ export default async function DistratoDetalhePage({
                       className={CAMPO_CLASSE}
                     />
                   </div>
-                  <BlobUploadInput name="laudoArquivo" accept="image/*,application/pdf" />
+                  <BlobUploadInput
+                    name="laudoArquivo"
+                    accept="image/*,application/pdf"
+                    defaultValue={
+                      distrato.vistoriaSaida.laudoArquivoUrl
+                        ? {
+                            url: distrato.vistoriaSaida.laudoArquivoUrl,
+                            nome: distrato.vistoriaSaida.laudoArquivoNome ?? "arquivo",
+                            tipo: distrato.vistoriaSaida.laudoArquivoTipo ?? "",
+                          }
+                        : undefined
+                    }
+                  />
                 </div>
 
                 <button

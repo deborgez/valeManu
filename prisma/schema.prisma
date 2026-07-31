@@ -104,6 +104,7 @@ model User {
   pedidosGerados     PedidoOrcamento[] @relation("GeradoPor")
   processosCriados   Processo[]        @relation("ProcessoCriadoPor")
   distratosCriados   Distrato[]        @relation("DistratoCriadoPor")
+  distratoAuditorias DistratoAuditoria[] @relation("DistratoAuditoriaUsuario")
 }
 
 model Prestador {
@@ -315,6 +316,21 @@ model Distrato {
   agendamentoVistoria AgendamentoVistoriaSaida?
   entregaChaves       EntregaChaves?
   vistoriaSaida       VistoriaSaida?
+  auditorias          DistratoAuditoria[]
+}
+
+model DistratoAuditoria {
+  id        String   @id @default(cuid())
+  secao     String
+  acao      String
+  detalhe   String?
+  createdAt DateTime @default(now())
+
+  distratoId String
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  usuarioId String
+  usuario   User   @relation("DistratoAuditoriaUsuario", fields: [usuarioId], references: [id])
 }
 
 model AvisoPrevioLocatario {
