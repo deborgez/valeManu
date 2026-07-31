@@ -49,3 +49,26 @@ export const LABEL_FORMA_CONTATO: Record<string, string> = {
   LIGACAO: "Ligação",
   WHATSAPP: "WhatsApp",
 };
+
+export const ESPECIALIDADES_PRESTADOR: string[] = [
+  "Pequenos Reparos (Marido de Aluguel)",
+  "Alvenaria",
+  "Pintura",
+  "Elétrica",
+  "Hidráulica",
+  "Gesso e Drywall",
+  "Marcenaria e Carpintaria",
+  "Serralheria",
+  "Vidraçaria",
+  "Pisos e Revestimentos",
+  "Coberturas e Impermeabilização",
+  "Jardinagem e Paisagismo",
+  "Limpeza",
+  "Climatização e Refrigeração",
+  "Segurança Eletrônica",
+  "Chaveiro",
+  "Controle de Pragas",
+  "Piscinas",
+  "Gás",
+  "Engenharia/Laudos",
+];
