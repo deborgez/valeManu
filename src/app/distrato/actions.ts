@@ -44,6 +44,15 @@ export async function registrarComunicado(
   const dataStr = String(formData.get("data"));
   const data = new Date(`${dataStr}T00:00:00`);
 
+  const distrato = await prisma.distrato.findUniqueOrThrow({
+    where: { id: distratoId },
+    include: { avisoPrevio: true },
+  });
+
+  if (distrato.avisoPrevio && data < distrato.avisoPrevio.data) {
+    redirect(`/distrato/${distratoId}?erroComunicado=1`);
+  }
+
   await prisma.comunicadoLocador.create({
     data: {
       distratoId,

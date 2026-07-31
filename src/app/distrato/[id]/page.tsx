@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
-import { formatData, formatSistema } from "@/lib/datahora";
+import { formatData, formatSistema, diasEntreDatas } from "@/lib/datahora";
 import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
@@ -25,16 +25,21 @@ const CAMPO_CLASSE =
 
 function InfoSistema({ data }: { data: Date }) {
   return (
-    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{formatSistema(data)}</p>
+    <p className="mt-1 text-right text-[10px] italic text-slate-400 dark:text-slate-500">
+      {formatSistema(data)}
+    </p>
   );
 }
 
 export default async function DistratoDetalhePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ erroComunicado?: string }>;
 }) {
   const { id } = await params;
+  const { erroComunicado } = await searchParams;
 
   const distrato = await prisma.distrato.findUnique({
     where: { id },
@@ -208,6 +213,11 @@ export default async function DistratoDetalhePage({
               }}
               className="flex flex-col gap-4"
             >
+              {erroComunicado && (
+                <p className="rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+                  Não é possível registrar uma data anterior à do Aviso Prévio.
+                </p>
+              )}
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Data
@@ -252,6 +262,22 @@ export default async function DistratoDetalhePage({
                   Ver arquivo
                 </a>
               )}
+              {distrato.avisoPrevio &&
+                (() => {
+                  const diferenca = diasEntreDatas(
+                    distrato.comunicadoLocador.data,
+                    distrato.avisoPrevio.data
+                  );
+                  return diferenca === 0 ? (
+                    <p className="mt-2 rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-xs font-medium text-green-700 dark:text-green-400">
+                      Comunicado no prazo.
+                    </p>
+                  ) : (
+                    <p className="mt-2 rounded bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+                      Comunicado {diferenca} {diferenca === 1 ? "dia" : "dias"} fora do prazo.
+                    </p>
+                  );
+                })()}
               <InfoSistema data={distrato.comunicadoLocador.createdAt} />
             </div>
           )}
