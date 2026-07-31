@@ -356,6 +356,8 @@ model ContatoAcompanhamento {
   dataPrevistaEntregaChaves DateTime?
   dataPrevistaVistoriaSaida DateTime?
 
+  anotacoes String?
+
   distratoId String
   distrato   Distrato @relation(fields: [distratoId], references: [id])
 }

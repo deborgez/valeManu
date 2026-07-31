@@ -104,6 +104,7 @@ export async function registrarContato(distratoId: string, formData: FormData) {
       arquivoTipo: (formData.get("arquivoTipo") as string) || null,
       dataPrevistaEntregaChaves,
       dataPrevistaVistoriaSaida,
+      anotacoes: (formData.get("anotacoes") as string) || null,
     },
   });
 

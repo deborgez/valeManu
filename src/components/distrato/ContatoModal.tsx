@@ -60,7 +60,7 @@ export default function ContatoModal({
               <BlobUploadInput name="arquivo" accept="image/*,application/pdf" />
             </div>
 
-            <div className="mb-6 grid grid-cols-2 gap-4">
+            <div className="mb-4 grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
                   Previsão de entrega de chaves
@@ -73,6 +73,13 @@ export default function ContatoModal({
                 </label>
                 <input type="date" name="dataPrevistaVistoriaSaida" className={CAMPO_CLASSE} />
               </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Anotações
+              </label>
+              <textarea name="anotacoes" rows={3} className={CAMPO_CLASSE} />
             </div>
 
             <div className="flex justify-end gap-2">

@@ -306,6 +306,11 @@ export default async function DistratoDetalhePage({
                         `Previsão vistoria de saída: ${formatData(c.dataPrevistaVistoriaSaida)}`}
                     </p>
                   )}
+                  {c.anotacoes && (
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                      {c.anotacoes}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
