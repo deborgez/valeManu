@@ -66,15 +66,20 @@ export default function ProcessoForm({
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Prazo de Contrato — Início
+              Data de Início de Contrato
             </label>
             <input type="date" name="prazoContratoInicio" className={CAMPO_CLASSE} />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Prazo de Contrato — Fim
+              Prazo do Contrato (meses)
             </label>
-            <input type="date" name="prazoContratoFim" className={CAMPO_CLASSE} />
+            <input
+              type="number"
+              min="1"
+              name="prazoContratoMeses"
+              className={CAMPO_CLASSE}
+            />
           </div>
         </div>
       </section>

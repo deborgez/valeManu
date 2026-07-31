@@ -35,10 +35,20 @@ export default async function ProcessoDetalhePage({
             <p className="text-slate-700 dark:text-slate-300">{processo.captador || "—"}</p>
           </div>
           <div>
-            <p className="mb-1 text-slate-400 dark:text-slate-500">Prazo de Contrato</p>
+            <p className="mb-1 text-slate-400 dark:text-slate-500">Início de Contrato</p>
             <p className="text-slate-700 dark:text-slate-300">
-              {processo.prazoContratoInicio && processo.prazoContratoFim
-                ? `${formatData(processo.prazoContratoInicio)} a ${formatData(processo.prazoContratoFim)}`
+              {processo.prazoContratoInicio ? formatData(processo.prazoContratoInicio) : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="mb-1 text-slate-400 dark:text-slate-500">Prazo do Contrato</p>
+            <p className="text-slate-700 dark:text-slate-300">
+              {processo.prazoContratoMeses
+                ? `${processo.prazoContratoMeses} ${processo.prazoContratoMeses === 1 ? "mês" : "meses"}${
+                    processo.prazoContratoFim
+                      ? ` (até ${formatData(processo.prazoContratoFim)})`
+                      : ""
+                  }`
                 : "—"}
             </p>
           </div>

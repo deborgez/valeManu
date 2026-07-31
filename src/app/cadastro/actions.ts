@@ -30,8 +30,19 @@ export async function criarProcesso(formData: FormData) {
         | "SEM_GARANTIA")
     : null;
 
-  const prazoContratoInicio = (formData.get("prazoContratoInicio") as string) || null;
-  const prazoContratoFim = (formData.get("prazoContratoFim") as string) || null;
+  const prazoContratoInicioStr = (formData.get("prazoContratoInicio") as string) || null;
+  const prazoContratoMesesStr = (formData.get("prazoContratoMeses") as string) || null;
+  const prazoContratoInicio = prazoContratoInicioStr
+    ? new Date(`${prazoContratoInicioStr}T00:00:00`)
+    : null;
+  const prazoContratoMeses = prazoContratoMesesStr ? parseInt(prazoContratoMesesStr, 10) : null;
+
+  let prazoContratoFim: Date | null = null;
+  if (prazoContratoInicio && prazoContratoMeses) {
+    prazoContratoFim = new Date(prazoContratoInicio);
+    prazoContratoFim.setMonth(prazoContratoFim.getMonth() + prazoContratoMeses);
+    prazoContratoFim.setDate(prazoContratoFim.getDate() - 1);
+  }
 
   const partesTipo = formData.getAll("parteTipo") as string[];
   const partesNome = formData.getAll("parteNome") as string[];
@@ -44,8 +55,9 @@ export async function criarProcesso(formData: FormData) {
       numeroProcesso: String(formData.get("numeroProcesso")),
       unidade: (formData.get("unidade") as string) || null,
       captador: (formData.get("captador") as string) || null,
-      prazoContratoInicio: prazoContratoInicio ? new Date(prazoContratoInicio) : null,
-      prazoContratoFim: prazoContratoFim ? new Date(prazoContratoFim) : null,
+      prazoContratoInicio,
+      prazoContratoMeses,
+      prazoContratoFim,
       codigoImovel: (formData.get("codigoImovel") as string) || null,
       tipoFianca,
       fiancaNome: (formData.get("fiancaNome") as string) || null,

@@ -259,6 +259,7 @@ model Processo {
   captador    String?
 
   prazoContratoInicio DateTime?
+  prazoContratoMeses  Int?
   prazoContratoFim    DateTime?
 
   tipoFianca     TipoFianca?
