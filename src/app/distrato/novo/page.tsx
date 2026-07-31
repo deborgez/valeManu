@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { formatEndereco } from "@/lib/endereco";
 import { criarDistrato } from "../actions";
+import NumeroProcessoInput from "@/components/inputs/NumeroProcessoInput";
 
 export default async function NovoDistratoPage({
   searchParams,
@@ -26,11 +27,9 @@ export default async function NovoDistratoPage({
 
       <div className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
         <form className="flex gap-3">
-          <input
-            type="text"
+          <NumeroProcessoInput
             name="q"
             defaultValue={q}
-            placeholder="Buscar processo pelo número..."
             className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
           />
           <button
