@@ -42,6 +42,7 @@ export const LABEL_FORMA_AVISO: Record<string, string> = {
   EMAIL: "E-mail",
   WHATSAPP: "WhatsApp",
   TERMO: "Termo",
+  LIGACAO: "Ligação",
 };
 
 export const LABEL_FORMA_CONTATO: Record<string, string> = {

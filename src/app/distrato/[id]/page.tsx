@@ -222,9 +222,8 @@ export default async function DistratoDetalhePage({
                   Forma do Aviso
                 </label>
                 <select name="forma" required className={CAMPO_CLASSE}>
-                  <option value="EMAIL">E-mail</option>
+                  <option value="LIGACAO">Ligação</option>
                   <option value="WHATSAPP">WhatsApp</option>
-                  <option value="TERMO">Termo</option>
                 </select>
               </div>
               <div>

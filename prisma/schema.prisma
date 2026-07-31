@@ -73,6 +73,7 @@ enum FormaAviso {
   EMAIL
   WHATSAPP
   TERMO
+  LIGACAO
 }
 
 enum FormaContato {
