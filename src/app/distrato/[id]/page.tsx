@@ -5,6 +5,7 @@ import { formatData } from "@/lib/datahora";
 import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
+import ContatoModal from "@/components/distrato/ContatoModal";
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
 import {
@@ -310,56 +311,12 @@ export default async function DistratoDetalhePage({
             </ul>
           )}
 
-          <form
+          <ContatoModal
             action={async (formData: FormData) => {
               "use server";
               await registrarContato(distrato.id, formData);
             }}
-            className="flex flex-col gap-4"
-          >
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Data e hora serão registradas automaticamente pelo sistema.
-            </p>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Forma de Comunicação
-              </label>
-              <select name="forma" required className={CAMPO_CLASSE}>
-                <option value="LIGACAO">Ligação</option>
-                <option value="WHATSAPP">WhatsApp</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Arquivo
-              </label>
-              <BlobUploadInput name="arquivo" accept="image/*,application/pdf" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Previsão de entrega de chaves
-                </label>
-                <input
-                  type="date"
-                  name="dataPrevistaEntregaChaves"
-                  className={CAMPO_CLASSE}
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Previsão de vistoria de saída
-                </label>
-                <input type="date" name="dataPrevistaVistoriaSaida" className={CAMPO_CLASSE} />
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
-            >
-              Contato Realizado
-            </button>
-          </form>
+          />
         </section>
       )}
 
