@@ -67,10 +67,20 @@ export default async function DistratoDetalhePage({
   if (distrato.avisoPrevio) {
     const prazoLimite = new Date(distrato.avisoPrevio.data);
     prazoLimite.setDate(prazoLimite.getDate() + 15);
-    const hoje = new Date();
-    const temContatoNoPrazo = distrato.contatos.some((c) => c.data <= prazoLimite);
-    if (hoje > prazoLimite && !temContatoNoPrazo) {
-      alertaContato = "Alerta, nenhum contato registrado dentro do prazo.";
+
+    if (distrato.contatos.length === 0) {
+      const hoje = new Date();
+      if (hoje > prazoLimite) {
+        alertaContato = "Alerta, nenhum contato registrado dentro do prazo.";
+      }
+    } else {
+      const primeiroContato = distrato.contatos.reduce((min, c) =>
+        c.data < min.data ? c : min
+      );
+      if (primeiroContato.data > prazoLimite) {
+        const dias = diasEntreDatas(primeiroContato.data, prazoLimite);
+        alertaContato = `Contato realizado ${dias} ${dias === 1 ? "dia" : "dias"} após o prazo máximo.`;
+      }
     }
   }
 
