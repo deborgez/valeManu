@@ -65,7 +65,7 @@ export default async function ProcessoDetalhePage({
           </p>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-4">
+        <div className="mb-4 flex flex-col gap-4">
           <div>
             <p className="mb-2 text-sm text-slate-400 dark:text-slate-500">Locador(es)</p>
             {locadores.length === 0 ? (
