@@ -129,7 +129,7 @@ export default function AvisoPrevioModal({
                 disabled={enviando}
                 className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-60"
               >
-                {registro ? "Salvar" : "Registrar Aviso Prévio"}
+                Salvar
               </button>
             </div>
           </form>

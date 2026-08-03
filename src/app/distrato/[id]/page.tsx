@@ -421,77 +421,67 @@ export default async function DistratoDetalhePage({
         </section>
       )}
 
-      {/* Entrega de Chaves e Vistoria de Saída */}
+      {/* Agendamento de Vistoria de Saída + Comunicado ao Locador */}
       <section className={SECAO_CLASSE}>
-        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-          Entrega de Chaves e Vistoria de Saída
-        </h2>
-
-        <div className="mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Agendamento de Vistoria de Saída
-            </p>
-            <AuditoriaButton entradas={auditoriaPorSecao("AGENDAMENTO_VISTORIA")} />
-          </div>
-          <AgendamentoVistoriaModal
-            action={async (formData: FormData) => {
-              "use server";
-              await agendarVistoriaSaida(distrato.id, formData);
-            }}
-          />
-          {distrato.agendamentoVistoria && (
-            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p>
-                    Vistoria agendada para {formatData(distrato.agendamentoVistoria.data)}
-                    {distrato.agendamentoVistoria.hora
-                      ? ` às ${distrato.agendamentoVistoria.hora}`
-                      : ""}
-                  </p>
-                  {distrato.agendamentoVistoria.arquivoUrl && (
-                    <a
-                      href={distrato.agendamentoVistoria.arquivoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-slate-500 dark:text-slate-400 underline"
-                    >
-                      Ver arquivo
-                    </a>
-                  )}
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <AgendamentoVistoriaModal
-                    registro={distrato.agendamentoVistoria}
-                    action={async (formData: FormData) => {
-                      "use server";
-                      await editarAgendamentoVistoria(distrato.id, formData);
-                    }}
-                  />
-                  <ExcluirBotao
-                    onExcluir={async () => {
-                      "use server";
-                      await excluirAgendamentoVistoria(distrato.id);
-                    }}
-                  />
-                </div>
+        <SecaoTitulo
+          titulo="Agendamento de Vistoria de Saída"
+          auditoria={auditoriaPorSecao("AGENDAMENTO_VISTORIA")}
+        />
+        <AgendamentoVistoriaModal
+          action={async (formData: FormData) => {
+            "use server";
+            await agendarVistoriaSaida(distrato.id, formData);
+          }}
+        />
+        {distrato.agendamentoVistoria && (
+          <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p>
+                  Vistoria agendada para {formatData(distrato.agendamentoVistoria.data)}
+                  {distrato.agendamentoVistoria.hora
+                    ? ` às ${distrato.agendamentoVistoria.hora}`
+                    : ""}
+                </p>
+                {distrato.agendamentoVistoria.arquivoUrl && (
+                  <a
+                    href={distrato.agendamentoVistoria.arquivoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-slate-500 dark:text-slate-400 underline"
+                  >
+                    Ver arquivo
+                  </a>
+                )}
               </div>
-              <InfoSistema
-                data={distrato.agendamentoVistoria.createdAt}
-                usuario={distrato.agendamentoVistoria.criadoPor?.nome}
-              />
+              <div className="flex shrink-0 items-center gap-2">
+                <AgendamentoVistoriaModal
+                  registro={distrato.agendamentoVistoria}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarAgendamentoVistoria(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirAgendamentoVistoria(distrato.id);
+                  }}
+                />
+              </div>
             </div>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Comunicado ao Locador
-            </p>
-            <AuditoriaButton entradas={auditoriaPorSecao("COMUNICADO_VISTORIA")} />
+            <InfoSistema
+              data={distrato.agendamentoVistoria.createdAt}
+              usuario={distrato.agendamentoVistoria.criadoPor?.nome}
+            />
           </div>
+        )}
+
+        <div className="mt-6 border-t border-slate-100 dark:border-slate-700 pt-6">
+          <SecaoTitulo
+            titulo="Comunicado ao Locador"
+            auditoria={auditoriaPorSecao("COMUNICADO_VISTORIA")}
+          />
           {!distrato.comunicadoVistoria ? (
             <ComunicadoVistoriaModal
               hoje={hoje}
@@ -501,7 +491,7 @@ export default async function DistratoDetalhePage({
               }}
             />
           ) : (
-            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            <div className="text-sm">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   {distrato.comunicadoVistoria.locadorNaoQuerParticipar ? (
@@ -509,7 +499,7 @@ export default async function DistratoDetalhePage({
                       Locador não quer participar
                     </p>
                   ) : (
-                    <p>
+                    <p className="text-slate-700 dark:text-slate-300">
                       {distrato.comunicadoVistoria.data
                         ? `Comunicado em ${formatData(distrato.comunicadoVistoria.data)}`
                         : "—"}
@@ -553,7 +543,10 @@ export default async function DistratoDetalhePage({
             </div>
           )}
         </div>
+      </section>
 
+      {/* Entrega das Chaves + Vistoria de Saída */}
+      <section className={SECAO_CLASSE}>
         <div className="mb-4">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
