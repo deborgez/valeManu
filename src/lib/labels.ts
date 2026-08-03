@@ -50,6 +50,11 @@ export const LABEL_FORMA_CONTATO: Record<string, string> = {
   WHATSAPP: "WhatsApp",
 };
 
+export const LABEL_LOCAL_ENTREGA: Record<string, string> = {
+  IMOVEL: "Imóvel",
+  IMOBILIARIA: "Imobiliária",
+};
+
 export const ESPECIALIDADES_PRESTADOR: string[] = [
   "Pequenos Reparos (Marido de Aluguel)",
   "Alvenaria",

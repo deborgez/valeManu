@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { formatData, hojeSaoPaulo } from "@/lib/datahora";
-import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
+import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 
 const SECAO = {
   AVISO_PREVIO: "AVISO_PREVIO",
@@ -14,6 +14,7 @@ const SECAO = {
   AGENDAMENTO_VISTORIA: "AGENDAMENTO_VISTORIA",
   COMUNICADO_VISTORIA: "COMUNICADO_VISTORIA",
   ENTREGA_CHAVES: "ENTREGA_CHAVES",
+  COMUNICADO_ENTREGA_CHAVES: "COMUNICADO_ENTREGA_CHAVES",
   VISTORIA_SAIDA: "VISTORIA_SAIDA",
 } as const;
 
@@ -464,10 +465,8 @@ export async function registrarComunicadoVistoria(
 
   const locadorNaoQuerParticipar = formData.get("locadorNaoQuerParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
-  const data = !locadorNaoQuerParticipar && dataStr ? new Date(`${dataStr}T00:00:00`) : null;
-  const forma = !locadorNaoQuerParticipar
-    ? (formData.get("forma") as "LIGACAO" | "WHATSAPP" | null)
-    : null;
+  const data = dataStr ? new Date(`${dataStr}T00:00:00`) : null;
+  const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
 
   await prisma.comunicadoVistoriaSaida.create({
     data: {
@@ -486,9 +485,7 @@ export async function registrarComunicadoVistoria(
     distratoId,
     SECAO.COMUNICADO_VISTORIA,
     "Registrou",
-    locadorNaoQuerParticipar
-      ? "Locador não quer participar"
-      : `Data: ${data ? formatData(data) : "—"}${forma ? ` — Forma: ${LABEL_FORMA_CONTATO[forma]}` : ""}`
+    `Data: ${data ? formatData(data) : "—"}${forma ? ` — Forma: ${LABEL_FORMA_CONTATO[forma]}` : ""}${locadorNaoQuerParticipar ? " — Locador não quer participar" : ""}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -499,10 +496,8 @@ export async function editarComunicadoVistoria(
 ) {
   const locadorNaoQuerParticipar = formData.get("locadorNaoQuerParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
-  const data = !locadorNaoQuerParticipar && dataStr ? new Date(`${dataStr}T00:00:00`) : null;
-  const forma = !locadorNaoQuerParticipar
-    ? (formData.get("forma") as "LIGACAO" | "WHATSAPP" | null)
-    : null;
+  const data = dataStr ? new Date(`${dataStr}T00:00:00`) : null;
+  const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
   const arquivoTipo = (formData.get("arquivoTipo") as string) || null;
@@ -542,9 +537,7 @@ export async function excluirComunicadoVistoria(distratoId: string) {
     distratoId,
     SECAO.COMUNICADO_VISTORIA,
     "Excluiu",
-    registro.locadorNaoQuerParticipar
-      ? "Locador não quer participar"
-      : `Data: ${registro.data ? formatData(registro.data) : "—"}`
+    `Data: ${registro.data ? formatData(registro.data) : "—"}${registro.forma ? ` — Forma: ${LABEL_FORMA_CONTATO[registro.forma]}` : ""}${registro.locadorNaoQuerParticipar ? " — Locador não quer participar" : ""}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -559,20 +552,20 @@ export async function registrarEntregaChaves(
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Entrega das Chaves");
   const data = new Date(`${dataStr}T00:00:00`);
-  const informeDataStr = formData.get("informeData") as string | null;
-  if (informeDataStr) validarNaoFutura(informeDataStr, "informe ao locador");
+  const hora = (formData.get("hora") as string) || null;
+  const local = (formData.get("local") as "IMOVEL" | "IMOBILIARIA" | null) || null;
+  const proprietarioPresenciou = formData.get("proprietarioPresenciou") === "on";
 
   await prisma.entregaChaves.create({
     data: {
       distratoId,
       data,
+      hora,
+      local,
+      proprietarioPresenciou,
       termoUrl: (formData.get("termoUrl") as string) || null,
       termoNome: (formData.get("termoNome") as string) || null,
       termoTipo: (formData.get("termoTipo") as string) || null,
-      informeData: informeDataStr ? new Date(`${informeDataStr}T00:00:00`) : null,
-      informeArquivoUrl: (formData.get("informeArquivoUrl") as string) || null,
-      informeArquivoNome: (formData.get("informeArquivoNome") as string) || null,
-      informeArquivoTipo: (formData.get("informeArquivoTipo") as string) || null,
       criadoPorId: session.user.id,
     },
   });
@@ -581,7 +574,7 @@ export async function registrarEntregaChaves(
     distratoId,
     SECAO.ENTREGA_CHAVES,
     "Registrou",
-    `Data: ${formatData(data)}`
+    `Data: ${formatData(data)}${hora ? ` às ${hora}` : ""}${local ? ` — Local: ${LABEL_LOCAL_ENTREGA[local]}` : ""}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -593,15 +586,12 @@ export async function editarEntregaChaves(
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Entrega das Chaves");
   const data = new Date(`${dataStr}T00:00:00`);
+  const hora = (formData.get("hora") as string) || null;
+  const local = (formData.get("local") as "IMOVEL" | "IMOBILIARIA" | null) || null;
+  const proprietarioPresenciou = formData.get("proprietarioPresenciou") === "on";
   const termoUrl = (formData.get("termoUrl") as string) || null;
   const termoNome = (formData.get("termoNome") as string) || null;
   const termoTipo = (formData.get("termoTipo") as string) || null;
-  const informeDataStr = formData.get("informeData") as string | null;
-  if (informeDataStr) validarNaoFutura(informeDataStr, "informe ao locador");
-  const informeData = informeDataStr ? new Date(`${informeDataStr}T00:00:00`) : null;
-  const informeArquivoUrl = (formData.get("informeArquivoUrl") as string) || null;
-  const informeArquivoNome = (formData.get("informeArquivoNome") as string) || null;
-  const informeArquivoTipo = (formData.get("informeArquivoTipo") as string) || null;
 
   const antigo = await prisma.entregaChaves.findUniqueOrThrow({
     where: { distratoId },
@@ -609,26 +599,18 @@ export async function editarEntregaChaves(
 
   await prisma.entregaChaves.update({
     where: { distratoId },
-    data: {
-      data,
-      termoUrl,
-      termoNome,
-      termoTipo,
-      informeData,
-      informeArquivoUrl,
-      informeArquivoNome,
-      informeArquivoTipo,
-    },
+    data: { data, hora, local, proprietarioPresenciou, termoUrl, termoNome, termoTipo },
   });
 
   const detalhe = descreverAlteracoes(
     antigo,
-    { data, termoUrl, informeData, informeArquivoUrl },
+    { data, hora, local, proprietarioPresenciou, termoUrl },
     {
       data: { label: "a data" },
+      hora: { label: "o horário" },
+      local: { label: "o local", formatar: (v) => (v ? LABEL_LOCAL_ENTREGA[v as string] : "vazio") },
+      proprietarioPresenciou: { label: "\"proprietário presenciou\"" },
       termoUrl: { label: "o termo de entrega de chaves", arquivo: true },
-      informeData: { label: "a data do informe ao locador" },
-      informeArquivoUrl: { label: "o arquivo do informe", arquivo: true },
     }
   );
 
@@ -648,6 +630,92 @@ export async function excluirEntregaChaves(distratoId: string) {
     SECAO.ENTREGA_CHAVES,
     "Excluiu",
     `Data: ${formatData(registro.data)}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function registrarComunicadoEntregaChaves(
+  distratoId: string,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const dataStr = formData.get("data") as string | null;
+  const data = dataStr ? new Date(`${dataStr}T00:00:00`) : null;
+  const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
+  const proprietarioPresenciou = formData.get("proprietarioPresenciou") === "on";
+
+  await prisma.comunicadoEntregaChaves.create({
+    data: {
+      distratoId,
+      data,
+      forma,
+      proprietarioPresenciou,
+      arquivoUrl: (formData.get("arquivoUrl") as string) || null,
+      arquivoNome: (formData.get("arquivoNome") as string) || null,
+      arquivoTipo: (formData.get("arquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.COMUNICADO_ENTREGA_CHAVES,
+    "Registrou",
+    `Data: ${data ? formatData(data) : "—"}${forma ? ` — Forma: ${LABEL_FORMA_CONTATO[forma]}` : ""}${proprietarioPresenciou ? " — Proprietário presenciou" : ""}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function editarComunicadoEntregaChaves(
+  distratoId: string,
+  formData: FormData
+) {
+  const dataStr = formData.get("data") as string | null;
+  const data = dataStr ? new Date(`${dataStr}T00:00:00`) : null;
+  const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
+  const proprietarioPresenciou = formData.get("proprietarioPresenciou") === "on";
+  const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
+  const arquivoNome = (formData.get("arquivoNome") as string) || null;
+  const arquivoTipo = (formData.get("arquivoTipo") as string) || null;
+
+  const antigo = await prisma.comunicadoEntregaChaves.findUniqueOrThrow({
+    where: { distratoId },
+  });
+
+  await prisma.comunicadoEntregaChaves.update({
+    where: { distratoId },
+    data: { data, forma, proprietarioPresenciou, arquivoUrl, arquivoNome, arquivoTipo },
+  });
+
+  const detalhe = descreverAlteracoes(
+    antigo,
+    { data, forma, proprietarioPresenciou, arquivoUrl },
+    {
+      data: { label: "a data" },
+      forma: { label: "a forma", formatar: (v) => (v ? LABEL_FORMA_CONTATO[v as string] : "vazio") },
+      proprietarioPresenciou: { label: "\"proprietário presenciou\"" },
+      arquivoUrl: { label: "o arquivo anexado", arquivo: true },
+    }
+  );
+
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.COMUNICADO_ENTREGA_CHAVES, "Editou", detalhe);
+  }
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function excluirComunicadoEntregaChaves(distratoId: string) {
+  const registro = await prisma.comunicadoEntregaChaves.findUniqueOrThrow({
+    where: { distratoId },
+  });
+  await prisma.comunicadoEntregaChaves.delete({ where: { distratoId } });
+  await logAuditoria(
+    distratoId,
+    SECAO.COMUNICADO_ENTREGA_CHAVES,
+    "Excluiu",
+    `Data: ${registro.data ? formatData(registro.data) : "—"}${registro.forma ? ` — Forma: ${LABEL_FORMA_CONTATO[registro.forma]}` : ""}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }

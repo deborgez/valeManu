@@ -76,7 +76,6 @@ export default function ComunicadoVistoriaModal({
               <input
                 type="date"
                 name="data"
-                disabled={naoQuerParticipar}
                 defaultValue={
                   registro?.data ? registro.data.toISOString().slice(0, 10) : ""
                 }
@@ -90,7 +89,6 @@ export default function ComunicadoVistoriaModal({
               </label>
               <select
                 name="forma"
-                disabled={naoQuerParticipar}
                 defaultValue={registro?.forma ?? "LIGACAO"}
                 className={CAMPO_CLASSE}
               >

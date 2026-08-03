@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
 import { formatData, formatSistema, diasEntreDatas, hojeSaoPaulo } from "@/lib/datahora";
-import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
+import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
@@ -10,6 +10,7 @@ import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaM
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
+import ComunicadoEntregaChavesModal from "@/components/distrato/ComunicadoEntregaChavesModal";
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
 import ExcluirBotao from "@/components/distrato/ExcluirBotao";
 import AuditoriaButton from "@/components/distrato/AuditoriaButton";
@@ -32,6 +33,9 @@ import {
   registrarEntregaChaves,
   editarEntregaChaves,
   excluirEntregaChaves,
+  registrarComunicadoEntregaChaves,
+  editarComunicadoEntregaChaves,
+  excluirComunicadoEntregaChaves,
   registrarVistoriaSaida,
   editarVistoriaSaida,
   excluirVistoriaSaida,
@@ -97,6 +101,7 @@ export default async function DistratoDetalhePage({
       agendamentoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       entregaChaves: { include: { criadoPor: { select: { nome: true } } } },
+      comunicadoEntregaChaves: { include: { criadoPor: { select: { nome: true } } } },
       vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
       auditorias: {
         orderBy: { createdAt: "desc" },
@@ -493,18 +498,17 @@ export default async function DistratoDetalhePage({
             <div className="text-sm">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  {distrato.comunicadoVistoria.locadorNaoQuerParticipar ? (
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {distrato.comunicadoVistoria.data
+                      ? `Data: ${formatData(distrato.comunicadoVistoria.data)}`
+                      : "—"}
+                    {distrato.comunicadoVistoria.forma
+                      ? ` — Forma: ${LABEL_FORMA_CONTATO[distrato.comunicadoVistoria.forma]}`
+                      : ""}
+                  </p>
+                  {distrato.comunicadoVistoria.locadorNaoQuerParticipar && (
                     <p className="text-amber-600 dark:text-amber-400">
                       Locador não quer participar
-                    </p>
-                  ) : (
-                    <p className="text-slate-700 dark:text-slate-300">
-                      {distrato.comunicadoVistoria.data
-                        ? `Data: ${formatData(distrato.comunicadoVistoria.data)}`
-                        : "—"}
-                      {distrato.comunicadoVistoria.forma
-                        ? ` — Forma: ${LABEL_FORMA_CONTATO[distrato.comunicadoVistoria.forma]}`
-                        : ""}
                     </p>
                   )}
                   {distrato.comunicadoVistoria.arquivoUrl && (
@@ -543,58 +547,142 @@ export default async function DistratoDetalhePage({
         </div>
       </section>
 
-      {/* Entrega das Chaves + Vistoria de Saída */}
+      {/* Entrega das Chaves */}
       <section className={SECAO_CLASSE}>
-        <div className="mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Entrega das Chaves
-            </p>
-            <AuditoriaButton entradas={auditoriaPorSecao("ENTREGA_CHAVES")} />
-          </div>
-          <EntregaChavesModal
-            hoje={hoje}
-            action={async (formData: FormData) => {
-              "use server";
-              await registrarEntregaChaves(distrato.id, formData);
-            }}
-          />
-          {distrato.entregaChaves && (
-            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              <div className="flex items-start justify-between gap-4">
-                <p>Chaves entregues em {formatData(distrato.entregaChaves.data)}</p>
-                <div className="flex shrink-0 items-center gap-2">
-                  <EntregaChavesModal
-                    registro={distrato.entregaChaves}
-                    hoje={hoje}
-                    action={async (formData: FormData) => {
-                      "use server";
-                      await editarEntregaChaves(distrato.id, formData);
-                    }}
-                  />
-                  <ExcluirBotao
-                    onExcluir={async () => {
-                      "use server";
-                      await excluirEntregaChaves(distrato.id);
-                    }}
-                  />
-                </div>
+        <SecaoTitulo
+          titulo="Entrega das Chaves"
+          auditoria={auditoriaPorSecao("ENTREGA_CHAVES")}
+        />
+        <EntregaChavesModal
+          hoje={hoje}
+          action={async (formData: FormData) => {
+            "use server";
+            await registrarEntregaChaves(distrato.id, formData);
+          }}
+        />
+        {distrato.entregaChaves && (
+          <div className="text-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-slate-700 dark:text-slate-300">
+                  Data: {formatData(distrato.entregaChaves.data)}
+                  {distrato.entregaChaves.hora ? ` às ${distrato.entregaChaves.hora}` : ""}
+                  {distrato.entregaChaves.local
+                    ? ` — Local: ${LABEL_LOCAL_ENTREGA[distrato.entregaChaves.local]}`
+                    : ""}
+                </p>
+                {distrato.entregaChaves.proprietarioPresenciou && (
+                  <p className="text-green-600 dark:text-green-400">Proprietário presenciou</p>
+                )}
+                {distrato.entregaChaves.termoUrl && (
+                  <a
+                    href={distrato.entregaChaves.termoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-slate-500 dark:text-slate-400 underline"
+                  >
+                    Ver termo
+                  </a>
+                )}
               </div>
-              <InfoSistema
-                data={distrato.entregaChaves.createdAt}
-                usuario={distrato.entregaChaves.criadoPor?.nome}
-              />
+              <div className="flex shrink-0 items-center gap-2">
+                <EntregaChavesModal
+                  registro={distrato.entregaChaves}
+                  hoje={hoje}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarEntregaChaves(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirEntregaChaves(distrato.id);
+                  }}
+                />
+              </div>
             </div>
-          )}
-        </div>
-
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Vistoria de Saída
-            </p>
-            <AuditoriaButton entradas={auditoriaPorSecao("VISTORIA_SAIDA")} />
+            <InfoSistema
+              data={distrato.entregaChaves.createdAt}
+              usuario={distrato.entregaChaves.criadoPor?.nome}
+            />
           </div>
+        )}
+
+        {distrato.entregaChaves && !distrato.entregaChaves.proprietarioPresenciou && (
+          <div className="mt-6 border-t border-slate-100 dark:border-slate-700 pt-6">
+            <SecaoTitulo
+              titulo="Comunicado ao Locador"
+              auditoria={auditoriaPorSecao("COMUNICADO_ENTREGA_CHAVES")}
+            />
+            {!distrato.comunicadoEntregaChaves ? (
+              <ComunicadoEntregaChavesModal
+                action={async (formData: FormData) => {
+                  "use server";
+                  await registrarComunicadoEntregaChaves(distrato.id, formData);
+                }}
+              />
+            ) : (
+              <div className="text-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-slate-700 dark:text-slate-300">
+                      {distrato.comunicadoEntregaChaves.data
+                        ? `Data: ${formatData(distrato.comunicadoEntregaChaves.data)}`
+                        : "—"}
+                      {distrato.comunicadoEntregaChaves.forma
+                        ? ` — Forma: ${LABEL_FORMA_CONTATO[distrato.comunicadoEntregaChaves.forma]}`
+                        : ""}
+                    </p>
+                    {distrato.comunicadoEntregaChaves.proprietarioPresenciou && (
+                      <p className="text-green-600 dark:text-green-400">
+                        Proprietário presenciou
+                      </p>
+                    )}
+                    {distrato.comunicadoEntregaChaves.arquivoUrl && (
+                      <a
+                        href={distrato.comunicadoEntregaChaves.arquivoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-slate-500 dark:text-slate-400 underline"
+                      >
+                        Ver arquivo
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <ComunicadoEntregaChavesModal
+                      registro={distrato.comunicadoEntregaChaves}
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await editarComunicadoEntregaChaves(distrato.id, formData);
+                      }}
+                    />
+                    <ExcluirBotao
+                      onExcluir={async () => {
+                        "use server";
+                        await excluirComunicadoEntregaChaves(distrato.id);
+                      }}
+                    />
+                  </div>
+                </div>
+                <InfoSistema
+                  data={distrato.comunicadoEntregaChaves.createdAt}
+                  usuario={distrato.comunicadoEntregaChaves.criadoPor?.nome}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Vistoria de Saída */}
+      <section className={SECAO_CLASSE}>
+        <SecaoTitulo
+          titulo="Vistoria de Saída"
+          auditoria={auditoriaPorSecao("VISTORIA_SAIDA")}
+        />
+        <div>
           {!distrato.vistoriaSaida ? (
             <VistoriaSaidaModal
               hoje={hoje}

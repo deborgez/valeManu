@@ -9,23 +9,20 @@ const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
 type Registro = {
-  data: Date;
-  hora: string | null;
-  local: string | null;
+  data: Date | null;
+  forma: string | null;
   proprietarioPresenciou: boolean;
-  termoUrl: string | null;
-  termoNome: string | null;
-  termoTipo: string | null;
+  arquivoUrl: string | null;
+  arquivoNome: string | null;
+  arquivoTipo: string | null;
 };
 
-export default function EntregaChavesModal({
+export default function ComunicadoEntregaChavesModal({
   action,
   registro,
-  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
-  hoje?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -48,7 +45,7 @@ export default function EntregaChavesModal({
           onClick={() => setAberto(true)}
           className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
-          Registrar Entrega
+          Registrar Comunicado
         </button>
       )}
 
@@ -66,72 +63,38 @@ export default function EntregaChavesModal({
             className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {registro ? "Editar Entrega das Chaves" : "Registrar Entrega das Chaves"}
+              {registro ? "Editar Comunicado ao Locador" : "Registrar Comunicado ao Locador"}
             </h3>
 
-            <div className="mb-4 grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Data
-                </label>
-                <input
-                  type="date"
-                  name="data"
-                  required
-                  max={hoje}
-                  defaultValue={
-                    registro ? registro.data.toISOString().slice(0, 10) : undefined
-                  }
-                  className={CAMPO_CLASSE}
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Horário
-                </label>
-                <input
-                  type="time"
-                  name="hora"
-                  defaultValue={registro?.hora ?? ""}
-                  className={CAMPO_CLASSE}
-                />
-              </div>
-            </div>
-
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Local
+                Data
               </label>
-              <select
-                name="local"
-                defaultValue={registro?.local ?? "IMOVEL"}
-                className={CAMPO_CLASSE}
-              >
-                <option value="IMOVEL">Imóvel</option>
-                <option value="IMOBILIARIA">Imobiliária</option>
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Termo de Entrega de Chaves
-              </label>
-              <BlobUploadInput
-                name="termo"
-                accept="image/*,application/pdf"
+              <input
+                type="date"
+                name="data"
                 defaultValue={
-                  registro?.termoUrl
-                    ? {
-                        url: registro.termoUrl,
-                        nome: registro.termoNome ?? "arquivo",
-                        tipo: registro.termoTipo ?? "",
-                      }
-                    : undefined
+                  registro?.data ? registro.data.toISOString().slice(0, 10) : ""
                 }
+                className={CAMPO_CLASSE}
               />
             </div>
 
-            <div className="mb-6 flex items-center gap-2">
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Forma do Aviso
+              </label>
+              <select
+                name="forma"
+                defaultValue={registro?.forma ?? "LIGACAO"}
+                className={CAMPO_CLASSE}
+              >
+                <option value="LIGACAO">Ligação</option>
+                <option value="WHATSAPP">WhatsApp</option>
+              </select>
+            </div>
+
+            <div className="mb-4 flex items-center gap-2">
               <input
                 id="proprietarioPresenciou"
                 type="checkbox"
@@ -145,6 +108,25 @@ export default function EntregaChavesModal({
               >
                 Proprietário presenciou
               </label>
+            </div>
+
+            <div className="mb-6">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Arquivo
+              </label>
+              <BlobUploadInput
+                name="arquivo"
+                accept="image/*,application/pdf"
+                defaultValue={
+                  registro?.arquivoUrl
+                    ? {
+                        url: registro.arquivoUrl,
+                        nome: registro.arquivoNome ?? "arquivo",
+                        tipo: registro.arquivoTipo ?? "",
+                      }
+                    : undefined
+                }
+              />
             </div>
 
             <div className="flex justify-end gap-2">

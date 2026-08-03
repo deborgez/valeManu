@@ -81,6 +81,11 @@ enum FormaContato {
   WHATSAPP
 }
 
+enum LocalEntrega {
+  IMOVEL
+  IMOBILIARIA
+}
+
 model Imobiliaria {
   id        String   @id @default("singleton")
   nome      String
@@ -112,6 +117,7 @@ model User {
   agendamentosVistoriaCriados AgendamentoVistoriaSaida[] @relation("AgendamentoVistoriaCriadoPor")
   comunicadosVistoriaCriados ComunicadoVistoriaSaida[] @relation("ComunicadoVistoriaCriadoPor")
   entregasChavesCriadas    EntregaChaves[]            @relation("EntregaChavesCriadoPor")
+  comunicadosEntregaChavesCriados ComunicadoEntregaChaves[] @relation("ComunicadoEntregaChavesCriadoPor")
   vistoriasSaidaCriadas    VistoriaSaida[]            @relation("VistoriaSaidaCriadoPor")
 }
 
@@ -324,6 +330,7 @@ model Distrato {
   agendamentoVistoria AgendamentoVistoriaSaida?
   comunicadoVistoria  ComunicadoVistoriaSaida?
   entregaChaves       EntregaChaves?
+  comunicadoEntregaChaves ComunicadoEntregaChaves?
   vistoriaSaida       VistoriaSaida?
   auditorias          DistratoAuditoria[]
 }
@@ -433,16 +440,15 @@ model ComunicadoVistoriaSaida {
 }
 
 model EntregaChaves {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   data      DateTime
+  hora      String?
+  local     LocalEntrega?
   termoUrl  String?
   termoNome String?
   termoTipo String?
 
-  informeData        DateTime?
-  informeArquivoUrl  String?
-  informeArquivoNome String?
-  informeArquivoTipo String?
+  proprietarioPresenciou Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -451,6 +457,26 @@ model EntregaChaves {
 
   criadoPorId String?
   criadoPor   User?   @relation("EntregaChavesCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model ComunicadoEntregaChaves {
+  id    String        @id @default(cuid())
+  data  DateTime?
+  forma FormaContato?
+
+  proprietarioPresenciou Boolean @default(false)
+
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
+
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("ComunicadoEntregaChavesCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model VistoriaSaida {
