@@ -6,7 +6,7 @@ import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { IconeEditar } from "./icones";
 
 const CAMPO_CLASSE =
-  "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
+  "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800";
 
 type Registro = {
   data: Date | null;
@@ -26,6 +26,9 @@ export default function ComunicadoEntregaChavesModal({
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [proprietarioPresenciou, setProprietarioPresenciou] = useState(
+    registro?.proprietarioPresenciou ?? false
+  );
   const router = useRouter();
 
   return (
@@ -73,6 +76,7 @@ export default function ComunicadoEntregaChavesModal({
               <input
                 type="date"
                 name="data"
+                disabled={proprietarioPresenciou}
                 defaultValue={
                   registro?.data ? registro.data.toISOString().slice(0, 10) : ""
                 }
@@ -86,6 +90,7 @@ export default function ComunicadoEntregaChavesModal({
               </label>
               <select
                 name="forma"
+                disabled={proprietarioPresenciou}
                 defaultValue={registro?.forma ?? "LIGACAO"}
                 className={CAMPO_CLASSE}
               >
@@ -99,7 +104,8 @@ export default function ComunicadoEntregaChavesModal({
                 id="proprietarioPresenciou"
                 type="checkbox"
                 name="proprietarioPresenciou"
-                defaultChecked={registro?.proprietarioPresenciou ?? false}
+                checked={proprietarioPresenciou}
+                onChange={(e) => setProprietarioPresenciou(e.target.checked)}
                 className="h-4 w-4"
               />
               <label
