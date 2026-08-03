@@ -10,7 +10,7 @@ const CAMPO_CLASSE =
 
 type Registro = {
   data: Date | null;
-  hora: string | null;
+  forma: string | null;
   locadorNaoQuerParticipar: boolean;
   arquivoUrl: string | null;
   arquivoNome: string | null;
@@ -20,11 +20,9 @@ type Registro = {
 export default function ComunicadoVistoriaModal({
   action,
   registro,
-  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
-  hoje?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -48,7 +46,7 @@ export default function ComunicadoVistoriaModal({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
           Registrar Comunicado
         </button>
@@ -71,34 +69,34 @@ export default function ComunicadoVistoriaModal({
               {registro ? "Editar Comunicado ao Locador" : "Registrar Comunicado ao Locador"}
             </h3>
 
-            <div className="mb-4 grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Data
-                </label>
-                <input
-                  type="date"
-                  name="data"
-                  disabled={naoQuerParticipar}
-                  max={hoje}
-                  defaultValue={
-                    registro?.data ? registro.data.toISOString().slice(0, 10) : ""
-                  }
-                  className={CAMPO_CLASSE}
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Horário
-                </label>
-                <input
-                  type="time"
-                  name="hora"
-                  disabled={naoQuerParticipar}
-                  defaultValue={registro?.hora ?? ""}
-                  className={CAMPO_CLASSE}
-                />
-              </div>
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Data
+              </label>
+              <input
+                type="date"
+                name="data"
+                disabled={naoQuerParticipar}
+                defaultValue={
+                  registro?.data ? registro.data.toISOString().slice(0, 10) : ""
+                }
+                className={CAMPO_CLASSE}
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Forma do Aviso
+              </label>
+              <select
+                name="forma"
+                disabled={naoQuerParticipar}
+                defaultValue={registro?.forma ?? "LIGACAO"}
+                className={CAMPO_CLASSE}
+              >
+                <option value="LIGACAO">Ligação</option>
+                <option value="WHATSAPP">WhatsApp</option>
+              </select>
             </div>
 
             <div className="mb-4 flex items-center gap-2">

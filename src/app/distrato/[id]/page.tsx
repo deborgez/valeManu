@@ -484,7 +484,6 @@ export default async function DistratoDetalhePage({
           />
           {!distrato.comunicadoVistoria ? (
             <ComunicadoVistoriaModal
-              hoje={hoje}
               action={async (formData: FormData) => {
                 "use server";
                 await registrarComunicadoVistoria(distrato.id, formData);
@@ -501,10 +500,10 @@ export default async function DistratoDetalhePage({
                   ) : (
                     <p className="text-slate-700 dark:text-slate-300">
                       {distrato.comunicadoVistoria.data
-                        ? `Comunicado em ${formatData(distrato.comunicadoVistoria.data)}`
+                        ? `Data: ${formatData(distrato.comunicadoVistoria.data)}`
                         : "—"}
-                      {distrato.comunicadoVistoria.hora
-                        ? ` às ${distrato.comunicadoVistoria.hora}`
+                      {distrato.comunicadoVistoria.forma
+                        ? ` — Forma: ${LABEL_FORMA_CONTATO[distrato.comunicadoVistoria.forma]}`
                         : ""}
                     </p>
                   )}
@@ -522,7 +521,6 @@ export default async function DistratoDetalhePage({
                 <div className="flex shrink-0 items-center gap-2">
                   <ComunicadoVistoriaModal
                     registro={distrato.comunicadoVistoria}
-                    hoje={hoje}
                     action={async (formData: FormData) => {
                       "use server";
                       await editarComunicadoVistoria(distrato.id, formData);

@@ -464,15 +464,16 @@ export async function registrarComunicadoVistoria(
 
   const locadorNaoQuerParticipar = formData.get("locadorNaoQuerParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
-  if (!locadorNaoQuerParticipar && dataStr) validarNaoFutura(dataStr, "Comunicado ao Locador");
   const data = !locadorNaoQuerParticipar && dataStr ? new Date(`${dataStr}T00:00:00`) : null;
-  const hora = !locadorNaoQuerParticipar ? (formData.get("hora") as string) || null : null;
+  const forma = !locadorNaoQuerParticipar
+    ? (formData.get("forma") as "LIGACAO" | "WHATSAPP" | null)
+    : null;
 
   await prisma.comunicadoVistoriaSaida.create({
     data: {
       distratoId,
       data,
-      hora,
+      forma,
       locadorNaoQuerParticipar,
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
@@ -487,7 +488,7 @@ export async function registrarComunicadoVistoria(
     "Registrou",
     locadorNaoQuerParticipar
       ? "Locador não quer participar"
-      : `Data: ${data ? formatData(data) : "—"}${hora ? ` às ${hora}` : ""}`
+      : `Data: ${data ? formatData(data) : "—"}${forma ? ` — Forma: ${LABEL_FORMA_CONTATO[forma]}` : ""}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -498,9 +499,10 @@ export async function editarComunicadoVistoria(
 ) {
   const locadorNaoQuerParticipar = formData.get("locadorNaoQuerParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
-  if (!locadorNaoQuerParticipar && dataStr) validarNaoFutura(dataStr, "Comunicado ao Locador");
   const data = !locadorNaoQuerParticipar && dataStr ? new Date(`${dataStr}T00:00:00`) : null;
-  const hora = !locadorNaoQuerParticipar ? (formData.get("hora") as string) || null : null;
+  const forma = !locadorNaoQuerParticipar
+    ? (formData.get("forma") as "LIGACAO" | "WHATSAPP" | null)
+    : null;
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
   const arquivoTipo = (formData.get("arquivoTipo") as string) || null;
@@ -511,15 +513,15 @@ export async function editarComunicadoVistoria(
 
   await prisma.comunicadoVistoriaSaida.update({
     where: { distratoId },
-    data: { data, hora, locadorNaoQuerParticipar, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { data, forma, locadorNaoQuerParticipar, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(
     antigo,
-    { data, hora, locadorNaoQuerParticipar, arquivoUrl },
+    { data, forma, locadorNaoQuerParticipar, arquivoUrl },
     {
       data: { label: "a data" },
-      hora: { label: "o horário" },
+      forma: { label: "a forma", formatar: (v) => (v ? LABEL_FORMA_CONTATO[v as string] : "vazio") },
       locadorNaoQuerParticipar: { label: "\"locador não quer participar\"" },
       arquivoUrl: { label: "o arquivo anexado", arquivo: true },
     }

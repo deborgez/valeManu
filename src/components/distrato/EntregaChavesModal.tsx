@@ -47,7 +47,7 @@ export default function EntregaChavesModal({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+          className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
           Registrar a Entrega das Chaves
         </button>

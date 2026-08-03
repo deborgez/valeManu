@@ -413,9 +413,9 @@ model AgendamentoVistoriaSaida {
 }
 
 model ComunicadoVistoriaSaida {
-  id   String    @id @default(cuid())
-  data DateTime?
-  hora String?
+  id    String        @id @default(cuid())
+  data  DateTime?
+  forma FormaContato?
 
   locadorNaoQuerParticipar Boolean @default(false)
 
