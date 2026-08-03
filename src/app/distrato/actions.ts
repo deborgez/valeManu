@@ -157,7 +157,9 @@ export async function editarAvisoPrevio(
     arquivoUrl: { label: "o arquivo anexado", arquivo: true },
   });
 
-  await logAuditoria(distratoId, SECAO.AVISO_PREVIO, "Editou", detalhe);
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.AVISO_PREVIO, "Editou", detalhe);
+  }
   revalidatePath(`/distrato/${distratoId}`);
 }
 
@@ -253,7 +255,9 @@ export async function editarComunicado(
     }
   );
 
-  await logAuditoria(distratoId, SECAO.COMUNICADO, "Editou", detalhe);
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.COMUNICADO, "Editou", detalhe);
+  }
   revalidatePath(`/distrato/${distratoId}`);
 }
 
@@ -352,7 +356,9 @@ export async function editarContato(
     }
   );
 
-  await logAuditoria(distratoId, SECAO.ACOMPANHAMENTO, "Editou", detalhe);
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.ACOMPANHAMENTO, "Editou", detalhe);
+  }
   revalidatePath(`/distrato/${distratoId}`);
 }
 
@@ -460,7 +466,9 @@ export async function editarAgendamentoVistoria(
     }
   );
 
-  await logAuditoria(distratoId, SECAO.AGENDAMENTO_VISTORIA, "Editou", detalhe);
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.AGENDAMENTO_VISTORIA, "Editou", detalhe);
+  }
   revalidatePath(`/distrato/${distratoId}`);
 }
 
@@ -561,7 +569,9 @@ export async function editarEntregaChaves(
     }
   );
 
-  await logAuditoria(distratoId, SECAO.ENTREGA_CHAVES, "Editou", detalhe);
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.ENTREGA_CHAVES, "Editou", detalhe);
+  }
   revalidatePath(`/distrato/${distratoId}`);
 }
 
@@ -635,7 +645,9 @@ export async function editarVistoriaSaida(
     arquivoUrl: { label: "o arquivo anexado", arquivo: true },
   });
 
-  await logAuditoria(distratoId, SECAO.VISTORIA_SAIDA, "Editou", detalhe);
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.VISTORIA_SAIDA, "Editou", detalhe);
+  }
   revalidatePath(`/distrato/${distratoId}`);
 }
 
@@ -715,6 +727,8 @@ export async function atualizarVistoriaSaida(
     }
   );
 
-  await logAuditoria(distratoId, SECAO.VISTORIA_SAIDA, "Editou", detalhe);
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.VISTORIA_SAIDA, "Editou", detalhe);
+  }
   revalidatePath(`/distrato/${distratoId}`);
 }
