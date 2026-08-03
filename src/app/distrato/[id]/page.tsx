@@ -7,6 +7,7 @@ import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
+import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
@@ -25,6 +26,9 @@ import {
   agendarVistoriaSaida,
   editarAgendamentoVistoria,
   excluirAgendamentoVistoria,
+  registrarComunicadoVistoria,
+  editarComunicadoVistoria,
+  excluirComunicadoVistoria,
   registrarEntregaChaves,
   editarEntregaChaves,
   excluirEntregaChaves,
@@ -91,6 +95,7 @@ export default async function DistratoDetalhePage({
         include: { criadoPor: { select: { nome: true } } },
       },
       agendamentoVistoria: { include: { criadoPor: { select: { nome: true } } } },
+      comunicadoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       entregaChaves: { include: { criadoPor: { select: { nome: true } } } },
       vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
       auditorias: {
@@ -430,7 +435,6 @@ export default async function DistratoDetalhePage({
             <AuditoriaButton entradas={auditoriaPorSecao("AGENDAMENTO_VISTORIA")} />
           </div>
           <AgendamentoVistoriaModal
-            hoje={hoje}
             action={async (formData: FormData) => {
               "use server";
               await agendarVistoriaSaida(distrato.id, formData);
@@ -440,17 +444,26 @@ export default async function DistratoDetalhePage({
             <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p>Vistoria agendada para {formatData(distrato.agendamentoVistoria.data)}</p>
-                  {distrato.agendamentoVistoria.locadorNaoQuerParticipar && (
-                    <p className="text-amber-600 dark:text-amber-400">
-                      Locador não quer participar
-                    </p>
+                  <p>
+                    Vistoria agendada para {formatData(distrato.agendamentoVistoria.data)}
+                    {distrato.agendamentoVistoria.hora
+                      ? ` às ${distrato.agendamentoVistoria.hora}`
+                      : ""}
+                  </p>
+                  {distrato.agendamentoVistoria.arquivoUrl && (
+                    <a
+                      href={distrato.agendamentoVistoria.arquivoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-slate-500 dark:text-slate-400 underline"
+                    >
+                      Ver arquivo
+                    </a>
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <AgendamentoVistoriaModal
                     registro={distrato.agendamentoVistoria}
-                    hoje={hoje}
                     action={async (formData: FormData) => {
                       "use server";
                       await editarAgendamentoVistoria(distrato.id, formData);
@@ -467,6 +480,75 @@ export default async function DistratoDetalhePage({
               <InfoSistema
                 data={distrato.agendamentoVistoria.createdAt}
                 usuario={distrato.agendamentoVistoria.criadoPor?.nome}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Comunicado ao Locador
+            </p>
+            <AuditoriaButton entradas={auditoriaPorSecao("COMUNICADO_VISTORIA")} />
+          </div>
+          {!distrato.comunicadoVistoria ? (
+            <ComunicadoVistoriaModal
+              hoje={hoje}
+              action={async (formData: FormData) => {
+                "use server";
+                await registrarComunicadoVistoria(distrato.id, formData);
+              }}
+            />
+          ) : (
+            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  {distrato.comunicadoVistoria.locadorNaoQuerParticipar ? (
+                    <p className="text-amber-600 dark:text-amber-400">
+                      Locador não quer participar
+                    </p>
+                  ) : (
+                    <p>
+                      {distrato.comunicadoVistoria.data
+                        ? `Comunicado em ${formatData(distrato.comunicadoVistoria.data)}`
+                        : "—"}
+                      {distrato.comunicadoVistoria.hora
+                        ? ` às ${distrato.comunicadoVistoria.hora}`
+                        : ""}
+                    </p>
+                  )}
+                  {distrato.comunicadoVistoria.arquivoUrl && (
+                    <a
+                      href={distrato.comunicadoVistoria.arquivoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-slate-500 dark:text-slate-400 underline"
+                    >
+                      Ver arquivo
+                    </a>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <ComunicadoVistoriaModal
+                    registro={distrato.comunicadoVistoria}
+                    hoje={hoje}
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await editarComunicadoVistoria(distrato.id, formData);
+                    }}
+                  />
+                  <ExcluirBotao
+                    onExcluir={async () => {
+                      "use server";
+                      await excluirComunicadoVistoria(distrato.id);
+                    }}
+                  />
+                </div>
+              </div>
+              <InfoSistema
+                data={distrato.comunicadoVistoria.createdAt}
+                usuario={distrato.comunicadoVistoria.criadoPor?.nome}
               />
             </div>
           )}

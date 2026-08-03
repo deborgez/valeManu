@@ -110,6 +110,7 @@ model User {
   comunicadosCriados       ComunicadoLocador[]        @relation("ComunicadoCriadoPor")
   contatosCriados          ContatoAcompanhamento[]    @relation("ContatoCriadoPor")
   agendamentosVistoriaCriados AgendamentoVistoriaSaida[] @relation("AgendamentoVistoriaCriadoPor")
+  comunicadosVistoriaCriados ComunicadoVistoriaSaida[] @relation("ComunicadoVistoriaCriadoPor")
   entregasChavesCriadas    EntregaChaves[]            @relation("EntregaChavesCriadoPor")
   vistoriasSaidaCriadas    VistoriaSaida[]            @relation("VistoriaSaidaCriadoPor")
 }
@@ -321,6 +322,7 @@ model Distrato {
   comunicadoLocador   ComunicadoLocador?
   contatos            ContatoAcompanhamento[]
   agendamentoVistoria AgendamentoVistoriaSaida?
+  comunicadoVistoria  ComunicadoVistoriaSaida?
   entregaChaves       EntregaChaves?
   vistoriaSaida       VistoriaSaida?
   auditorias          DistratoAuditoria[]
@@ -395,16 +397,11 @@ model ContatoAcompanhamento {
 model AgendamentoVistoriaSaida {
   id   String   @id @default(cuid())
   data DateTime
+  hora String?
 
-  comunicacaoData        DateTime?
-  comunicacaoArquivoUrl  String?
-  comunicacaoArquivoNome String?
-  comunicacaoArquivoTipo String?
-
-  locadorNaoQuerParticipar        Boolean @default(false)
-  naoParticiparArquivoUrl  String?
-  naoParticiparArquivoNome String?
-  naoParticiparArquivoTipo String?
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
 
   createdAt DateTime @default(now())
 
@@ -413,6 +410,26 @@ model AgendamentoVistoriaSaida {
 
   criadoPorId String?
   criadoPor   User?   @relation("AgendamentoVistoriaCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model ComunicadoVistoriaSaida {
+  id   String    @id @default(cuid())
+  data DateTime?
+  hora String?
+
+  locadorNaoQuerParticipar Boolean @default(false)
+
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
+
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("ComunicadoVistoriaCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model EntregaChaves {
