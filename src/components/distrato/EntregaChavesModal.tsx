@@ -11,8 +11,6 @@ const CAMPO_CLASSE =
 type Registro = {
   data: Date;
   hora: string | null;
-  local: string | null;
-  proprietarioPresenciou: boolean;
   termoUrl: string | null;
   termoNome: string | null;
   termoTipo: string | null;
@@ -98,21 +96,7 @@ export default function EntregaChavesModal({
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Local
-              </label>
-              <select
-                name="local"
-                defaultValue={registro?.local ?? "IMOVEL"}
-                className={CAMPO_CLASSE}
-              >
-                <option value="IMOVEL">Imóvel</option>
-                <option value="IMOBILIARIA">Imobiliária</option>
-              </select>
-            </div>
-
-            <div className="mb-4">
+            <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Termo de Entrega de Chaves
               </label>
@@ -129,22 +113,6 @@ export default function EntregaChavesModal({
                     : undefined
                 }
               />
-            </div>
-
-            <div className="mb-6 flex items-center gap-2">
-              <input
-                id="proprietarioPresenciou"
-                type="checkbox"
-                name="proprietarioPresenciou"
-                defaultChecked={registro?.proprietarioPresenciou ?? false}
-                className="h-4 w-4"
-              />
-              <label
-                htmlFor="proprietarioPresenciou"
-                className="text-sm text-slate-700 dark:text-slate-300"
-              >
-                Proprietário presenciou
-              </label>
             </div>
 
             <div className="flex justify-end gap-2">

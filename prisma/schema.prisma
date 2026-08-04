@@ -117,8 +117,9 @@ model User {
   agendamentosVistoriaCriados AgendamentoVistoriaSaida[] @relation("AgendamentoVistoriaCriadoPor")
   comunicadosVistoriaCriados ComunicadoVistoriaSaida[] @relation("ComunicadoVistoriaCriadoPor")
   entregasChavesCriadas    EntregaChaves[]            @relation("EntregaChavesCriadoPor")
-  comunicadosEntregaChavesCriados ComunicadoEntregaChaves[] @relation("ComunicadoEntregaChavesCriadoPor")
   vistoriasSaidaCriadas    VistoriaSaida[]            @relation("VistoriaSaidaCriadoPor")
+  fotosVistoriaCriadas     FotosVistoria[]            @relation("FotosVistoriaCriadoPor")
+  laudosVistoriaCriados    LaudoVistoria[]            @relation("LaudoVistoriaCriadoPor")
 }
 
 model Prestador {
@@ -324,14 +325,17 @@ model Distrato {
   criadoPorId String
   criadoPor   User   @relation("DistratoCriadoPor", fields: [criadoPorId], references: [id])
 
+  localEntregaChaves LocalEntrega?
+
   avisoPrevio         AvisoPrevioLocatario?
   comunicadoLocador   ComunicadoLocador?
   contatos            ContatoAcompanhamento[]
   agendamentoVistoria AgendamentoVistoriaSaida?
   comunicadoVistoria  ComunicadoVistoriaSaida?
   entregaChaves       EntregaChaves?
-  comunicadoEntregaChaves ComunicadoEntregaChaves?
   vistoriaSaida       VistoriaSaida?
+  fotosVistoria       FotosVistoria?
+  laudoVistoria       LaudoVistoria?
   auditorias          DistratoAuditoria[]
 }
 
@@ -424,7 +428,7 @@ model ComunicadoVistoriaSaida {
   data  DateTime?
   forma FormaContato?
 
-  locadorNaoQuerParticipar Boolean @default(false)
+  locadorDesejaParticipar Boolean @default(false)
 
   arquivoUrl  String?
   arquivoNome String?
@@ -440,15 +444,12 @@ model ComunicadoVistoriaSaida {
 }
 
 model EntregaChaves {
-  id        String        @id @default(cuid())
+  id        String   @id @default(cuid())
   data      DateTime
   hora      String?
-  local     LocalEntrega?
   termoUrl  String?
   termoNome String?
   termoTipo String?
-
-  proprietarioPresenciou Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -459,45 +460,17 @@ model EntregaChaves {
   criadoPor   User?   @relation("EntregaChavesCriadoPor", fields: [criadoPorId], references: [id])
 }
 
-model ComunicadoEntregaChaves {
-  id    String        @id @default(cuid())
-  data  DateTime?
-  forma FormaContato?
-
-  proprietarioPresenciou Boolean @default(false)
-
-  arquivoUrl  String?
-  arquivoNome String?
-  arquivoTipo String?
-
-  createdAt DateTime @default(now())
-
-  distratoId String   @unique
-  distrato   Distrato @relation(fields: [distratoId], references: [id])
-
-  criadoPorId String?
-  criadoPor   User?   @relation("ComunicadoEntregaChavesCriadoPor", fields: [criadoPorId], references: [id])
-}
-
 model VistoriaSaida {
   id          String   @id @default(cuid())
   data        DateTime
+  hora        String?
+  responsavel String?
+  observacoes String?
   arquivoUrl  String?
   arquivoNome String?
   arquivoTipo String?
 
-  locadorCompareceu   Boolean?
-  locatarioParticipou Boolean?
-
-  informeData        DateTime?
-  informeArquivoUrl  String?
-  informeArquivoNome String?
-  informeArquivoTipo String?
-
-  dataEntregaLaudo DateTime?
-  laudoArquivoUrl  String?
-  laudoArquivoNome String?
-  laudoArquivoTipo String?
+  locadorCompareceu Boolean?
 
   createdAt DateTime @default(now())
 
@@ -506,4 +479,33 @@ model VistoriaSaida {
 
   criadoPorId String?
   criadoPor   User?   @relation("VistoriaSaidaCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model FotosVistoria {
+  id   String   @id @default(cuid())
+  data DateTime
+
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("FotosVistoriaCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model LaudoVistoria {
+  id          String   @id @default(cuid())
+  data        DateTime
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
+
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("LaudoVistoriaCriadoPor", fields: [criadoPorId], references: [id])
 }

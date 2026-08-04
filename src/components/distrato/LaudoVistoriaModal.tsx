@@ -6,29 +6,26 @@ import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { IconeEditar } from "./icones";
 
 const CAMPO_CLASSE =
-  "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800";
+  "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
 type Registro = {
-  data: Date | null;
-  forma: string | null;
-  proprietarioPresenciou: boolean;
+  data: Date;
   arquivoUrl: string | null;
   arquivoNome: string | null;
   arquivoTipo: string | null;
 };
 
-export default function ComunicadoEntregaChavesModal({
+export default function LaudoVistoriaModal({
   action,
   registro,
+  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
+  hoje?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
-  const [proprietarioPresenciou, setProprietarioPresenciou] = useState(
-    registro?.proprietarioPresenciou ?? false
-  );
   const router = useRouter();
 
   return (
@@ -48,7 +45,7 @@ export default function ComunicadoEntregaChavesModal({
           onClick={() => setAberto(true)}
           className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
-          Registrar Comunicado
+          Registrar Laudo
         </button>
       )}
 
@@ -63,62 +60,31 @@ export default function ComunicadoEntregaChavesModal({
               setAberto(false);
               setEnviando(false);
             }}
-            className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
+            className="w-full max-w-md rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {registro ? "Editar Comunicado ao Locador" : "Registrar Comunicado ao Locador"}
+              {registro ? "Editar Entrega do Laudo" : "Registrar Entrega do Laudo"}
             </h3>
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Data
+                Data de entrega do laudo
               </label>
               <input
                 type="date"
                 name="data"
-                disabled={proprietarioPresenciou}
+                required
+                max={hoje}
                 defaultValue={
-                  registro?.data ? registro.data.toISOString().slice(0, 10) : ""
+                  registro ? registro.data.toISOString().slice(0, 10) : undefined
                 }
                 className={CAMPO_CLASSE}
               />
             </div>
 
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Forma do Aviso
-              </label>
-              <select
-                name="forma"
-                disabled={proprietarioPresenciou}
-                defaultValue={registro?.forma ?? "LIGACAO"}
-                className={CAMPO_CLASSE}
-              >
-                <option value="LIGACAO">Ligação</option>
-                <option value="WHATSAPP">WhatsApp</option>
-              </select>
-            </div>
-
-            <div className="mb-4 flex items-center gap-2">
-              <input
-                id="proprietarioPresenciou"
-                type="checkbox"
-                name="proprietarioPresenciou"
-                checked={proprietarioPresenciou}
-                onChange={(e) => setProprietarioPresenciou(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <label
-                htmlFor="proprietarioPresenciou"
-                className="text-sm text-slate-700 dark:text-slate-300"
-              >
-                Proprietário presenciou
-              </label>
-            </div>
-
             <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Arquivo
+                Laudo (arquivo)
               </label>
               <BlobUploadInput
                 name="arquivo"

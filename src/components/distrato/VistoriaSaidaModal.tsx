@@ -10,6 +10,10 @@ const CAMPO_CLASSE =
 
 type Registro = {
   data: Date;
+  hora: string | null;
+  responsavel: string | null;
+  observacoes: string | null;
+  locadorCompareceu: boolean | null;
   arquivoUrl: string | null;
   arquivoNome: string | null;
   arquivoTipo: string | null;
@@ -45,7 +49,7 @@ export default function VistoriaSaidaModal({
           onClick={() => setAberto(true)}
           className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
-          Registrar a Vistoria de Saída
+          Registrar Vistoria
         </button>
       )}
 
@@ -60,24 +64,78 @@ export default function VistoriaSaidaModal({
               setAberto(false);
               setEnviando(false);
             }}
-            className="w-full max-w-md rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
+            className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {registro ? "Editar Vistoria de Saída" : "Vistoria de Saída"}
+              {registro ? "Editar Vistoria de Saída" : "Realizar Vistoria de Saída"}
             </h3>
+
+            <div className="mb-4 grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Data
+                </label>
+                <input
+                  type="date"
+                  name="data"
+                  required
+                  max={hoje}
+                  defaultValue={
+                    registro ? registro.data.toISOString().slice(0, 10) : undefined
+                  }
+                  className={CAMPO_CLASSE}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Horário
+                </label>
+                <input
+                  type="time"
+                  name="hora"
+                  defaultValue={registro?.hora ?? ""}
+                  className={CAMPO_CLASSE}
+                />
+              </div>
+            </div>
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Data
+                Responsável
               </label>
               <input
-                type="date"
-                name="data"
+                type="text"
+                name="responsavel"
                 required
-                max={hoje}
-                defaultValue={
-                  registro ? registro.data.toISOString().slice(0, 10) : undefined
-                }
+                defaultValue={registro?.responsavel ?? ""}
+                className={CAMPO_CLASSE}
+              />
+            </div>
+
+            <div className="mb-4 flex items-center gap-2">
+              <input
+                id="locadorCompareceu"
+                type="checkbox"
+                name="locadorCompareceu"
+                defaultChecked={registro?.locadorCompareceu ?? false}
+                className="h-4 w-4"
+              />
+              <label
+                htmlFor="locadorCompareceu"
+                className="text-sm text-slate-700 dark:text-slate-300"
+              >
+                Locador compareceu
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Observações
+              </label>
+              <textarea
+                name="observacoes"
+                rows={3}
+                defaultValue={registro?.observacoes ?? ""}
                 className={CAMPO_CLASSE}
               />
             </div>
