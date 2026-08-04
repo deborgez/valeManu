@@ -118,7 +118,6 @@ model User {
   comunicadosVistoriaCriados ComunicadoVistoriaSaida[] @relation("ComunicadoVistoriaCriadoPor")
   entregasChavesCriadas    EntregaChaves[]            @relation("EntregaChavesCriadoPor")
   vistoriasSaidaCriadas    VistoriaSaida[]            @relation("VistoriaSaidaCriadoPor")
-  fotosVistoriaCriadas     FotosVistoria[]            @relation("FotosVistoriaCriadoPor")
   laudosVistoriaCriados    LaudoVistoria[]            @relation("LaudoVistoriaCriadoPor")
 }
 
@@ -334,7 +333,6 @@ model Distrato {
   comunicadoVistoria  ComunicadoVistoriaSaida?
   entregaChaves       EntregaChaves?
   vistoriaSaida       VistoriaSaida?
-  fotosVistoria       FotosVistoria?
   laudoVistoria       LaudoVistoria?
   auditorias          DistratoAuditoria[]
 }
@@ -479,19 +477,6 @@ model VistoriaSaida {
 
   criadoPorId String?
   criadoPor   User?   @relation("VistoriaSaidaCriadoPor", fields: [criadoPorId], references: [id])
-}
-
-model FotosVistoria {
-  id   String   @id @default(cuid())
-  data DateTime
-
-  createdAt DateTime @default(now())
-
-  distratoId String   @unique
-  distrato   Distrato @relation(fields: [distratoId], references: [id])
-
-  criadoPorId String?
-  criadoPor   User?   @relation("FotosVistoriaCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model LaudoVistoria {

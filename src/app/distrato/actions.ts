@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { formatData, hojeSaoPaulo } from "@/lib/datahora";
+import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 
 const SECAO = {
@@ -16,7 +16,6 @@ const SECAO = {
   AGENDAMENTO_VISTORIA: "AGENDAMENTO_VISTORIA",
   COMUNICADO_VISTORIA: "COMUNICADO_VISTORIA",
   VISTORIA_SAIDA: "VISTORIA_SAIDA",
-  FOTOS_VISTORIA: "FOTOS_VISTORIA",
   LAUDO_VISTORIA: "LAUDO_VISTORIA",
 } as const;
 
@@ -110,7 +109,7 @@ export async function registrarAvisoPrevio(
 
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Aviso Prévio");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
 
   await prisma.avisoPrevioLocatario.create({
@@ -140,7 +139,7 @@ export async function editarAvisoPrevio(
 ) {
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Aviso Prévio");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
@@ -190,7 +189,7 @@ export async function registrarComunicado(
 
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Comunicado");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
 
   const distrato = await prisma.distrato.findUniqueOrThrow({
@@ -229,7 +228,7 @@ export async function editarComunicado(
 ) {
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Comunicado");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
@@ -284,10 +283,10 @@ export async function registrarContato(distratoId: string, formData: FormData) {
   if (!session) throw new Error("Não autenticado.");
 
   const dataPrevistaEntregaChaves = formData.get("dataPrevistaEntregaChaves")
-    ? new Date(`${formData.get("dataPrevistaEntregaChaves")}T00:00:00`)
+    ? parseDataLocal(String(formData.get("dataPrevistaEntregaChaves")))
     : null;
   const dataPrevistaVistoriaSaida = formData.get("dataPrevistaVistoriaSaida")
-    ? new Date(`${formData.get("dataPrevistaVistoriaSaida")}T00:00:00`)
+    ? parseDataLocal(String(formData.get("dataPrevistaVistoriaSaida")))
     : null;
   const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP";
 
@@ -320,10 +319,10 @@ export async function editarContato(
   formData: FormData
 ) {
   const dataPrevistaEntregaChaves = formData.get("dataPrevistaEntregaChaves")
-    ? new Date(`${formData.get("dataPrevistaEntregaChaves")}T00:00:00`)
+    ? parseDataLocal(String(formData.get("dataPrevistaEntregaChaves")))
     : null;
   const dataPrevistaVistoriaSaida = formData.get("dataPrevistaVistoriaSaida")
-    ? new Date(`${formData.get("dataPrevistaVistoriaSaida")}T00:00:00`)
+    ? parseDataLocal(String(formData.get("dataPrevistaVistoriaSaida")))
     : null;
   const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP";
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
@@ -388,7 +387,7 @@ export async function agendarVistoriaSaida(
   if (!session) throw new Error("Não autenticado.");
 
   const dataStr = String(formData.get("data"));
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const hora = (formData.get("hora") as string) || null;
 
   await prisma.agendamentoVistoriaSaida.create({
@@ -417,7 +416,7 @@ export async function editarAgendamentoVistoria(
   formData: FormData
 ) {
   const dataStr = String(formData.get("data"));
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const hora = (formData.get("hora") as string) || null;
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
@@ -487,7 +486,7 @@ export async function registrarEntregaChaves(
 
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Entrega das Chaves");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const hora = (formData.get("hora") as string) || null;
 
   await prisma.entregaChaves.create({
@@ -517,7 +516,7 @@ export async function editarEntregaChaves(
 ) {
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Entrega das Chaves");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const hora = (formData.get("hora") as string) || null;
   const termoUrl = (formData.get("termoUrl") as string) || null;
   const termoNome = (formData.get("termoNome") as string) || null;
@@ -571,7 +570,7 @@ export async function registrarComunicadoVistoria(
 
   const locadorDesejaParticipar = formData.get("locadorDesejaParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
-  const data = dataStr ? new Date(`${dataStr}T00:00:00`) : null;
+  const data = dataStr ? parseDataLocal(dataStr) : null;
   const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
 
   await prisma.comunicadoVistoriaSaida.create({
@@ -602,7 +601,7 @@ export async function editarComunicadoVistoria(
 ) {
   const locadorDesejaParticipar = formData.get("locadorDesejaParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
-  const data = dataStr ? new Date(`${dataStr}T00:00:00`) : null;
+  const data = dataStr ? parseDataLocal(dataStr) : null;
   const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
@@ -657,7 +656,7 @@ export async function registrarVistoriaSaida(
 
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Vistoria de Saída");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const hora = (formData.get("hora") as string) || null;
   const responsavel = (formData.get("responsavel") as string) || null;
   const observacoes = (formData.get("observacoes") as string) || null;
@@ -693,7 +692,7 @@ export async function editarVistoriaSaida(
 ) {
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Vistoria de Saída");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const hora = (formData.get("hora") as string) || null;
   const responsavel = (formData.get("responsavel") as string) || null;
   const observacoes = (formData.get("observacoes") as string) || null;
@@ -753,71 +752,6 @@ export async function excluirVistoriaSaida(distratoId: string) {
   revalidatePath(`/distrato/${distratoId}`);
 }
 
-export async function registrarFotosVistoria(
-  distratoId: string,
-  formData: FormData
-) {
-  const session = await auth();
-  if (!session) throw new Error("Não autenticado.");
-
-  const dataStr = String(formData.get("data"));
-  validarNaoFutura(dataStr, "Fotos da Vistoria");
-  const data = new Date(`${dataStr}T00:00:00`);
-
-  await prisma.fotosVistoria.create({
-    data: { distratoId, data, criadoPorId: session.user.id },
-  });
-
-  await logAuditoria(
-    distratoId,
-    SECAO.FOTOS_VISTORIA,
-    "Registrou",
-    `Data: ${formatData(data)}`
-  );
-  revalidatePath(`/distrato/${distratoId}`);
-}
-
-export async function editarFotosVistoria(
-  distratoId: string,
-  formData: FormData
-) {
-  const dataStr = String(formData.get("data"));
-  validarNaoFutura(dataStr, "Fotos da Vistoria");
-  const data = new Date(`${dataStr}T00:00:00`);
-
-  const antigo = await prisma.fotosVistoria.findUniqueOrThrow({
-    where: { distratoId },
-  });
-
-  await prisma.fotosVistoria.update({
-    where: { distratoId },
-    data: { data },
-  });
-
-  const detalhe = descreverAlteracoes(antigo, { data }, {
-    data: { label: "a data" },
-  });
-
-  if (detalhe) {
-    await logAuditoria(distratoId, SECAO.FOTOS_VISTORIA, "Editou", detalhe);
-  }
-  revalidatePath(`/distrato/${distratoId}`);
-}
-
-export async function excluirFotosVistoria(distratoId: string) {
-  const registro = await prisma.fotosVistoria.findUniqueOrThrow({
-    where: { distratoId },
-  });
-  await prisma.fotosVistoria.delete({ where: { distratoId } });
-  await logAuditoria(
-    distratoId,
-    SECAO.FOTOS_VISTORIA,
-    "Excluiu",
-    `Data: ${formatData(registro.data)}`
-  );
-  revalidatePath(`/distrato/${distratoId}`);
-}
-
 export async function registrarLaudoVistoria(
   distratoId: string,
   formData: FormData
@@ -827,7 +761,7 @@ export async function registrarLaudoVistoria(
 
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Laudo da Vistoria");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
 
   await prisma.laudoVistoria.create({
     data: {
@@ -855,7 +789,7 @@ export async function editarLaudoVistoria(
 ) {
   const dataStr = String(formData.get("data"));
   validarNaoFutura(dataStr, "Laudo da Vistoria");
-  const data = new Date(`${dataStr}T00:00:00`);
+  const data = parseDataLocal(dataStr);
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
   const arquivoTipo = (formData.get("arquivoTipo") as string) || null;

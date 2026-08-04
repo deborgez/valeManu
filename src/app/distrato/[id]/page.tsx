@@ -11,7 +11,6 @@ import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
-import FotosVistoriaModal from "@/components/distrato/FotosVistoriaModal";
 import LaudoVistoriaModal from "@/components/distrato/LaudoVistoriaModal";
 import ExcluirBotao from "@/components/distrato/ExcluirBotao";
 import AuditoriaButton from "@/components/distrato/AuditoriaButton";
@@ -38,9 +37,6 @@ import {
   registrarVistoriaSaida,
   editarVistoriaSaida,
   excluirVistoriaSaida,
-  registrarFotosVistoria,
-  editarFotosVistoria,
-  excluirFotosVistoria,
   registrarLaudoVistoria,
   editarLaudoVistoria,
   excluirLaudoVistoria,
@@ -110,7 +106,6 @@ export default async function DistratoDetalhePage({
       agendamentoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
-      fotosVistoria: { include: { criadoPor: { select: { nome: true } } } },
       laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       auditorias: {
         orderBy: { createdAt: "desc" },
@@ -136,8 +131,7 @@ export default async function DistratoDetalhePage({
   const podeComunicadoVistoria =
     ramoImovel || (ramoImobiliaria && Boolean(distrato.agendamentoVistoria));
   const podeVistoria = Boolean(distrato.comunicadoVistoria);
-  const podeFotos = Boolean(distrato.vistoriaSaida);
-  const podeLaudo = Boolean(distrato.fotosVistoria);
+  const podeLaudo = Boolean(distrato.vistoriaSaida);
   const concluido = Boolean(distrato.laudoVistoria);
 
   const auditoriaPorSecao = (secao: string) =>
@@ -736,54 +730,7 @@ export default async function DistratoDetalhePage({
                 </Divisor>
               )}
 
-              {/* Etapa 5 · Registrar Fotos */}
-              {podeFotos && (
-                <Divisor>
-                  <SecaoTitulo
-                    titulo="Registrar Fotos da Vistoria"
-                    auditoria={auditoriaPorSecao("FOTOS_VISTORIA")}
-                  />
-                  {!distrato.fotosVistoria ? (
-                    <FotosVistoriaModal
-                      hoje={hoje}
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await registrarFotosVistoria(distrato.id, formData);
-                      }}
-                    />
-                  ) : (
-                    <div className="text-sm">
-                      <div className="flex items-start justify-between gap-4">
-                        <p className="text-slate-700 dark:text-slate-300">
-                          Fotos tiradas em {formatData(distrato.fotosVistoria.data)}
-                        </p>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <FotosVistoriaModal
-                            registro={distrato.fotosVistoria}
-                            hoje={hoje}
-                            action={async (formData: FormData) => {
-                              "use server";
-                              await editarFotosVistoria(distrato.id, formData);
-                            }}
-                          />
-                          <ExcluirBotao
-                            onExcluir={async () => {
-                              "use server";
-                              await excluirFotosVistoria(distrato.id);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <InfoSistema
-                        data={distrato.fotosVistoria.createdAt}
-                        usuario={distrato.fotosVistoria.criadoPor?.nome}
-                      />
-                    </div>
-                  )}
-                </Divisor>
-              )}
-
-              {/* Etapa 6 · Registrar Laudo */}
+              {/* Etapa 5 · Registrar Laudo */}
               {podeLaudo && (
                 <Divisor>
                   <SecaoTitulo

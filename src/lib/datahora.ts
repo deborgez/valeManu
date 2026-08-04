@@ -12,6 +12,14 @@ export function hojeSaoPaulo(): string {
   return new Date().toLocaleDateString("en-CA", { timeZone: FUSO });
 }
 
+// Interpreta uma data "YYYY-MM-DD" (de um <input type="date">) como meia-noite
+// em São Paulo, não no fuso do servidor. Sem isso, o servidor (UTC) grava
+// meia-noite UTC, que ao ser exibida em America/Sao_Paulo (UTC-3) cai no dia
+// anterior.
+export function parseDataLocal(dataStr: string): Date {
+  return new Date(`${dataStr}T00:00:00-03:00`);
+}
+
 export function diasEntreDatas(a: Date, b: Date): number {
   const ms = a.getTime() - b.getTime();
   return Math.round(ms / (1000 * 60 * 60 * 24));

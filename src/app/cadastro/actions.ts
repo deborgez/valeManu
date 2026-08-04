@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { parseDataLocal } from "@/lib/datahora";
 
 const TIPOS_FIANCA = [
   "FIADOR",
@@ -33,7 +34,7 @@ export async function criarProcesso(formData: FormData) {
   const prazoContratoInicioStr = (formData.get("prazoContratoInicio") as string) || null;
   const prazoContratoMesesStr = (formData.get("prazoContratoMeses") as string) || null;
   const prazoContratoInicio = prazoContratoInicioStr
-    ? new Date(`${prazoContratoInicioStr}T00:00:00`)
+    ? parseDataLocal(prazoContratoInicioStr)
     : null;
   const prazoContratoMeses = prazoContratoMesesStr ? parseInt(prazoContratoMesesStr, 10) : null;
 
