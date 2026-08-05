@@ -87,10 +87,10 @@ export default async function DistratoDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erroComunicado?: string }>;
+  searchParams: Promise<{ erroComunicado?: string; erroComunicadoVistoria?: string }>;
 }) {
   const { id } = await params;
-  const { erroComunicado } = await searchParams;
+  const { erroComunicado, erroComunicadoVistoria } = await searchParams;
 
   const distrato = await prisma.distrato.findUnique({
     where: { id },
@@ -522,7 +522,7 @@ export default async function DistratoDetalhePage({
               {podeAgendamento && (
                 <Divisor>
                   <SecaoTitulo
-                    titulo="Agendar Vistoria"
+                    titulo="Agendamento da Vistoria"
                     auditoria={auditoriaPorSecao("AGENDAMENTO_VISTORIA")}
                   />
                   {!distrato.agendamentoVistoria ? (
@@ -578,13 +578,18 @@ export default async function DistratoDetalhePage({
                 </Divisor>
               )}
 
-              {/* Etapa 3 · Comunicar Locador (ambos os ramos) */}
+              {/* Etapa 3 · Comunicado ao Locador (ambos os ramos) */}
               {podeComunicadoVistoria && (
                 <Divisor>
                   <SecaoTitulo
-                    titulo="Comunicar Locador"
+                    titulo="Comunicado ao Locador"
                     auditoria={auditoriaPorSecao("COMUNICADO_VISTORIA")}
                   />
+                  {erroComunicadoVistoria && (
+                    <p className="mb-4 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+                      Não é possível registrar uma data anterior à da Entrega das Chaves.
+                    </p>
+                  )}
                   {!distrato.comunicadoVistoria ? (
                     <ComunicadoVistoriaModal
                       hoje={hoje}
@@ -616,6 +621,23 @@ export default async function DistratoDetalhePage({
                               ? "Locador deseja participar"
                               : "Locador não deseja participar"}
                           </p>
+                          {distrato.entregaChaves &&
+                            distrato.comunicadoVistoria.data &&
+                            (() => {
+                              const diferenca = diasEntreDatas(
+                                distrato.comunicadoVistoria.data!,
+                                distrato.entregaChaves!.data
+                              );
+                              return diferenca === 0 ? (
+                                <p className="mt-2 rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-xs font-medium text-green-700 dark:text-green-400">
+                                  Comunicado no prazo.
+                                </p>
+                              ) : (
+                                <p className="mt-2 rounded bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+                                  Comunicado {diferenca} {diferenca === 1 ? "dia" : "dias"} fora do prazo.
+                                </p>
+                              );
+                            })()}
                           {distrato.comunicadoVistoria.arquivoUrl && (
                             <a
                               href={distrato.comunicadoVistoria.arquivoUrl}
@@ -657,7 +679,7 @@ export default async function DistratoDetalhePage({
               {podeVistoria && (
                 <Divisor>
                   <SecaoTitulo
-                    titulo="Realizar Vistoria"
+                    titulo="Vistoria de Saída"
                     auditoria={auditoriaPorSecao("VISTORIA_SAIDA")}
                   />
                   {!distrato.vistoriaSaida ? (
@@ -683,11 +705,17 @@ export default async function DistratoDetalhePage({
                               Responsável: {distrato.vistoriaSaida.responsavel}
                             </p>
                           )}
-                          {distrato.vistoriaSaida.locadorCompareceu && (
-                            <p className="text-green-600 dark:text-green-400">
-                              Locador compareceu
-                            </p>
-                          )}
+                          <p
+                            className={
+                              distrato.vistoriaSaida.locadorCompareceu
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-amber-600 dark:text-amber-400"
+                            }
+                          >
+                            {distrato.vistoriaSaida.locadorCompareceu
+                              ? "Locador compareceu"
+                              : "Locador não compareceu"}
+                          </p>
                           {distrato.vistoriaSaida.observacoes && (
                             <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                               {distrato.vistoriaSaida.observacoes}
@@ -734,7 +762,7 @@ export default async function DistratoDetalhePage({
               {podeLaudo && (
                 <Divisor>
                   <SecaoTitulo
-                    titulo="Registrar Entrega do Laudo"
+                    titulo="Entrega do Laudo"
                     auditoria={auditoriaPorSecao("LAUDO_VISTORIA")}
                   />
                   {!distrato.laudoVistoria ? (

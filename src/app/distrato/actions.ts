@@ -573,6 +573,15 @@ export async function registrarComunicadoVistoria(
   const data = dataStr ? parseDataLocal(dataStr) : null;
   const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
 
+  const distrato = await prisma.distrato.findUniqueOrThrow({
+    where: { id: distratoId },
+    include: { entregaChaves: true },
+  });
+
+  if (distrato.entregaChaves && data && data < distrato.entregaChaves.data) {
+    redirect(`/distrato/${distratoId}?erroComunicadoVistoria=1`);
+  }
+
   await prisma.comunicadoVistoriaSaida.create({
     data: {
       distratoId,
@@ -606,6 +615,15 @@ export async function editarComunicadoVistoria(
   const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
   const arquivoNome = (formData.get("arquivoNome") as string) || null;
   const arquivoTipo = (formData.get("arquivoTipo") as string) || null;
+
+  const distrato = await prisma.distrato.findUniqueOrThrow({
+    where: { id: distratoId },
+    include: { entregaChaves: true },
+  });
+
+  if (distrato.entregaChaves && data && data < distrato.entregaChaves.data) {
+    redirect(`/distrato/${distratoId}?erroComunicadoVistoria=1`);
+  }
 
   const antigo = await prisma.comunicadoVistoriaSaida.findUniqueOrThrow({
     where: { distratoId },
