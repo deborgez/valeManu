@@ -282,6 +282,9 @@ export async function registrarContato(distratoId: string, formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
 
+  const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Contato");
+  const data = parseDataLocal(dataStr);
   const dataPrevistaEntregaChaves = formData.get("dataPrevistaEntregaChaves")
     ? parseDataLocal(String(formData.get("dataPrevistaEntregaChaves")))
     : null;
@@ -293,6 +296,7 @@ export async function registrarContato(distratoId: string, formData: FormData) {
   await prisma.contatoAcompanhamento.create({
     data: {
       distratoId,
+      data,
       forma,
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
@@ -308,7 +312,7 @@ export async function registrarContato(distratoId: string, formData: FormData) {
     distratoId,
     SECAO.ACOMPANHAMENTO,
     "Registrou",
-    `Forma: ${LABEL_FORMA_CONTATO[forma]}`
+    `Data: ${formatData(data)} — Forma: ${LABEL_FORMA_CONTATO[forma]}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -318,6 +322,9 @@ export async function editarContato(
   distratoId: string,
   formData: FormData
 ) {
+  const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Contato");
+  const data = parseDataLocal(dataStr);
   const dataPrevistaEntregaChaves = formData.get("dataPrevistaEntregaChaves")
     ? parseDataLocal(String(formData.get("dataPrevistaEntregaChaves")))
     : null;
@@ -337,6 +344,7 @@ export async function editarContato(
   await prisma.contatoAcompanhamento.update({
     where: { id: contatoId },
     data: {
+      data,
       forma,
       arquivoUrl,
       arquivoNome,
@@ -349,8 +357,9 @@ export async function editarContato(
 
   const detalhe = descreverAlteracoes(
     antigo,
-    { forma, arquivoUrl, dataPrevistaEntregaChaves, dataPrevistaVistoriaSaida, anotacoes },
+    { data, forma, arquivoUrl, dataPrevistaEntregaChaves, dataPrevistaVistoriaSaida, anotacoes },
     {
+      data: { label: "a data", formatar: (v) => formatData(v as Date) },
       forma: { label: "a forma", formatar: (v) => LABEL_FORMA_CONTATO[v as string] ?? String(v) },
       arquivoUrl: { label: "o arquivo anexado", arquivo: true },
       dataPrevistaEntregaChaves: { label: "a previsão de entrega de chaves" },

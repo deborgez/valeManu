@@ -13,6 +13,7 @@ import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaMod
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
 import LaudoVistoriaModal from "@/components/distrato/LaudoVistoriaModal";
 import ExcluirBotao from "@/components/distrato/ExcluirBotao";
+import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import AuditoriaButton from "@/components/distrato/AuditoriaButton";
 import {
   registrarAvisoPrevio,
@@ -243,14 +244,11 @@ export default async function DistratoDetalhePage({
                   {LABEL_FORMA_AVISO[distrato.avisoPrevio.forma]}
                 </p>
                 {distrato.avisoPrevio.arquivoUrl && (
-                  <a
-                    href={distrato.avisoPrevio.arquivoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-slate-500 dark:text-slate-400 underline"
-                  >
-                    Ver arquivo
-                  </a>
+                  <ArquivoPreviewBotao
+                    url={distrato.avisoPrevio.arquivoUrl}
+                    nome={distrato.avisoPrevio.arquivoNome}
+                    tipo={distrato.avisoPrevio.arquivoTipo}
+                  />
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -305,14 +303,11 @@ export default async function DistratoDetalhePage({
                       {LABEL_FORMA_AVISO[distrato.comunicadoLocador.forma]}
                     </p>
                     {distrato.comunicadoLocador.arquivoUrl && (
-                      <a
-                        href={distrato.comunicadoLocador.arquivoUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-slate-500 dark:text-slate-400 underline"
-                      >
-                        Ver arquivo
-                      </a>
+                      <ArquivoPreviewBotao
+                        url={distrato.comunicadoLocador.arquivoUrl}
+                        nome={distrato.comunicadoLocador.arquivoNome}
+                        tipo={distrato.comunicadoLocador.arquivoTipo}
+                      />
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
@@ -385,14 +380,7 @@ export default async function DistratoDetalhePage({
                         {formatData(c.data)} — {LABEL_FORMA_CONTATO[c.forma]}
                       </p>
                       {c.arquivoUrl && (
-                        <a
-                          href={c.arquivoUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs text-slate-500 dark:text-slate-400 underline"
-                        >
-                          Ver arquivo
-                        </a>
+                        <ArquivoPreviewBotao url={c.arquivoUrl} nome={c.arquivoNome} tipo={c.arquivoTipo} />
                       )}
                       {(c.dataPrevistaEntregaChaves || c.dataPrevistaVistoriaSaida) && (
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -412,6 +400,7 @@ export default async function DistratoDetalhePage({
                     <div className="flex shrink-0 items-center gap-2">
                       <ContatoModal
                         registro={c}
+                        hoje={hoje}
                         action={async (formData: FormData) => {
                           "use server";
                           await editarContato(c.id, distrato.id, formData);
@@ -432,6 +421,7 @@ export default async function DistratoDetalhePage({
           )}
 
           <ContatoModal
+            hoje={hoje}
             action={async (formData: FormData) => {
               "use server";
               await registrarContato(distrato.id, formData);
@@ -482,14 +472,12 @@ export default async function DistratoDetalhePage({
                               : ""}
                           </p>
                           {distrato.entregaChaves.termoUrl && (
-                            <a
-                              href={distrato.entregaChaves.termoUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-slate-500 dark:text-slate-400 underline"
-                            >
-                              Ver termo
-                            </a>
+                            <ArquivoPreviewBotao
+                              url={distrato.entregaChaves.termoUrl}
+                              nome={distrato.entregaChaves.termoNome}
+                              tipo={distrato.entregaChaves.termoTipo}
+                              label="Ver termo"
+                            />
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -543,14 +531,11 @@ export default async function DistratoDetalhePage({
                               : ""}
                           </p>
                           {distrato.agendamentoVistoria.arquivoUrl && (
-                            <a
-                              href={distrato.agendamentoVistoria.arquivoUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-slate-500 dark:text-slate-400 underline"
-                            >
-                              Ver arquivo
-                            </a>
+                            <ArquivoPreviewBotao
+                              url={distrato.agendamentoVistoria.arquivoUrl}
+                              nome={distrato.agendamentoVistoria.arquivoNome}
+                              tipo={distrato.agendamentoVistoria.arquivoTipo}
+                            />
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -639,14 +624,11 @@ export default async function DistratoDetalhePage({
                               );
                             })()}
                           {distrato.comunicadoVistoria.arquivoUrl && (
-                            <a
-                              href={distrato.comunicadoVistoria.arquivoUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-slate-500 dark:text-slate-400 underline"
-                            >
-                              Ver arquivo
-                            </a>
+                            <ArquivoPreviewBotao
+                              url={distrato.comunicadoVistoria.arquivoUrl}
+                              nome={distrato.comunicadoVistoria.arquivoNome}
+                              tipo={distrato.comunicadoVistoria.arquivoTipo}
+                            />
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -722,14 +704,11 @@ export default async function DistratoDetalhePage({
                             </p>
                           )}
                           {distrato.vistoriaSaida.arquivoUrl && (
-                            <a
-                              href={distrato.vistoriaSaida.arquivoUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-slate-500 dark:text-slate-400 underline"
-                            >
-                              Ver arquivo
-                            </a>
+                            <ArquivoPreviewBotao
+                              url={distrato.vistoriaSaida.arquivoUrl}
+                              nome={distrato.vistoriaSaida.arquivoNome}
+                              tipo={distrato.vistoriaSaida.arquivoTipo}
+                            />
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -781,14 +760,12 @@ export default async function DistratoDetalhePage({
                             Laudo entregue em {formatData(distrato.laudoVistoria.data)}
                           </p>
                           {distrato.laudoVistoria.arquivoUrl && (
-                            <a
-                              href={distrato.laudoVistoria.arquivoUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-slate-500 dark:text-slate-400 underline"
-                            >
-                              Ver laudo
-                            </a>
+                            <ArquivoPreviewBotao
+                              url={distrato.laudoVistoria.arquivoUrl}
+                              nome={distrato.laudoVistoria.arquivoNome}
+                              tipo={distrato.laudoVistoria.arquivoTipo}
+                              label="Ver laudo"
+                            />
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">

@@ -9,6 +9,7 @@ const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
 type Registro = {
+  data: Date;
   forma: string;
   arquivoUrl: string | null;
   arquivoNome: string | null;
@@ -21,9 +22,11 @@ type Registro = {
 export default function ContatoModal({
   action,
   registro,
+  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
+  hoje?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -67,11 +70,21 @@ export default function ContatoModal({
               {registro ? "Editar Contato" : "Registrar Contato"}
             </h3>
 
-            {!registro && (
-              <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
-                Data e hora serão registradas automaticamente pelo sistema.
-              </p>
-            )}
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Data
+              </label>
+              <input
+                type="date"
+                name="data"
+                required
+                max={hoje}
+                defaultValue={
+                  registro ? registro.data.toISOString().slice(0, 10) : hoje
+                }
+                className={CAMPO_CLASSE}
+              />
+            </div>
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
