@@ -29,6 +29,11 @@ enum ManutencaoStatus {
   CONCLUIDA
 }
 
+enum ManutencaoCategoria {
+  MANUTENCAO
+  ADEQUACAO
+}
+
 enum PedidoOrcamentoStatus {
   AGUARDANDO_ENTREGA
   NAO_ENTREGUE
@@ -153,13 +158,17 @@ model Manutencao {
   descricaoProblema String
   emergencial       Boolean          @default(false)
   competencia       ParteInteressada
-  status            ManutencaoStatus @default(SOLICITACAO)
+  status            ManutencaoStatus     @default(SOLICITACAO)
+  categoria         ManutencaoCategoria  @default(MANUTENCAO)
   reaberta          Boolean          @default(false)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
   criadoPorId String
   criadoPor   User   @relation("CriadoPor", fields: [criadoPorId], references: [id])
+
+  distratoId String?
+  distrato   Distrato? @relation(fields: [distratoId], references: [id])
 
   pedidosOrcamento  PedidoOrcamento[]
   inicioServicos    InicioServico[]
@@ -327,6 +336,9 @@ model Distrato {
   criadoPor   User   @relation("DistratoCriadoPor", fields: [criadoPorId], references: [id])
 
   localEntregaChaves LocalEntrega?
+  existemAdequacoes  Boolean?
+
+  adequacoes Manutencao[]
 
   avisoPrevio         AvisoPrevioLocatario?
   comunicadoLocador   ComunicadoLocador?

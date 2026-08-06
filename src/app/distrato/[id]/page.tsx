@@ -2,7 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
 import { formatData, formatSistema, diasEntreDatas, hojeSaoPaulo } from "@/lib/datahora";
-import { LABEL_TIPO_FIANCA, LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO } from "@/lib/labels";
+import {
+  LABEL_TIPO_FIANCA,
+  LABEL_FORMA_AVISO,
+  LABEL_FORMA_CONTATO,
+  LABEL_MANUTENCAO_STATUS,
+} from "@/lib/labels";
+import Link from "next/link";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -16,6 +22,8 @@ import ExcluirBotao from "@/components/distrato/ExcluirBotao";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import AuditoriaButton from "@/components/distrato/AuditoriaButton";
 import AbasDistrato from "@/components/distrato/AbasDistrato";
+import AdequacoesForm from "@/components/distrato/AdequacoesForm";
+import NovaAdequacaoModal from "@/components/distrato/NovaAdequacaoModal";
 import {
   registrarAvisoPrevio,
   editarAvisoPrevio,
@@ -48,6 +56,8 @@ import {
   registrarComunicadoEncerramentoLocatario,
   editarComunicadoEncerramentoLocatario,
   excluirComunicadoEncerramentoLocatario,
+  definirExistemAdequacoes,
+  criarAdequacao,
 } from "../actions";
 
 const SECAO_CLASSE =
@@ -127,6 +137,7 @@ export default async function DistratoDetalhePage({
       laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
+      adequacoes: { orderBy: { createdAt: "desc" } },
       auditorias: {
         orderBy: { createdAt: "desc" },
         include: { usuario: { select: { nome: true } } },
@@ -949,6 +960,59 @@ export default async function DistratoDetalhePage({
     </>
   );
 
+  const conteudoAdequacoes = (
+    <section className={SECAO_CLASSE}>
+      <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+        Adequações
+      </h2>
+
+      {distrato.existemAdequacoes === null ? (
+        <AdequacoesForm
+          action={async (formData: FormData) => {
+            "use server";
+            await definirExistemAdequacoes(distrato.id, formData);
+          }}
+        />
+      ) : distrato.existemAdequacoes === false ? (
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Não há adequações pendentes para este imóvel.
+        </p>
+      ) : (
+        <div>
+          {distrato.adequacoes.length > 0 && (
+            <ul className="mb-4 flex flex-col gap-2">
+              {distrato.adequacoes.map((a) => (
+                <li key={a.id}>
+                  <Link
+                    href={`/manutencoes/${a.id}`}
+                    className="block rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm hover:border-slate-300 dark:hover:border-slate-600"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-medium text-slate-700 dark:text-slate-300">
+                        {a.numeroProcesso}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {LABEL_MANUTENCAO_STATUS[a.status]}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{a.natureza}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <NovaAdequacaoModal
+            action={async (formData: FormData) => {
+              "use server";
+              await criarAdequacao(distrato.id, formData);
+            }}
+          />
+        </div>
+      )}
+    </section>
+  );
+
   return (
     <div className="mx-auto w-full max-w-3xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
@@ -963,7 +1027,7 @@ export default async function DistratoDetalhePage({
           {
             id: "adequacoes",
             label: "Adequações",
-            content: <ConteudoEmBreve titulo="Adequações" />,
+            content: conteudoAdequacoes,
           },
           {
             id: "financeiro",

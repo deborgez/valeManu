@@ -19,6 +19,7 @@ const SECAO = {
   LAUDO_VISTORIA: "LAUDO_VISTORIA",
   COMUNICADO_ENCERRAMENTO_LOCADOR: "COMUNICADO_ENCERRAMENTO_LOCADOR",
   COMUNICADO_ENCERRAMENTO_LOCATARIO: "COMUNICADO_ENCERRAMENTO_LOCATARIO",
+  ADEQUACOES: "ADEQUACOES",
 } as const;
 
 async function logAuditoria(
@@ -1013,6 +1014,74 @@ export async function excluirComunicadoEncerramentoLocatario(distratoId: string)
     SECAO.COMUNICADO_ENCERRAMENTO_LOCATARIO,
     "Excluiu",
     `Data: ${formatData(registro.data)} — Forma: ${LABEL_FORMA_AVISO[registro.forma]}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function definirExistemAdequacoes(
+  distratoId: string,
+  formData: FormData
+) {
+  const existemAdequacoes = formData.get("existemAdequacoes") === "sim";
+
+  await prisma.distrato.update({
+    where: { id: distratoId },
+    data: { existemAdequacoes },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ADEQUACOES,
+    "Registrou",
+    `Existem adequações: ${existemAdequacoes ? "Sim" : "Não"}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function criarAdequacao(distratoId: string, formData: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const distrato = await prisma.distrato.findUniqueOrThrow({
+    where: { id: distratoId },
+    include: { processo: true, adequacoes: { select: { id: true } } },
+  });
+
+  const numeroProcesso = `${distrato.processo.numeroProcesso}-ADQ-${distrato.adequacoes.length + 1}`;
+
+  const adequacao = await prisma.manutencao.create({
+    data: {
+      numeroProcesso,
+      categoria: "ADEQUACAO",
+      distratoId,
+      cep: distrato.processo.cep,
+      rua: distrato.processo.rua,
+      numero: distrato.processo.numero,
+      complemento: distrato.processo.complemento,
+      bairro: distrato.processo.bairro,
+      cidade: distrato.processo.cidade,
+      estado: distrato.processo.estado,
+      solicitanteTipo: formData.get("solicitanteTipo") as "LOCADOR" | "LOCATARIO" | "IMOBILIARIA",
+      solicitanteNome: (formData.get("solicitanteNome") as string) || null,
+      solicitanteCpf: (formData.get("solicitanteCpf") as string) || null,
+      natureza: String(formData.get("natureza")),
+      descricaoProblema: String(formData.get("descricaoProblema")),
+      emergencial: formData.get("emergencial") === "on",
+      competencia: formData.get("competencia") as "LOCADOR" | "LOCATARIO" | "IMOBILIARIA",
+      status: "SOLICITACAO",
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await prisma.historicoEtapa.create({
+    data: { manutencaoId: adequacao.id, etapa: "Solicitação de adequação criada" },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ADEQUACOES,
+    "Registrou",
+    `Solicitação ${numeroProcesso}: ${adequacao.natureza}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
