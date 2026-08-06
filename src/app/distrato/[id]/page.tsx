@@ -1057,6 +1057,9 @@ export default async function DistratoDetalhePage({
                         )}
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">{a.natureza}</p>
+                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                        {a.descricaoProblema}
+                      </p>
                       <div className="mt-1 flex items-center justify-between gap-4">
                         <span className="text-xs text-slate-600 dark:text-slate-300">
                           {etapaAdequacao(a)}
