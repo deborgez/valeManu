@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
+import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
 
 const SECAO = {
   AVISO_PREVIO: "AVISO_PREVIO",
@@ -20,6 +21,7 @@ const SECAO = {
   COMUNICADO_ENCERRAMENTO_LOCADOR: "COMUNICADO_ENCERRAMENTO_LOCADOR",
   COMUNICADO_ENCERRAMENTO_LOCATARIO: "COMUNICADO_ENCERRAMENTO_LOCATARIO",
   ADEQUACOES: "ADEQUACOES",
+  ALUGUEL: "ALUGUEL",
 } as const;
 
 async function logAuditoria(
@@ -1111,6 +1113,65 @@ export async function criarAdequacao(distratoId: string, formData: FormData) {
     SECAO.ADEQUACOES,
     "Registrou",
     `Solicitação ${numeroProcesso}: ${adequacao.natureza}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function registrarAluguel(distratoId: string, formData: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const valor = parseMoeda(formData.get("valor"));
+
+  await prisma.aluguelDistrato.create({
+    data: {
+      distratoId,
+      valor,
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ALUGUEL,
+    "Registrou",
+    `Valor do aluguel: R$ ${formatMoedaExibicao(valor)}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function editarAluguel(distratoId: string, formData: FormData) {
+  const valor = parseMoeda(formData.get("valor"));
+
+  const antigo = await prisma.aluguelDistrato.findUniqueOrThrow({
+    where: { distratoId },
+  });
+
+  await prisma.aluguelDistrato.update({
+    where: { distratoId },
+    data: { valor },
+  });
+
+  const detalhe = descreverAlteracoes(antigo, { valor }, {
+    valor: { label: "o valor do aluguel", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
+  });
+
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.ALUGUEL, "Editou", detalhe);
+  }
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function excluirAluguel(distratoId: string) {
+  const registro = await prisma.aluguelDistrato.findUniqueOrThrow({
+    where: { distratoId },
+  });
+  await prisma.aluguelDistrato.delete({ where: { distratoId } });
+  await logAuditoria(
+    distratoId,
+    SECAO.ALUGUEL,
+    "Excluiu",
+    `Valor do aluguel: R$ ${formatMoedaExibicao(registro.valor)}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }

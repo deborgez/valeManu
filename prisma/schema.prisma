@@ -127,6 +127,7 @@ model User {
   comunicadosEncerramentoLocadorCriados   ComunicadoEncerramentoLocador[]   @relation("ComunicadoEncerramentoLocadorCriadoPor")
   comunicadosEncerramentoLocatarioCriados ComunicadoEncerramentoLocatario[] @relation("ComunicadoEncerramentoLocatarioCriadoPor")
   decisoesAdequacaoCriadas DecisaoAdequacao[] @relation("DecisaoAdequacaoCriadoPor")
+  alugueisDistratoCriados  AluguelDistrato[] @relation("AluguelDistratoCriadoPor")
 }
 
 model Prestador {
@@ -289,6 +290,7 @@ model Processo {
   prazoContratoInicio DateTime?
   prazoContratoMeses  Int?
   prazoContratoFim    DateTime?
+  prazoMultaMeses     Int?
 
   tipoFianca     TipoFianca?
   fiancaNome     String?
@@ -340,6 +342,7 @@ model Distrato {
 
   decisaoAdequacao DecisaoAdequacao?
   adequacoes       Manutencao[]
+  aluguel          AluguelDistrato?
 
   avisoPrevio         AvisoPrevioLocatario?
   comunicadoLocador   ComunicadoLocador?
@@ -364,6 +367,18 @@ model DecisaoAdequacao {
 
   criadoPorId String?
   criadoPor   User?   @relation("DecisaoAdequacaoCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model AluguelDistrato {
+  id        String   @id @default(cuid())
+  valor     Float
+  createdAt DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("AluguelDistratoCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model DistratoAuditoria {

@@ -25,6 +25,16 @@ export function diasEntreDatas(a: Date, b: Date): number {
   return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
+// Meses completos decorridos entre duas datas (não arredonda para cima).
+// Ex.: início 10/01 até 09/03 = 1 mês completo; até 10/03 = 2 meses.
+export function mesesEntreDatas(inicio: Date, fim: Date): number {
+  let total =
+    (fim.getFullYear() - inicio.getFullYear()) * 12 +
+    (fim.getMonth() - inicio.getMonth());
+  if (fim.getDate() < inicio.getDate()) total -= 1;
+  return total;
+}
+
 export function formatDataHoraCurta(data: Date): string {
   const dataStr = data.toLocaleDateString("pt-BR", { timeZone: FUSO });
   const horaStr = data.toLocaleTimeString("pt-BR", {

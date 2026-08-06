@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
-import { formatData, formatSistema, diasEntreDatas, hojeSaoPaulo } from "@/lib/datahora";
+import {
+  formatData,
+  formatSistema,
+  diasEntreDatas,
+  hojeSaoPaulo,
+  parseDataLocal,
+} from "@/lib/datahora";
 import {
   LABEL_TIPO_FIANCA,
   LABEL_FORMA_AVISO,
@@ -11,6 +17,8 @@ import {
 import Link from "next/link";
 import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import { formatMoedaExibicao } from "@/lib/masks";
+import { calcularMulta } from "@/lib/multa";
+import AluguelModal from "@/components/distrato/AluguelModal";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -62,6 +70,9 @@ import {
   registrarDecisaoAdequacao,
   excluirDecisaoAdequacao,
   criarAdequacao,
+  registrarAluguel,
+  editarAluguel,
+  excluirAluguel,
 } from "../actions";
 
 const SECAO_CLASSE =
@@ -167,16 +178,6 @@ function valoresAdequacao(a: {
   return { valorPrestador, valorAdministracao };
 }
 
-function ConteudoEmBreve({ titulo }: { titulo: string }) {
-  return (
-    <section className={SECAO_CLASSE}>
-      <p className="text-sm text-slate-500 dark:text-slate-400">
-        Nenhuma informação de {titulo} registrada ainda.
-      </p>
-    </section>
-  );
-}
-
 export default async function DistratoDetalhePage({
   params,
   searchParams,
@@ -208,6 +209,7 @@ export default async function DistratoDetalhePage({
       laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
+      aluguel: { include: { criadoPor: { select: { nome: true } } } },
       decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
       adequacoes: {
         orderBy: { createdAt: "desc" },
@@ -1175,6 +1177,108 @@ export default async function DistratoDetalhePage({
     </section>
   );
 
+  const resultadoMulta = distrato.aluguel
+    ? calcularMulta({
+        valorAluguel: distrato.aluguel.valor,
+        tipoFianca: processo.tipoFianca,
+        prazoContratoMeses: processo.prazoContratoMeses,
+        prazoMultaMeses: processo.prazoMultaMeses,
+        dataInicio: processo.prazoContratoInicio,
+        dataReferencia: parseDataLocal(hoje),
+      })
+    : null;
+
+  const conteudoFinanceiro = (
+    <section className={SECAO_CLASSE}>
+      <SecaoTitulo titulo="Financeiro" auditoria={auditoriaPorSecao("ALUGUEL")} />
+
+      {!distrato.aluguel ? (
+        <AluguelModal
+          action={async (formData: FormData) => {
+            "use server";
+            await registrarAluguel(distrato.id, formData);
+          }}
+        />
+      ) : (
+        <div className="text-sm">
+          <div className="flex items-start justify-between gap-4">
+            <p className="text-slate-700 dark:text-slate-300">
+              Valor atual do aluguel: R$ {formatMoedaExibicao(distrato.aluguel.valor)}
+            </p>
+            <div className="flex shrink-0 items-center gap-2">
+              <AluguelModal
+                registro={distrato.aluguel}
+                action={async (formData: FormData) => {
+                  "use server";
+                  await editarAluguel(distrato.id, formData);
+                }}
+              />
+              <ExcluirBotao
+                onExcluir={async () => {
+                  "use server";
+                  await excluirAluguel(distrato.id);
+                }}
+              />
+            </div>
+          </div>
+          <InfoSistema
+            data={distrato.aluguel.createdAt}
+            usuario={distrato.aluguel.criadoPor?.nome}
+          />
+
+          <Divisor>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Prazo do Contrato</p>
+                <p className="text-slate-700 dark:text-slate-300">
+                  {processo.prazoContratoMeses ? `${processo.prazoContratoMeses} meses` : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Data de Início</p>
+                <p className="text-slate-700 dark:text-slate-300">
+                  {processo.prazoContratoInicio ? formatData(processo.prazoContratoInicio) : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Data do Aviso Prévio</p>
+                <p className="text-slate-700 dark:text-slate-300">
+                  {distrato.avisoPrevio ? formatData(distrato.avisoPrevio.data) : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Prazo da Multa</p>
+                <p className="text-slate-700 dark:text-slate-300">
+                  {processo.prazoMultaMeses ? `${processo.prazoMultaMeses} meses` : "—"}
+                </p>
+              </div>
+            </div>
+
+            {resultadoMulta ? (
+              <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Multa por quebra de contrato (hoje, {formatData(parseDataLocal(hoje))}): R${" "}
+                  {formatMoedaExibicao(resultadoMulta.multaAtual)}
+                </p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                  Multa total: R$ {formatMoedaExibicao(resultadoMulta.multaTotal)} · Abatimento
+                  mensal: R$ {formatMoedaExibicao(resultadoMulta.multaMensal)} ·{" "}
+                  {resultadoMulta.mesesDecorridos} {resultadoMulta.mesesDecorridos === 1 ? "mês" : "meses"}{" "}
+                  já cumpridos de {processo.prazoMultaMeses}.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                Para calcular a multa, cadastre no Processo o Prazo do Contrato, a Data de Início e
+                o Prazo da Multa.
+              </p>
+            )}
+          </Divisor>
+        </div>
+      )}
+    </section>
+  );
+
   return (
     <div className="mx-auto w-full max-w-5xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
@@ -1194,7 +1298,7 @@ export default async function DistratoDetalhePage({
           {
             id: "financeiro",
             label: "Financeiro",
-            content: <ConteudoEmBreve titulo="Financeiro" />,
+            content: conteudoFinanceiro,
           },
         ]}
       />

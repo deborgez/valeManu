@@ -37,6 +37,8 @@ export async function criarProcesso(formData: FormData) {
     ? parseDataLocal(prazoContratoInicioStr)
     : null;
   const prazoContratoMeses = prazoContratoMesesStr ? parseInt(prazoContratoMesesStr, 10) : null;
+  const prazoMultaMesesStr = (formData.get("prazoMultaMeses") as string) || null;
+  const prazoMultaMeses = prazoMultaMesesStr ? parseInt(prazoMultaMesesStr, 10) : null;
 
   let prazoContratoFim: Date | null = null;
   if (prazoContratoInicio && prazoContratoMeses) {
@@ -59,6 +61,7 @@ export async function criarProcesso(formData: FormData) {
       prazoContratoInicio,
       prazoContratoMeses,
       prazoContratoFim,
+      prazoMultaMeses,
       codigoImovel: (formData.get("codigoImovel") as string) || null,
       tipoFianca,
       fiancaNome: (formData.get("fiancaNome") as string) || null,

@@ -82,6 +82,22 @@ export default function ProcessoForm({
             />
           </div>
         </div>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Prazo da Multa (meses)
+            </label>
+            <input
+              type="number"
+              min="1"
+              name="prazoMultaMeses"
+              className={CAMPO_CLASSE}
+            />
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+              Usado para calcular o abatimento mensal da multa por quebra de contrato.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className={SECAO_CLASSE}>
