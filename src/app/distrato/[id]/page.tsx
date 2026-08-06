@@ -10,6 +10,7 @@ import {
 } from "@/lib/labels";
 import Link from "next/link";
 import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
+import { formatMoedaExibicao } from "@/lib/masks";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -157,10 +158,14 @@ export default async function DistratoDetalhePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erroComunicado?: string; erroComunicadoVistoria?: string }>;
+  searchParams: Promise<{
+    erroComunicado?: string;
+    erroComunicadoVistoria?: string;
+    erroExcluirAdequacao?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { erroComunicado, erroComunicadoVistoria } = await searchParams;
+  const { erroComunicado, erroComunicadoVistoria, erroExcluirAdequacao } = await searchParams;
 
   const distrato = await prisma.distrato.findUnique({
     where: { id },
@@ -184,7 +189,9 @@ export default async function DistratoDetalhePage({
         orderBy: { createdAt: "desc" },
         include: {
           inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
-          pedidosOrcamento: { select: { id: true } },
+          pedidosOrcamento: {
+            select: { id: true, status: true, valorMaoDeObra: true, valorMaterial: true },
+          },
           pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
           criadoPor: { select: { nome: true } },
         },
@@ -1015,6 +1022,12 @@ export default async function DistratoDetalhePage({
     <section className={SECAO_CLASSE}>
       <SecaoTitulo titulo="Adequações" auditoria={auditoriaPorSecao("ADEQUACOES")} />
 
+      {erroExcluirAdequacao && (
+        <p className="mb-4 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+          Não é possível excluir: já existem solicitações de adequação registradas para este imóvel.
+        </p>
+      )}
+
       {!distrato.decisaoAdequacao ? (
         <AdequacoesForm
           action={async (formData: FormData) => {
@@ -1052,6 +1065,12 @@ export default async function DistratoDetalhePage({
                 const aberta = a.status !== "CONCLUIDA";
                 const dias = diasEmAberto(a.createdAt);
                 const severidade = classificarSeveridade(dias, aberta);
+                const pedidoAprovado = a.pedidosOrcamento.find((p) => p.status === "APROVADO");
+                const valor =
+                  a.pagamentos[0]?.valor ??
+                  (pedidoAprovado
+                    ? (pedidoAprovado.valorMaoDeObra ?? 0) + (pedidoAprovado.valorMaterial ?? 0)
+                    : null);
 
                 return (
                   <li key={a.id}>
@@ -1075,6 +1094,11 @@ export default async function DistratoDetalhePage({
                       <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                         {a.natureza} — {a.descricaoProblema}
                       </p>
+                      {valor !== null && (
+                        <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          Valor: R$ {formatMoedaExibicao(valor)}
+                        </p>
+                      )}
                       {aberta && (
                         <p className={`mt-2 text-xs font-bold ${AVISO_COR[severidade]}`}>
                           {dias === 0 ? "Aberta hoje" : `Em aberto há ${dias} ${dias === 1 ? "dia" : "dias"}`}
@@ -1100,7 +1124,7 @@ export default async function DistratoDetalhePage({
   );
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-5xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
         Distrato — Processo {processo.numeroProcesso}
       </h1>

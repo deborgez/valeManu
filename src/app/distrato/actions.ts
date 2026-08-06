@@ -1048,6 +1048,14 @@ export async function excluirDecisaoAdequacao(distratoId: string) {
   const registro = await prisma.decisaoAdequacao.findUniqueOrThrow({
     where: { distratoId },
   });
+
+  const totalAdequacoes = await prisma.manutencao.count({
+    where: { distratoId, categoria: "ADEQUACAO" },
+  });
+  if (totalAdequacoes > 0) {
+    redirect(`/distrato/${distratoId}?aba=adequacoes&erroExcluirAdequacao=1`);
+  }
+
   await prisma.decisaoAdequacao.delete({ where: { distratoId } });
   await logAuditoria(
     distratoId,
