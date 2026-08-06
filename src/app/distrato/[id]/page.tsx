@@ -15,6 +15,7 @@ import LaudoVistoriaModal from "@/components/distrato/LaudoVistoriaModal";
 import ExcluirBotao from "@/components/distrato/ExcluirBotao";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import AuditoriaButton from "@/components/distrato/AuditoriaButton";
+import AbasDistrato from "@/components/distrato/AbasDistrato";
 import {
   registrarAvisoPrevio,
   editarAvisoPrevio,
@@ -86,6 +87,16 @@ function SecaoTitulo({
 function Divisor({ children }: { children: React.ReactNode }) {
   return (
     <div className="mt-6 border-t border-slate-100 dark:border-slate-700 pt-6">{children}</div>
+  );
+}
+
+function ConteudoEmBreve({ titulo }: { titulo: string }) {
+  return (
+    <section className={SECAO_CLASSE}>
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        Nenhuma informação de {titulo} registrada ainda.
+      </p>
+    </section>
   );
 }
 
@@ -171,12 +182,8 @@ export default async function DistratoDetalhePage({
     }
   }
 
-  return (
-    <div className="mx-auto w-full max-w-3xl p-6">
-      <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
-        Distrato — Processo {processo.numeroProcesso}
-      </h1>
-
+  const cabecalhoProcesso = (
+    <>
       {/* Dados importados do processo */}
       <section className={SECAO_CLASSE}>
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -232,7 +239,11 @@ export default async function DistratoDetalhePage({
           </div>
         </div>
       </section>
+    </>
+  );
 
+  const relacionamentoConteudo = (
+    <>
       {/* Aviso Prévio do Locatário + Comunicado ao Locador */}
       <section className={SECAO_CLASSE}>
         <SecaoTitulo
@@ -935,6 +946,37 @@ export default async function DistratoDetalhePage({
           )}
         </section>
       )}
+    </>
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-3xl p-6">
+      <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
+        Distrato — Processo {processo.numeroProcesso}
+      </h1>
+
+      {cabecalhoProcesso}
+
+      <AbasDistrato
+        abas={[
+          { id: "relacionamento", label: "Relacionamento", content: relacionamentoConteudo },
+          {
+            id: "adequacoes",
+            label: "Adequações",
+            content: <ConteudoEmBreve titulo="Adequações" />,
+          },
+          {
+            id: "financeiro",
+            label: "Financeiro",
+            content: <ConteudoEmBreve titulo="Financeiro" />,
+          },
+          {
+            id: "juridico",
+            label: "Jurídico",
+            content: <ConteudoEmBreve titulo="Jurídico" />,
+          },
+        ]}
+      />
     </div>
   );
 }
