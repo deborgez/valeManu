@@ -9,6 +9,7 @@ import {
   LABEL_MANUTENCAO_STATUS,
 } from "@/lib/labels";
 import Link from "next/link";
+import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -101,6 +102,28 @@ function Divisor({ children }: { children: React.ReactNode }) {
   );
 }
 
+function etapaAdequacao(a: {
+  status: string;
+  pedidosOrcamento: { id: string }[];
+  inicioServicos: { status: string }[];
+  pagamentos: { status: string }[];
+}): string {
+  if (a.status === "CONCLUIDA") {
+    return a.pagamentos[0]?.status === "PAGO" ? "Pagamento efetuado" : "Serviço concluído";
+  }
+  if (a.status === "SOLICITACAO") return "Solicitação";
+  if (a.status === "AGUARDANDO_ORCAMENTO") {
+    return a.pedidosOrcamento.length === 0 ? "Pedido de orçamento" : "Entrega de orçamento";
+  }
+  if (a.status === "AGUARDANDO_APROVACAO") return "Aprovação do serviço";
+  if (a.status === "APROVADA" || a.status === "AGENDADA" || a.status === "EM_ANDAMENTO") {
+    if (a.inicioServicos[0]?.status === "AGENDADO") return "Início do serviço — agendado";
+    if (a.inicioServicos[0]?.status === "INICIADO_ANDAMENTO") return "Início do serviço — em andamento";
+    return "Início do serviço";
+  }
+  return LABEL_MANUTENCAO_STATUS[a.status] ?? a.status;
+}
+
 function ConteudoEmBreve({ titulo }: { titulo: string }) {
   return (
     <section className={SECAO_CLASSE}>
@@ -139,7 +162,14 @@ export default async function DistratoDetalhePage({
       comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
       decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
-      adequacoes: { orderBy: { createdAt: "desc" } },
+      adequacoes: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
+          pedidosOrcamento: { select: { id: true } },
+          pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
+        },
+      },
       auditorias: {
         orderBy: { createdAt: "desc" },
         include: { usuario: { select: { nome: true } } },
@@ -999,24 +1029,50 @@ export default async function DistratoDetalhePage({
         <Divisor>
           {distrato.adequacoes.length > 0 && (
             <ul className="mb-4 flex flex-col gap-2">
-              {distrato.adequacoes.map((a) => (
-                <li key={a.id}>
-                  <Link
-                    href={`/manutencoes/${a.id}`}
-                    className="block rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm hover:border-slate-300 dark:hover:border-slate-600"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
-                        {a.numeroProcesso}
-                      </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {LABEL_MANUTENCAO_STATUS[a.status]}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{a.natureza}</p>
-                  </Link>
-                </li>
-              ))}
+              {distrato.adequacoes.map((a) => {
+                const aberta = a.status !== "CONCLUIDA";
+                const dias = diasEmAberto(a.createdAt);
+                const severidade = classificarSeveridade(dias, aberta);
+                const corPrazo = {
+                  neutro: "text-slate-500 dark:text-slate-400",
+                  verde: "text-green-700 dark:text-green-400",
+                  amarelo: "text-amber-700 dark:text-amber-400",
+                  vermelho: "text-red-700 dark:text-red-400",
+                }[severidade];
+
+                return (
+                  <li key={a.id}>
+                    <Link
+                      href={`/manutencoes/${a.id}`}
+                      className="block rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm hover:border-slate-300 dark:hover:border-slate-600"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                          {a.numeroProcesso}
+                        </span>
+                        {a.emergencial && (
+                          <span className="rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                            Emergencial
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{a.natureza}</p>
+                      <div className="mt-1 flex items-center justify-between gap-4">
+                        <span className="text-xs text-slate-600 dark:text-slate-300">
+                          {etapaAdequacao(a)}
+                        </span>
+                        <span className={`text-xs font-medium ${corPrazo}`}>
+                          {aberta
+                            ? dias === 0
+                              ? "Aberta hoje"
+                              : `Em aberto há ${dias} ${dias === 1 ? "dia" : "dias"}`
+                            : "Concluída"}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
 

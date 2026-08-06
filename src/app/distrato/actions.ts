@@ -1067,7 +1067,8 @@ export async function criarAdequacao(distratoId: string, formData: FormData) {
     include: { processo: true, adequacoes: { select: { id: true } } },
   });
 
-  const numeroProcesso = `${distrato.processo.numeroProcesso}-ADQ-${distrato.adequacoes.length + 1}`;
+  const sufixo = String(distrato.adequacoes.length + 1).padStart(2, "0");
+  const numeroProcesso = `${distrato.processo.numeroProcesso}-ADQ-${sufixo}`;
 
   const adequacao = await prisma.manutencao.create({
     data: {
