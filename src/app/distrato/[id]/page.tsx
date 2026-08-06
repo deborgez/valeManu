@@ -970,11 +970,6 @@ export default async function DistratoDetalhePage({
             label: "Financeiro",
             content: <ConteudoEmBreve titulo="Financeiro" />,
           },
-          {
-            id: "juridico",
-            label: "Jurídico",
-            content: <ConteudoEmBreve titulo="Jurídico" />,
-          },
         ]}
       />
     </div>
