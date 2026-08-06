@@ -26,6 +26,7 @@ import AuditoriaButton from "@/components/distrato/AuditoriaButton";
 import AbasDistrato from "@/components/distrato/AbasDistrato";
 import AdequacoesForm from "@/components/distrato/AdequacoesForm";
 import NovaAdequacaoModal from "@/components/distrato/NovaAdequacaoModal";
+import AvisoTemporario from "@/components/distrato/AvisoTemporario";
 import {
   registrarAvisoPrevio,
   editarAvisoPrevio,
@@ -143,6 +144,29 @@ function etapaAdequacao(a: {
   return LABEL_MANUTENCAO_STATUS[a.status] ?? a.status;
 }
 
+function valoresAdequacao(a: {
+  pedidosOrcamento: {
+    status: string;
+    valorMaoDeObra: number | null;
+    valorMaterial: number | null;
+    percentualAdministracao: number;
+  }[];
+  pagamentos: { valor: number | null }[];
+}): { valorPrestador: number | null; valorAdministracao: number } {
+  const pedidoAprovado = a.pedidosOrcamento.find((p) => p.status === "APROVADO");
+  const valorPrestador =
+    a.pagamentos[0]?.valor ??
+    (pedidoAprovado
+      ? (pedidoAprovado.valorMaoDeObra ?? 0) + (pedidoAprovado.valorMaterial ?? 0)
+      : null);
+  const valorAdministracao =
+    valorPrestador !== null && pedidoAprovado
+      ? valorPrestador * (pedidoAprovado.percentualAdministracao / 100)
+      : 0;
+
+  return { valorPrestador, valorAdministracao };
+}
+
 function ConteudoEmBreve({ titulo }: { titulo: string }) {
   return (
     <section className={SECAO_CLASSE}>
@@ -190,7 +214,13 @@ export default async function DistratoDetalhePage({
         include: {
           inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
           pedidosOrcamento: {
-            select: { id: true, status: true, valorMaoDeObra: true, valorMaterial: true },
+            select: {
+              id: true,
+              status: true,
+              valorMaoDeObra: true,
+              valorMaterial: true,
+              percentualAdministracao: true,
+            },
           },
           pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
           criadoPor: { select: { nome: true } },
@@ -1023,9 +1053,10 @@ export default async function DistratoDetalhePage({
       <SecaoTitulo titulo="Adequações" auditoria={auditoriaPorSecao("ADEQUACOES")} />
 
       {erroExcluirAdequacao && (
-        <p className="mb-4 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-sm text-red-700 dark:text-red-400">
-          Não é possível excluir: já existem solicitações de adequação registradas para este imóvel.
-        </p>
+        <AvisoTemporario
+          param="erroExcluirAdequacao"
+          mensagem="Não é possível excluir: já existem solicitações de adequação registradas para este imóvel."
+        />
       )}
 
       {!distrato.decisaoAdequacao ? (
@@ -1065,12 +1096,7 @@ export default async function DistratoDetalhePage({
                 const aberta = a.status !== "CONCLUIDA";
                 const dias = diasEmAberto(a.createdAt);
                 const severidade = classificarSeveridade(dias, aberta);
-                const pedidoAprovado = a.pedidosOrcamento.find((p) => p.status === "APROVADO");
-                const valor =
-                  a.pagamentos[0]?.valor ??
-                  (pedidoAprovado
-                    ? (pedidoAprovado.valorMaoDeObra ?? 0) + (pedidoAprovado.valorMaterial ?? 0)
-                    : null);
+                const { valorPrestador } = valoresAdequacao(a);
 
                 return (
                   <li key={a.id}>
@@ -1094,9 +1120,9 @@ export default async function DistratoDetalhePage({
                       <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                         {a.natureza} — {a.descricaoProblema}
                       </p>
-                      {valor !== null && (
+                      {valorPrestador !== null && (
                         <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          Valor: R$ {formatMoedaExibicao(valor)}
+                          Valor: R$ {formatMoedaExibicao(valorPrestador)}
                         </p>
                       )}
                       {aberta && (
@@ -1111,6 +1137,32 @@ export default async function DistratoDetalhePage({
               })}
             </ul>
           )}
+
+          {(() => {
+            const abertas = distrato.adequacoes.filter((a) => a.status !== "CONCLUIDA");
+            const totalPrestador = abertas.reduce(
+              (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
+              0
+            );
+            const totalAdministracao = abertas.reduce(
+              (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
+              0
+            );
+            const totalGeral = totalPrestador + totalAdministracao;
+            if (totalGeral === 0) return null;
+
+            return (
+              <div className="mb-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
+                <p className="font-semibold text-slate-900 dark:text-slate-100">
+                  Total em aberto: R$ {formatMoedaExibicao(totalGeral)}
+                </p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Prestador: R$ {formatMoedaExibicao(totalPrestador)} · Administração: R${" "}
+                  {formatMoedaExibicao(totalAdministracao)}
+                </p>
+              </div>
+            );
+          })()}
 
           <NovaAdequacaoModal
             action={async (formData: FormData) => {
