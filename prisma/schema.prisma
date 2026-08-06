@@ -126,6 +126,7 @@ model User {
   laudosVistoriaCriados    LaudoVistoria[]            @relation("LaudoVistoriaCriadoPor")
   comunicadosEncerramentoLocadorCriados   ComunicadoEncerramentoLocador[]   @relation("ComunicadoEncerramentoLocadorCriadoPor")
   comunicadosEncerramentoLocatarioCriados ComunicadoEncerramentoLocatario[] @relation("ComunicadoEncerramentoLocatarioCriadoPor")
+  decisoesAdequacaoCriadas DecisaoAdequacao[] @relation("DecisaoAdequacaoCriadoPor")
 }
 
 model Prestador {
@@ -336,9 +337,9 @@ model Distrato {
   criadoPor   User   @relation("DistratoCriadoPor", fields: [criadoPorId], references: [id])
 
   localEntregaChaves LocalEntrega?
-  existemAdequacoes  Boolean?
 
-  adequacoes Manutencao[]
+  decisaoAdequacao DecisaoAdequacao?
+  adequacoes       Manutencao[]
 
   avisoPrevio         AvisoPrevioLocatario?
   comunicadoLocador   ComunicadoLocador?
@@ -351,6 +352,18 @@ model Distrato {
   comunicadoEncerramentoLocador   ComunicadoEncerramentoLocador?
   comunicadoEncerramentoLocatario ComunicadoEncerramentoLocatario?
   auditorias          DistratoAuditoria[]
+}
+
+model DecisaoAdequacao {
+  id                String   @id @default(cuid())
+  existemAdequacoes Boolean
+  createdAt         DateTime @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("DecisaoAdequacaoCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model DistratoAuditoria {

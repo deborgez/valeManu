@@ -1018,15 +1018,21 @@ export async function excluirComunicadoEncerramentoLocatario(distratoId: string)
   revalidatePath(`/distrato/${distratoId}`);
 }
 
-export async function definirExistemAdequacoes(
+export async function registrarDecisaoAdequacao(
   distratoId: string,
   formData: FormData
 ) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
   const existemAdequacoes = formData.get("existemAdequacoes") === "sim";
 
-  await prisma.distrato.update({
-    where: { id: distratoId },
-    data: { existemAdequacoes },
+  await prisma.decisaoAdequacao.create({
+    data: {
+      distratoId,
+      existemAdequacoes,
+      criadoPorId: session.user.id,
+    },
   });
 
   await logAuditoria(
@@ -1034,6 +1040,20 @@ export async function definirExistemAdequacoes(
     SECAO.ADEQUACOES,
     "Registrou",
     `Existem adequações: ${existemAdequacoes ? "Sim" : "Não"}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function excluirDecisaoAdequacao(distratoId: string) {
+  const registro = await prisma.decisaoAdequacao.findUniqueOrThrow({
+    where: { distratoId },
+  });
+  await prisma.decisaoAdequacao.delete({ where: { distratoId } });
+  await logAuditoria(
+    distratoId,
+    SECAO.ADEQUACOES,
+    "Excluiu",
+    `Existem adequações: ${registro.existemAdequacoes ? "Sim" : "Não"}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }

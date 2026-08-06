@@ -56,7 +56,8 @@ import {
   registrarComunicadoEncerramentoLocatario,
   editarComunicadoEncerramentoLocatario,
   excluirComunicadoEncerramentoLocatario,
-  definirExistemAdequacoes,
+  registrarDecisaoAdequacao,
+  excluirDecisaoAdequacao,
   criarAdequacao,
 } from "../actions";
 
@@ -137,6 +138,7 @@ export default async function DistratoDetalhePage({
       laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
+      decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
       adequacoes: { orderBy: { createdAt: "desc" } },
       auditorias: {
         orderBy: { createdAt: "desc" },
@@ -962,23 +964,39 @@ export default async function DistratoDetalhePage({
 
   const conteudoAdequacoes = (
     <section className={SECAO_CLASSE}>
-      <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-        Adequações
-      </h2>
+      <SecaoTitulo titulo="Adequações" auditoria={auditoriaPorSecao("ADEQUACOES")} />
 
-      {distrato.existemAdequacoes === null ? (
+      {!distrato.decisaoAdequacao ? (
         <AdequacoesForm
           action={async (formData: FormData) => {
             "use server";
-            await definirExistemAdequacoes(distrato.id, formData);
+            await registrarDecisaoAdequacao(distrato.id, formData);
           }}
         />
-      ) : distrato.existemAdequacoes === false ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Não há adequações pendentes para este imóvel.
-        </p>
       ) : (
-        <div>
+        <div className="text-sm">
+          <div className="flex items-start justify-between gap-4">
+            <p className="text-slate-700 dark:text-slate-300">
+              {distrato.decisaoAdequacao.existemAdequacoes
+                ? "Existem adequações a serem realizadas no imóvel."
+                : "Não há adequações pendentes para este imóvel."}
+            </p>
+            <ExcluirBotao
+              onExcluir={async () => {
+                "use server";
+                await excluirDecisaoAdequacao(distrato.id);
+              }}
+            />
+          </div>
+          <InfoSistema
+            data={distrato.decisaoAdequacao.createdAt}
+            usuario={distrato.decisaoAdequacao.criadoPor?.nome}
+          />
+        </div>
+      )}
+
+      {distrato.decisaoAdequacao?.existemAdequacoes && (
+        <Divisor>
           {distrato.adequacoes.length > 0 && (
             <ul className="mb-4 flex flex-col gap-2">
               {distrato.adequacoes.map((a) => (
@@ -1008,7 +1026,7 @@ export default async function DistratoDetalhePage({
               await criarAdequacao(distrato.id, formData);
             }}
           />
-        </div>
+        </Divisor>
       )}
     </section>
   );
