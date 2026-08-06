@@ -119,6 +119,8 @@ model User {
   entregasChavesCriadas    EntregaChaves[]            @relation("EntregaChavesCriadoPor")
   vistoriasSaidaCriadas    VistoriaSaida[]            @relation("VistoriaSaidaCriadoPor")
   laudosVistoriaCriados    LaudoVistoria[]            @relation("LaudoVistoriaCriadoPor")
+  comunicadosEncerramentoLocadorCriados   ComunicadoEncerramentoLocador[]   @relation("ComunicadoEncerramentoLocadorCriadoPor")
+  comunicadosEncerramentoLocatarioCriados ComunicadoEncerramentoLocatario[] @relation("ComunicadoEncerramentoLocatarioCriadoPor")
 }
 
 model Prestador {
@@ -334,6 +336,8 @@ model Distrato {
   entregaChaves       EntregaChaves?
   vistoriaSaida       VistoriaSaida?
   laudoVistoria       LaudoVistoria?
+  comunicadoEncerramentoLocador   ComunicadoEncerramentoLocador?
+  comunicadoEncerramentoLocatario ComunicadoEncerramentoLocatario?
   auditorias          DistratoAuditoria[]
 }
 
@@ -493,4 +497,36 @@ model LaudoVistoria {
 
   criadoPorId String?
   criadoPor   User?   @relation("LaudoVistoriaCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model ComunicadoEncerramentoLocador {
+  id            String     @id @default(cuid())
+  data          DateTime
+  forma         FormaAviso
+  arquivoUrl    String?
+  arquivoNome   String?
+  arquivoTipo   String?
+  createdAt     DateTime   @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("ComunicadoEncerramentoLocadorCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model ComunicadoEncerramentoLocatario {
+  id            String     @id @default(cuid())
+  data          DateTime
+  forma         FormaAviso
+  arquivoUrl    String?
+  arquivoNome   String?
+  arquivoTipo   String?
+  createdAt     DateTime   @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("ComunicadoEncerramentoLocatarioCriadoPor", fields: [criadoPorId], references: [id])
 }

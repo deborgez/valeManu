@@ -17,6 +17,8 @@ const SECAO = {
   COMUNICADO_VISTORIA: "COMUNICADO_VISTORIA",
   VISTORIA_SAIDA: "VISTORIA_SAIDA",
   LAUDO_VISTORIA: "LAUDO_VISTORIA",
+  COMUNICADO_ENCERRAMENTO_LOCADOR: "COMUNICADO_ENCERRAMENTO_LOCADOR",
+  COMUNICADO_ENCERRAMENTO_LOCATARIO: "COMUNICADO_ENCERRAMENTO_LOCATARIO",
 } as const;
 
 async function logAuditoria(
@@ -851,6 +853,166 @@ export async function excluirLaudoVistoria(distratoId: string) {
     SECAO.LAUDO_VISTORIA,
     "Excluiu",
     `Data: ${formatData(registro.data)}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function registrarComunicadoEncerramentoLocador(
+  distratoId: string,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Comunicado ao Locador");
+  const data = parseDataLocal(dataStr);
+  const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
+
+  await prisma.comunicadoEncerramentoLocador.create({
+    data: {
+      distratoId,
+      data,
+      forma,
+      arquivoUrl: (formData.get("arquivoUrl") as string) || null,
+      arquivoNome: (formData.get("arquivoNome") as string) || null,
+      arquivoTipo: (formData.get("arquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.COMUNICADO_ENCERRAMENTO_LOCADOR,
+    "Registrou",
+    `Data: ${formatData(data)} — Forma: ${LABEL_FORMA_AVISO[forma]}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function editarComunicadoEncerramentoLocador(
+  distratoId: string,
+  formData: FormData
+) {
+  const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Comunicado ao Locador");
+  const data = parseDataLocal(dataStr);
+  const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
+  const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
+  const arquivoNome = (formData.get("arquivoNome") as string) || null;
+  const arquivoTipo = (formData.get("arquivoTipo") as string) || null;
+
+  const antigo = await prisma.comunicadoEncerramentoLocador.findUniqueOrThrow({
+    where: { distratoId },
+  });
+
+  await prisma.comunicadoEncerramentoLocador.update({
+    where: { distratoId },
+    data: { data, forma, arquivoUrl, arquivoNome, arquivoTipo },
+  });
+
+  const detalhe = descreverAlteracoes(antigo, { data, forma, arquivoUrl }, {
+    data: { label: "a data" },
+    forma: { label: "a forma", formatar: (v) => LABEL_FORMA_AVISO[v as string] ?? String(v) },
+    arquivoUrl: { label: "o arquivo anexado", arquivo: true },
+  });
+
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.COMUNICADO_ENCERRAMENTO_LOCADOR, "Editou", detalhe);
+  }
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function excluirComunicadoEncerramentoLocador(distratoId: string) {
+  const registro = await prisma.comunicadoEncerramentoLocador.findUniqueOrThrow({
+    where: { distratoId },
+  });
+  await prisma.comunicadoEncerramentoLocador.delete({ where: { distratoId } });
+  await logAuditoria(
+    distratoId,
+    SECAO.COMUNICADO_ENCERRAMENTO_LOCADOR,
+    "Excluiu",
+    `Data: ${formatData(registro.data)} — Forma: ${LABEL_FORMA_AVISO[registro.forma]}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function registrarComunicadoEncerramentoLocatario(
+  distratoId: string,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Comunicado ao Locatário");
+  const data = parseDataLocal(dataStr);
+  const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
+
+  await prisma.comunicadoEncerramentoLocatario.create({
+    data: {
+      distratoId,
+      data,
+      forma,
+      arquivoUrl: (formData.get("arquivoUrl") as string) || null,
+      arquivoNome: (formData.get("arquivoNome") as string) || null,
+      arquivoTipo: (formData.get("arquivoTipo") as string) || null,
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.COMUNICADO_ENCERRAMENTO_LOCATARIO,
+    "Registrou",
+    `Data: ${formatData(data)} — Forma: ${LABEL_FORMA_AVISO[forma]}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function editarComunicadoEncerramentoLocatario(
+  distratoId: string,
+  formData: FormData
+) {
+  const dataStr = String(formData.get("data"));
+  validarNaoFutura(dataStr, "Comunicado ao Locatário");
+  const data = parseDataLocal(dataStr);
+  const forma = formData.get("forma") as "EMAIL" | "WHATSAPP" | "TERMO";
+  const arquivoUrl = (formData.get("arquivoUrl") as string) || null;
+  const arquivoNome = (formData.get("arquivoNome") as string) || null;
+  const arquivoTipo = (formData.get("arquivoTipo") as string) || null;
+
+  const antigo = await prisma.comunicadoEncerramentoLocatario.findUniqueOrThrow({
+    where: { distratoId },
+  });
+
+  await prisma.comunicadoEncerramentoLocatario.update({
+    where: { distratoId },
+    data: { data, forma, arquivoUrl, arquivoNome, arquivoTipo },
+  });
+
+  const detalhe = descreverAlteracoes(antigo, { data, forma, arquivoUrl }, {
+    data: { label: "a data" },
+    forma: { label: "a forma", formatar: (v) => LABEL_FORMA_AVISO[v as string] ?? String(v) },
+    arquivoUrl: { label: "o arquivo anexado", arquivo: true },
+  });
+
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.COMUNICADO_ENCERRAMENTO_LOCATARIO, "Editou", detalhe);
+  }
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function excluirComunicadoEncerramentoLocatario(distratoId: string) {
+  const registro = await prisma.comunicadoEncerramentoLocatario.findUniqueOrThrow({
+    where: { distratoId },
+  });
+  await prisma.comunicadoEncerramentoLocatario.delete({ where: { distratoId } });
+  await logAuditoria(
+    distratoId,
+    SECAO.COMUNICADO_ENCERRAMENTO_LOCATARIO,
+    "Excluiu",
+    `Data: ${formatData(registro.data)} — Forma: ${LABEL_FORMA_AVISO[registro.forma]}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }

@@ -41,6 +41,12 @@ import {
   registrarLaudoVistoria,
   editarLaudoVistoria,
   excluirLaudoVistoria,
+  registrarComunicadoEncerramentoLocador,
+  editarComunicadoEncerramentoLocador,
+  excluirComunicadoEncerramentoLocador,
+  registrarComunicadoEncerramentoLocatario,
+  editarComunicadoEncerramentoLocatario,
+  excluirComunicadoEncerramentoLocatario,
 } from "../actions";
 
 const SECAO_CLASSE =
@@ -108,6 +114,8 @@ export default async function DistratoDetalhePage({
       comunicadoVistoria: { include: { criadoPor: { select: { nome: true } } } },
       vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
       laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
+      comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
+      comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
       auditorias: {
         orderBy: { createdAt: "desc" },
         include: { usuario: { select: { nome: true } } },
@@ -133,7 +141,11 @@ export default async function DistratoDetalhePage({
     ramoImovel || (ramoImobiliaria && Boolean(distrato.agendamentoVistoria));
   const podeVistoria = Boolean(distrato.comunicadoVistoria);
   const podeLaudo = Boolean(distrato.vistoriaSaida);
-  const concluido = Boolean(distrato.laudoVistoria);
+  const podeComunicadoEncerramentoLocador = Boolean(distrato.laudoVistoria);
+  const podeComunicadoEncerramentoLocatario = Boolean(
+    distrato.comunicadoEncerramentoLocador
+  );
+  const concluido = Boolean(distrato.comunicadoEncerramentoLocatario);
 
   const auditoriaPorSecao = (secao: string) =>
     distrato.auditorias.filter((a) => a.secao === secao);
@@ -788,6 +800,124 @@ export default async function DistratoDetalhePage({
                       <InfoSistema
                         data={distrato.laudoVistoria.createdAt}
                         usuario={distrato.laudoVistoria.criadoPor?.nome}
+                      />
+                    </div>
+                  )}
+                </Divisor>
+              )}
+
+              {/* Etapa 6 · Comunicado ao Locador (encerramento) */}
+              {podeComunicadoEncerramentoLocador && (
+                <Divisor>
+                  <SecaoTitulo
+                    titulo="Comunicado ao Locador"
+                    auditoria={auditoriaPorSecao("COMUNICADO_ENCERRAMENTO_LOCADOR")}
+                  />
+                  {!distrato.comunicadoEncerramentoLocador ? (
+                    <ComunicadoModal
+                      hoje={hoje}
+                      titulo="Comunicado ao Locador"
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await registrarComunicadoEncerramentoLocador(distrato.id, formData);
+                      }}
+                    />
+                  ) : (
+                    <div className="text-sm">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-slate-700 dark:text-slate-300">
+                            Data: {formatData(distrato.comunicadoEncerramentoLocador.data)} — Forma:{" "}
+                            {LABEL_FORMA_AVISO[distrato.comunicadoEncerramentoLocador.forma]}
+                          </p>
+                          {distrato.comunicadoEncerramentoLocador.arquivoUrl && (
+                            <ArquivoPreviewBotao
+                              url={distrato.comunicadoEncerramentoLocador.arquivoUrl}
+                              nome={distrato.comunicadoEncerramentoLocador.arquivoNome}
+                              tipo={distrato.comunicadoEncerramentoLocador.arquivoTipo}
+                            />
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <ComunicadoModal
+                            registro={distrato.comunicadoEncerramentoLocador}
+                            hoje={hoje}
+                            titulo="Comunicado ao Locador"
+                            action={async (formData: FormData) => {
+                              "use server";
+                              await editarComunicadoEncerramentoLocador(distrato.id, formData);
+                            }}
+                          />
+                          <ExcluirBotao
+                            onExcluir={async () => {
+                              "use server";
+                              await excluirComunicadoEncerramentoLocador(distrato.id);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <InfoSistema
+                        data={distrato.comunicadoEncerramentoLocador.createdAt}
+                        usuario={distrato.comunicadoEncerramentoLocador.criadoPor?.nome}
+                      />
+                    </div>
+                  )}
+                </Divisor>
+              )}
+
+              {/* Etapa 7 · Comunicado ao Locatário (encerramento) */}
+              {podeComunicadoEncerramentoLocatario && (
+                <Divisor>
+                  <SecaoTitulo
+                    titulo="Comunicado ao Locatário"
+                    auditoria={auditoriaPorSecao("COMUNICADO_ENCERRAMENTO_LOCATARIO")}
+                  />
+                  {!distrato.comunicadoEncerramentoLocatario ? (
+                    <ComunicadoModal
+                      hoje={hoje}
+                      titulo="Comunicado ao Locatário"
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await registrarComunicadoEncerramentoLocatario(distrato.id, formData);
+                      }}
+                    />
+                  ) : (
+                    <div className="text-sm">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-slate-700 dark:text-slate-300">
+                            Data: {formatData(distrato.comunicadoEncerramentoLocatario.data)} — Forma:{" "}
+                            {LABEL_FORMA_AVISO[distrato.comunicadoEncerramentoLocatario.forma]}
+                          </p>
+                          {distrato.comunicadoEncerramentoLocatario.arquivoUrl && (
+                            <ArquivoPreviewBotao
+                              url={distrato.comunicadoEncerramentoLocatario.arquivoUrl}
+                              nome={distrato.comunicadoEncerramentoLocatario.arquivoNome}
+                              tipo={distrato.comunicadoEncerramentoLocatario.arquivoTipo}
+                            />
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <ComunicadoModal
+                            registro={distrato.comunicadoEncerramentoLocatario}
+                            hoje={hoje}
+                            titulo="Comunicado ao Locatário"
+                            action={async (formData: FormData) => {
+                              "use server";
+                              await editarComunicadoEncerramentoLocatario(distrato.id, formData);
+                            }}
+                          />
+                          <ExcluirBotao
+                            onExcluir={async () => {
+                              "use server";
+                              await excluirComunicadoEncerramentoLocatario(distrato.id);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <InfoSistema
+                        data={distrato.comunicadoEncerramentoLocatario.createdAt}
+                        usuario={distrato.comunicadoEncerramentoLocatario.criadoPor?.nome}
                       />
                     </div>
                   )}

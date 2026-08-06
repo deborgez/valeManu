@@ -20,10 +20,12 @@ export default function ComunicadoModal({
   action,
   registro,
   hoje,
+  titulo = "Comunicado ao Locador",
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
   hoje?: string;
+  titulo?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -64,7 +66,7 @@ export default function ComunicadoModal({
             className="w-full max-w-md rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {registro ? "Editar Comunicado ao Locador" : "Registrar Comunicado ao Locador"}
+              {registro ? `Editar ${titulo}` : `Registrar ${titulo}`}
             </h3>
 
             <div className="mb-4">
