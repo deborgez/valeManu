@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type Aba = {
   id: string;
@@ -9,7 +10,18 @@ type Aba = {
 };
 
 export default function AbasDistrato({ abas }: { abas: Aba[] }) {
-  const [abaAtiva, setAbaAtiva] = useState(abas[0]?.id);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const abaParam = searchParams.get("aba");
+  const abaAtiva = abas.some((a) => a.id === abaParam) ? abaParam : abas[0]?.id;
+
+  function selecionarAba(id: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("aba", id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   return (
     <div>
@@ -18,7 +30,7 @@ export default function AbasDistrato({ abas }: { abas: Aba[] }) {
           <button
             key={aba.id}
             type="button"
-            onClick={() => setAbaAtiva(aba.id)}
+            onClick={() => selecionarAba(aba.id)}
             className={
               aba.id === abaAtiva
                 ? "border-b-2 border-slate-900 dark:border-slate-100 px-4 py-2 text-sm font-medium text-slate-900 dark:text-slate-100"

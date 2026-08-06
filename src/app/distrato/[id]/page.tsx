@@ -65,6 +65,24 @@ import {
 const SECAO_CLASSE =
   "mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6";
 
+const CARTAO_COR = {
+  neutro:
+    "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400",
+  verde:
+    "border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950 hover:border-green-500",
+  amarelo:
+    "border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 hover:border-amber-500",
+  vermelho:
+    "border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950 hover:border-red-500",
+};
+
+const AVISO_COR = {
+  neutro: "text-slate-500 dark:text-slate-400",
+  verde: "text-green-800 dark:text-green-400",
+  amarelo: "text-amber-800 dark:text-amber-400",
+  vermelho: "text-red-800 dark:text-red-400",
+};
+
 function InfoSistema({ data, usuario }: { data: Date; usuario?: string | null }) {
   return (
     <p className="mt-1 text-right text-[10px] text-slate-400 dark:text-slate-500">
@@ -168,6 +186,7 @@ export default async function DistratoDetalhePage({
           inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
           pedidosOrcamento: { select: { id: true } },
           pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
+          criadoPor: { select: { nome: true } },
         },
       },
       auditorias: {
@@ -1033,21 +1052,15 @@ export default async function DistratoDetalhePage({
                 const aberta = a.status !== "CONCLUIDA";
                 const dias = diasEmAberto(a.createdAt);
                 const severidade = classificarSeveridade(dias, aberta);
-                const corPrazo = {
-                  neutro: "text-slate-500 dark:text-slate-400",
-                  verde: "text-green-700 dark:text-green-400",
-                  amarelo: "text-amber-700 dark:text-amber-400",
-                  vermelho: "text-red-700 dark:text-red-400",
-                }[severidade];
 
                 return (
                   <li key={a.id}>
                     <Link
                       href={`/manutencoes/${a.id}`}
-                      className="block rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm hover:border-slate-300 dark:hover:border-slate-600"
+                      className={`block rounded-lg border p-3 shadow-sm ${CARTAO_COR[severidade]}`}
                     >
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                      <div className="mb-1 flex items-center justify-between gap-4">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                           {a.numeroProcesso}
                         </span>
                         {a.emergencial && (
@@ -1056,22 +1069,18 @@ export default async function DistratoDetalhePage({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{a.natureza}</p>
+                      <span className="inline-block rounded bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                        {etapaAdequacao(a)}
+                      </span>
                       <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                        {a.descricaoProblema}
+                        {a.natureza} — {a.descricaoProblema}
                       </p>
-                      <div className="mt-1 flex items-center justify-between gap-4">
-                        <span className="text-xs text-slate-600 dark:text-slate-300">
-                          {etapaAdequacao(a)}
-                        </span>
-                        <span className={`text-xs font-medium ${corPrazo}`}>
-                          {aberta
-                            ? dias === 0
-                              ? "Aberta hoje"
-                              : `Em aberto há ${dias} ${dias === 1 ? "dia" : "dias"}`
-                            : "Concluída"}
-                        </span>
-                      </div>
+                      {aberta && (
+                        <p className={`mt-2 text-xs font-bold ${AVISO_COR[severidade]}`}>
+                          {dias === 0 ? "Aberta hoje" : `Em aberto há ${dias} ${dias === 1 ? "dia" : "dias"}`}
+                        </p>
+                      )}
+                      <InfoSistema data={a.createdAt} usuario={a.criadoPor?.nome} />
                     </Link>
                   </li>
                 );
