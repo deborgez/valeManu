@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { formatEndereco } from "@/lib/endereco";
 import { LABEL_TIPO_FIANCA } from "@/lib/labels";
 import { formatData } from "@/lib/datahora";
@@ -23,9 +24,17 @@ export default async function ProcessoDetalhePage({
 
   return (
     <div className="mx-auto w-full max-w-2xl p-6">
-      <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
-        Processo {processo.numeroProcesso}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          Processo {processo.numeroProcesso}
+        </h1>
+        <Link
+          href={`/cadastro/${processo.id}/editar`}
+          className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          Editar
+        </Link>
+      </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
         <div className="mb-4 grid grid-cols-2 gap-4 text-sm">

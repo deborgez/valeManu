@@ -15,17 +15,36 @@ const CAMPO_CLASSE =
 const SECAO_CLASSE =
   "mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6";
 
+export type ProcessoInicial = {
+  numeroProcesso: string;
+  unidade: string | null;
+  prazoContratoInicio: string | null;
+  prazoContratoMeses: number | null;
+  prazoMultaMeses: number | null;
+  endereco: Endereco | null;
+  captador: string | null;
+  fianca: Fianca | null;
+  partes: Parte[];
+};
+
 export default function ProcessoForm({
   action,
   unidadePadrao,
+  processoInicial,
 }: {
   action: (formData: FormData) => Promise<void>;
   unidadePadrao?: string;
+  processoInicial?: ProcessoInicial;
 }) {
-  const [endereco, setEndereco] = useState<Endereco | null>(null);
-  const [partes, setPartes] = useState<Parte[]>([]);
-  const [fianca, setFianca] = useState<Fianca | null>(null);
-  const [captador, setCaptador] = useState<string | null>(null);
+  const [endereco, setEndereco] = useState<Endereco | null>(
+    processoInicial?.endereco ?? null
+  );
+  const [partes, setPartes] = useState<Parte[]>(processoInicial?.partes ?? []);
+  const [fianca, setFianca] = useState<Fianca | null>(processoInicial?.fianca ?? null);
+  const [captador, setCaptador] = useState<string | null>(
+    processoInicial?.captador ?? null
+  );
+  const editando = Boolean(processoInicial);
 
   function removerParte(index: number) {
     setPartes((atual) => atual.filter((_, i) => i !== index));
@@ -54,13 +73,23 @@ export default function ProcessoForm({
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Número do Processo
             </label>
-            <NumeroProcessoInput name="numeroProcesso" required className={CAMPO_CLASSE} />
+            <NumeroProcessoInput
+              name="numeroProcesso"
+              required
+              readOnly={editando}
+              defaultValue={processoInicial?.numeroProcesso}
+              className={`${CAMPO_CLASSE} ${editando ? "opacity-60" : ""}`}
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Unidade
             </label>
-            <input name="unidade" defaultValue={unidadePadrao} className={CAMPO_CLASSE} />
+            <input
+              name="unidade"
+              defaultValue={processoInicial?.unidade ?? unidadePadrao}
+              className={CAMPO_CLASSE}
+            />
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4">
@@ -68,7 +97,12 @@ export default function ProcessoForm({
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Data de Início de Contrato
             </label>
-            <input type="date" name="prazoContratoInicio" className={CAMPO_CLASSE} />
+            <input
+              type="date"
+              name="prazoContratoInicio"
+              defaultValue={processoInicial?.prazoContratoInicio ?? undefined}
+              className={CAMPO_CLASSE}
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -78,6 +112,7 @@ export default function ProcessoForm({
               type="number"
               min="1"
               name="prazoContratoMeses"
+              defaultValue={processoInicial?.prazoContratoMeses ?? undefined}
               className={CAMPO_CLASSE}
             />
           </div>
@@ -91,6 +126,7 @@ export default function ProcessoForm({
               type="number"
               min="1"
               name="prazoMultaMeses"
+              defaultValue={processoInicial?.prazoMultaMeses ?? undefined}
               className={CAMPO_CLASSE}
             />
             <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
@@ -247,7 +283,7 @@ export default function ProcessoForm({
           disabled={faltando.length > 0}
           className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-50"
         >
-          Cadastrar Processo
+          {editando ? "Salvar Alterações" : "Cadastrar Processo"}
         </button>
         {faltando.length > 0 && (
           <p className="text-xs text-slate-500 dark:text-slate-400">
