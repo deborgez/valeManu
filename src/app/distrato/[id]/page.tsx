@@ -1233,115 +1233,123 @@ export default async function DistratoDetalhePage({
     : null;
 
   const conteudoFinanceiro = (
-    <section className={SECAO_CLASSE}>
-      <SecaoTitulo titulo="Financeiro" auditoria={auditoriaPorSecao("ALUGUEL")} />
+    <>
+      <section className={SECAO_CLASSE}>
+        <SecaoTitulo titulo="Aluguel" auditoria={auditoriaPorSecao("ALUGUEL")} />
 
-      {!distrato.aluguel ? (
-        <AluguelModal
-          action={async (formData: FormData) => {
-            "use server";
-            await registrarAluguel(distrato.id, formData);
-          }}
-        />
-      ) : (
-        <div className="text-sm">
-          <div className="flex items-start justify-between gap-4">
-            <p className="text-slate-700 dark:text-slate-300">
-              Valor atual do aluguel: R$ {formatMoedaExibicao(distrato.aluguel.valor)}
-            </p>
-            <div className="flex shrink-0 items-center gap-2">
-              <AluguelModal
-                registro={distrato.aluguel}
-                action={async (formData: FormData) => {
-                  "use server";
-                  await editarAluguel(distrato.id, formData);
-                }}
-              />
-              <ExcluirBotao
-                onExcluir={async () => {
-                  "use server";
-                  await excluirAluguel(distrato.id);
-                }}
-              />
-            </div>
-          </div>
-          <InfoSistema
-            data={distrato.aluguel.createdAt}
-            usuario={distrato.aluguel.criadoPor?.nome}
+        {!distrato.aluguel ? (
+          <AluguelModal
+            action={async (formData: FormData) => {
+              "use server";
+              await registrarAluguel(distrato.id, formData);
+            }}
           />
-
-          <Divisor>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Prazo do Contrato</p>
-                <p className="text-slate-700 dark:text-slate-300">
-                  {processo.prazoContratoMeses ? `${processo.prazoContratoMeses} meses` : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Data de Início</p>
-                <p className="text-slate-700 dark:text-slate-300">
-                  {processo.prazoContratoInicio ? formatData(processo.prazoContratoInicio) : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Data do Aviso Prévio</p>
-                <p className="text-slate-700 dark:text-slate-300">
-                  {distrato.avisoPrevio ? formatData(distrato.avisoPrevio.data) : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Prazo da Multa</p>
-                <p className="text-slate-700 dark:text-slate-300">
-                  {processo.prazoMultaMeses ? `${processo.prazoMultaMeses} meses` : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
-                  Data de Entrega das Chaves
-                </p>
-                <p className="text-slate-700 dark:text-slate-300">
-                  {distrato.entregaChaves ? formatData(distrato.entregaChaves.data) : "—"}
-                </p>
-                {sinalEntregaChaves && (
-                  <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
-                    {sinalEntregaChaves.texto}
-                  </p>
-                )}
+        ) : (
+          <div className="text-sm">
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-slate-700 dark:text-slate-300">
+                Valor atual do aluguel: R$ {formatMoedaExibicao(distrato.aluguel.valor)}
+              </p>
+              <div className="flex shrink-0 items-center gap-2">
+                <AluguelModal
+                  registro={distrato.aluguel}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarAluguel(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirAluguel(distrato.id);
+                  }}
+                />
               </div>
             </div>
+            <InfoSistema
+              data={distrato.aluguel.createdAt}
+              usuario={distrato.aluguel.criadoPor?.nome}
+            />
 
-            {resultadoMulta ? (
-              <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
-                {resultadoMulta.infracaoContratual && (
-                  <p className="mb-2 inline-block rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
-                    Infração contratual — multa integral, sem abatimento
+            <Divisor>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Prazo do Contrato</p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {processo.prazoContratoMeses ? `${processo.prazoContratoMeses} meses` : "—"}
                   </p>
-                )}
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Multa por quebra de contrato
-                  {resultadoMulta.infracaoContratual
-                    ? ""
-                    : ` (hoje, ${formatData(parseDataLocal(hoje))})`}
-                  : R$ {formatMoedaExibicao(resultadoMulta.multaAtual)}
-                </p>
-                {!resultadoMulta.infracaoContratual && (
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                    Multa total: R$ {formatMoedaExibicao(resultadoMulta.multaTotal)} · Abatimento
-                    mensal: R$ {formatMoedaExibicao(resultadoMulta.multaMensal)} ·{" "}
-                    {resultadoMulta.mesesDecorridos} {resultadoMulta.mesesDecorridos === 1 ? "mês" : "meses"}{" "}
-                    já cumpridos de {processo.prazoMultaMeses}.
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Data de Início</p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {processo.prazoContratoInicio ? formatData(processo.prazoContratoInicio) : "—"}
                   </p>
-                )}
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Data do Aviso Prévio</p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {distrato.avisoPrevio ? formatData(distrato.avisoPrevio.data) : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Prazo da Multa</p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {processo.prazoMultaMeses ? `${processo.prazoMultaMeses} meses` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    Data de Entrega das Chaves
+                  </p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {distrato.entregaChaves ? formatData(distrato.entregaChaves.data) : "—"}
+                  </p>
+                  {sinalEntregaChaves && (
+                    <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
+                      {sinalEntregaChaves.texto}
+                    </p>
+                  )}
+                </div>
               </div>
-            ) : (
-              <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-                Para calcular a multa, cadastre no Processo o Prazo do Contrato, a Data de Início e
-                o Prazo da Multa.
+            </Divisor>
+          </div>
+        )}
+      </section>
+
+      {distrato.aluguel && (
+        <section className={SECAO_CLASSE}>
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Multa</h2>
+
+          {resultadoMulta ? (
+            <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
+              {resultadoMulta.infracaoContratual && (
+                <p className="mb-2 inline-block rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                  Infração contratual — multa integral, sem abatimento
+                </p>
+              )}
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Multa por quebra de contrato
+                {resultadoMulta.infracaoContratual
+                  ? ""
+                  : ` (hoje, ${formatData(parseDataLocal(hoje))})`}
+                : R$ {formatMoedaExibicao(resultadoMulta.multaAtual)}
               </p>
-            )}
-          </Divisor>
-        </div>
+              {!resultadoMulta.infracaoContratual && (
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                  Multa total: R$ {formatMoedaExibicao(resultadoMulta.multaTotal)} · Abatimento
+                  mensal: R$ {formatMoedaExibicao(resultadoMulta.multaMensal)} ·{" "}
+                  {resultadoMulta.mesesDecorridos} {resultadoMulta.mesesDecorridos === 1 ? "mês" : "meses"}{" "}
+                  já cumpridos de {processo.prazoMultaMeses}.
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Para calcular a multa, cadastre no Processo o Prazo do Contrato, a Data de Início e o
+              Prazo da Multa.
+            </p>
+          )}
+        </section>
       )}
 
       {TIPOS_LANCAMENTO.map(({ tipo, titulo }) => {
@@ -1349,9 +1357,9 @@ export default async function DistratoDetalhePage({
         const totalTipo = doTipo.reduce((soma, l) => soma + l.valor, 0);
 
         return (
-          <Divisor key={tipo}>
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{titulo}</p>
+          <section key={tipo} className={SECAO_CLASSE}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{titulo}</h2>
               <AuditoriaButton entradas={auditoriaPorSecao(`LANCAMENTO_${tipo}`)} />
             </div>
 
@@ -1406,15 +1414,15 @@ export default async function DistratoDetalhePage({
                 await registrarLancamentoFinanceiro(distrato.id, tipo, formData);
               }}
             />
-          </Divisor>
+          </section>
         );
       })}
 
       {adequacoesLocatario.length > 0 && (
-        <Divisor>
-          <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <section className={SECAO_CLASSE}>
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
             Adequações — Locatário
-          </p>
+          </h2>
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
             <p className="font-semibold text-slate-900 dark:text-slate-100">
               Total: R$ {formatMoedaExibicao(totalLocatarioGeral)}
@@ -1424,9 +1432,9 @@ export default async function DistratoDetalhePage({
               {formatMoedaExibicao(totalLocatarioAdministracao)}
             </p>
           </div>
-        </Divisor>
+        </section>
       )}
-    </section>
+    </>
   );
 
   return (
