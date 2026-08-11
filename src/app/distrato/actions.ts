@@ -1117,6 +1117,28 @@ export async function criarAdequacao(distratoId: string, formData: FormData) {
   revalidatePath(`/distrato/${distratoId}`);
 }
 
+export async function alternarComputarValoresAdequacao(
+  manutencaoId: string,
+  distratoId: string,
+  computarValores: boolean
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const registro = await prisma.manutencao.update({
+    where: { id: manutencaoId },
+    data: { computarValores },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ADEQUACOES,
+    "Editou",
+    `Computar valores de ${registro.numeroProcesso}: ${computarValores ? "Sim" : "Não"}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
 export async function registrarAluguel(distratoId: string, formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");

@@ -162,6 +162,7 @@ model Manutencao {
   competencia       ParteInteressada
   status            ManutencaoStatus     @default(SOLICITACAO)
   categoria         ManutencaoCategoria  @default(MANUTENCAO)
+  computarValores   Boolean          @default(true)
   reaberta          Boolean          @default(false)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt

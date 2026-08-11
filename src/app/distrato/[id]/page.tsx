@@ -13,6 +13,7 @@ import {
   LABEL_FORMA_AVISO,
   LABEL_FORMA_CONTATO,
   LABEL_MANUTENCAO_STATUS,
+  LABEL_PARTE,
 } from "@/lib/labels";
 import Link from "next/link";
 import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
@@ -34,6 +35,7 @@ import AuditoriaButton from "@/components/distrato/AuditoriaButton";
 import AbasDistrato from "@/components/distrato/AbasDistrato";
 import AdequacoesForm from "@/components/distrato/AdequacoesForm";
 import NovaAdequacaoModal from "@/components/distrato/NovaAdequacaoModal";
+import ComputarValoresToggle from "@/components/distrato/ComputarValoresToggle";
 import AvisoTemporario from "@/components/distrato/AvisoTemporario";
 import {
   registrarAvisoPrevio,
@@ -70,6 +72,7 @@ import {
   registrarDecisaoAdequacao,
   excluirDecisaoAdequacao,
   criarAdequacao,
+  alternarComputarValoresAdequacao,
   registrarAluguel,
   editarAluguel,
   excluirAluguel,
@@ -1050,16 +1053,22 @@ export default async function DistratoDetalhePage({
     </>
   );
 
-  const adequacoesAbertas = distrato.adequacoes.filter((a) => a.status !== "CONCLUIDA");
-  const totalAdequacoesPrestador = adequacoesAbertas.reduce(
+  const adequacoesComputadas = distrato.adequacoes.filter((a) => a.computarValores);
+  const totalAdequacoesPrestador = adequacoesComputadas.reduce(
     (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
     0
   );
-  const totalAdequacoesAdministracao = adequacoesAbertas.reduce(
+  const totalAdequacoesAdministracao = adequacoesComputadas.reduce(
     (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
     0
   );
   const totalAdequacoesGeral = totalAdequacoesPrestador + totalAdequacoesAdministracao;
+
+  const GRUPOS_COMPETENCIA: ("LOCATARIO" | "LOCADOR" | "IMOBILIARIA")[] = [
+    "LOCATARIO",
+    "LOCADOR",
+    "IMOBILIARIA",
+  ];
 
   const conteudoAdequacoes = (
     <section className={SECAO_CLASSE}>
@@ -1103,62 +1112,85 @@ export default async function DistratoDetalhePage({
 
       {distrato.decisaoAdequacao?.existemAdequacoes && (
         <Divisor>
-          {distrato.adequacoes.length > 0 && (
-            <ul className="mb-4 flex flex-col gap-2">
-              {distrato.adequacoes.map((a) => {
-                const aberta = a.status !== "CONCLUIDA";
-                const dias = diasEmAberto(a.createdAt);
-                const severidade = classificarSeveridade(dias, aberta);
-                const { valorPrestador } = valoresAdequacao(a);
+          {distrato.adequacoes.length > 0 &&
+            GRUPOS_COMPETENCIA.map((competencia) => {
+              const doGrupo = distrato.adequacoes.filter((a) => a.competencia === competencia);
+              if (doGrupo.length === 0) return null;
 
-                return (
-                  <li key={a.id}>
-                    <Link
-                      href={`/manutencoes/${a.id}`}
-                      className={`block rounded-lg border p-3 shadow-sm ${CARTAO_COR[severidade]}`}
-                    >
-                      <div className="mb-1 flex items-center justify-between gap-4">
-                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          {a.numeroProcesso}
-                        </span>
-                        {a.emergencial && (
-                          <span className="rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
-                            Emergencial
-                          </span>
-                        )}
-                      </div>
-                      <span className="inline-block rounded bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-                        {etapaAdequacao(a)}
-                      </span>
-                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                        {a.natureza} — {a.descricaoProblema}
-                      </p>
-                      {valorPrestador !== null && (
-                        <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          Valor: R$ {formatMoedaExibicao(valorPrestador)}
-                        </p>
-                      )}
-                      {aberta && (
-                        <p className={`mt-2 text-xs font-bold ${AVISO_COR[severidade]}`}>
-                          {dias === 0 ? "Aberta hoje" : `Em aberto há ${dias} ${dias === 1 ? "dia" : "dias"}`}
-                        </p>
-                      )}
-                      <InfoSistema data={a.createdAt} usuario={a.criadoPor?.nome} />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+              return (
+                <div key={competencia} className="mb-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    {LABEL_PARTE[competencia]}
+                  </p>
+                  <ul className="flex flex-col gap-2">
+                    {doGrupo.map((a) => {
+                      const aberta = a.status !== "CONCLUIDA";
+                      const dias = diasEmAberto(a.createdAt);
+                      const severidade = classificarSeveridade(dias, aberta);
+                      const { valorPrestador } = valoresAdequacao(a);
+
+                      return (
+                        <li
+                          key={a.id}
+                          className={`rounded-lg border p-3 shadow-sm ${CARTAO_COR[severidade]}`}
+                        >
+                          <div className="mb-1 flex items-center justify-between gap-4">
+                            <ComputarValoresToggle
+                              checked={a.computarValores}
+                              action={async (computar: boolean) => {
+                                "use server";
+                                await alternarComputarValoresAdequacao(a.id, distrato.id, computar);
+                              }}
+                            />
+                            {a.emergencial && (
+                              <span className="rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                                Emergencial
+                              </span>
+                            )}
+                          </div>
+                          <Link href={`/manutencoes/${a.id}`} className="block">
+                            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                              {a.numeroProcesso}
+                            </span>
+                            <div className="mt-1">
+                              <span className="inline-block rounded bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                {etapaAdequacao(a)}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                              {a.natureza} — {a.descricaoProblema}
+                            </p>
+                            {valorPrestador !== null && (
+                              <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                Valor: R$ {formatMoedaExibicao(valorPrestador)}
+                              </p>
+                            )}
+                            {aberta && (
+                              <p className={`mt-2 text-xs font-bold ${AVISO_COR[severidade]}`}>
+                                {dias === 0 ? "Aberta hoje" : `Em aberto há ${dias} ${dias === 1 ? "dia" : "dias"}`}
+                              </p>
+                            )}
+                            <InfoSistema data={a.createdAt} usuario={a.criadoPor?.nome} />
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
 
           {totalAdequacoesGeral > 0 && (
             <div className="mb-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
               <p className="font-semibold text-slate-900 dark:text-slate-100">
-                Total em aberto: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
+                Total computado: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
               </p>
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
                 {formatMoedaExibicao(totalAdequacoesAdministracao)}
+              </p>
+              <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                Soma apenas as solicitações com &quot;Computar valores&quot; marcado.
               </p>
             </div>
           )}
@@ -1288,11 +1320,11 @@ export default async function DistratoDetalhePage({
       {totalAdequacoesGeral > 0 && (
         <Divisor>
           <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Adequações em aberto
+            Adequações
           </p>
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
             <p className="font-semibold text-slate-900 dark:text-slate-100">
-              Total em aberto: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
+              Total computado: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
             </p>
             <p className="text-xs text-slate-600 dark:text-slate-400">
               Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
