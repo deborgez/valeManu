@@ -1050,6 +1050,17 @@ export default async function DistratoDetalhePage({
     </>
   );
 
+  const adequacoesAbertas = distrato.adequacoes.filter((a) => a.status !== "CONCLUIDA");
+  const totalAdequacoesPrestador = adequacoesAbertas.reduce(
+    (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
+    0
+  );
+  const totalAdequacoesAdministracao = adequacoesAbertas.reduce(
+    (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
+    0
+  );
+  const totalAdequacoesGeral = totalAdequacoesPrestador + totalAdequacoesAdministracao;
+
   const conteudoAdequacoes = (
     <section className={SECAO_CLASSE}>
       <SecaoTitulo titulo="Adequações" auditoria={auditoriaPorSecao("ADEQUACOES")} />
@@ -1140,31 +1151,17 @@ export default async function DistratoDetalhePage({
             </ul>
           )}
 
-          {(() => {
-            const abertas = distrato.adequacoes.filter((a) => a.status !== "CONCLUIDA");
-            const totalPrestador = abertas.reduce(
-              (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
-              0
-            );
-            const totalAdministracao = abertas.reduce(
-              (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
-              0
-            );
-            const totalGeral = totalPrestador + totalAdministracao;
-            if (totalGeral === 0) return null;
-
-            return (
-              <div className="mb-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
-                <p className="font-semibold text-slate-900 dark:text-slate-100">
-                  Total em aberto: R$ {formatMoedaExibicao(totalGeral)}
-                </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Prestador: R$ {formatMoedaExibicao(totalPrestador)} · Administração: R${" "}
-                  {formatMoedaExibicao(totalAdministracao)}
-                </p>
-              </div>
-            );
-          })()}
+          {totalAdequacoesGeral > 0 && (
+            <div className="mb-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
+              <p className="font-semibold text-slate-900 dark:text-slate-100">
+                Total em aberto: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
+                {formatMoedaExibicao(totalAdequacoesAdministracao)}
+              </p>
+            </div>
+          )}
 
           <NovaAdequacaoModal
             action={async (formData: FormData) => {
@@ -1275,6 +1272,23 @@ export default async function DistratoDetalhePage({
             )}
           </Divisor>
         </div>
+      )}
+
+      {totalAdequacoesGeral > 0 && (
+        <Divisor>
+          <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Adequações em aberto
+          </p>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
+            <p className="font-semibold text-slate-900 dark:text-slate-100">
+              Total em aberto: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
+              {formatMoedaExibicao(totalAdequacoesAdministracao)}
+            </p>
+          </div>
+        </Divisor>
       )}
     </section>
   );
