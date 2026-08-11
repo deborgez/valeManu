@@ -1122,11 +1122,13 @@ export async function registrarAluguel(distratoId: string, formData: FormData) {
   if (!session) throw new Error("Não autenticado.");
 
   const valor = parseMoeda(formData.get("valor"));
+  const infracaoContratual = formData.get("infracaoContratual") === "on";
 
   await prisma.aluguelDistrato.create({
     data: {
       distratoId,
       valor,
+      infracaoContratual,
       criadoPorId: session.user.id,
     },
   });
@@ -1135,13 +1137,14 @@ export async function registrarAluguel(distratoId: string, formData: FormData) {
     distratoId,
     SECAO.ALUGUEL,
     "Registrou",
-    `Valor do aluguel: R$ ${formatMoedaExibicao(valor)}`
+    `Valor do aluguel: R$ ${formatMoedaExibicao(valor)}${infracaoContratual ? " — Infração contratual" : ""}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
 
 export async function editarAluguel(distratoId: string, formData: FormData) {
   const valor = parseMoeda(formData.get("valor"));
+  const infracaoContratual = formData.get("infracaoContratual") === "on";
 
   const antigo = await prisma.aluguelDistrato.findUniqueOrThrow({
     where: { distratoId },
@@ -1149,11 +1152,12 @@ export async function editarAluguel(distratoId: string, formData: FormData) {
 
   await prisma.aluguelDistrato.update({
     where: { distratoId },
-    data: { valor },
+    data: { valor, infracaoContratual },
   });
 
-  const detalhe = descreverAlteracoes(antigo, { valor }, {
+  const detalhe = descreverAlteracoes(antigo, { valor, infracaoContratual }, {
     valor: { label: "o valor do aluguel", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
+    infracaoContratual: { label: "\"infração contratual\"" },
   });
 
   if (detalhe) {

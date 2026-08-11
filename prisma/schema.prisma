@@ -370,9 +370,10 @@ model DecisaoAdequacao {
 }
 
 model AluguelDistrato {
-  id        String   @id @default(cuid())
-  valor     Float
-  createdAt DateTime @default(now())
+  id                 String   @id @default(cuid())
+  valor              Float
+  infracaoContratual Boolean  @default(false)
+  createdAt          DateTime @default(now())
 
   distratoId String   @unique
   distrato   Distrato @relation(fields: [distratoId], references: [id])

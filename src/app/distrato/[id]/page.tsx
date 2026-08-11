@@ -1182,6 +1182,7 @@ export default async function DistratoDetalhePage({
         prazoMultaMeses: processo.prazoMultaMeses,
         dataInicio: processo.prazoContratoInicio,
         dataReferencia: parseDataLocal(hoje),
+        infracaoContratual: distrato.aluguel.infracaoContratual,
       })
     : null;
 
@@ -1253,16 +1254,26 @@ export default async function DistratoDetalhePage({
 
             {resultadoMulta ? (
               <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
+                {resultadoMulta.infracaoContratual && (
+                  <p className="mb-2 inline-block rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                    Infração contratual — multa integral, sem abatimento
+                  </p>
+                )}
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Multa por quebra de contrato (hoje, {formatData(parseDataLocal(hoje))}): R${" "}
-                  {formatMoedaExibicao(resultadoMulta.multaAtual)}
+                  Multa por quebra de contrato
+                  {resultadoMulta.infracaoContratual
+                    ? ""
+                    : ` (hoje, ${formatData(parseDataLocal(hoje))})`}
+                  : R$ {formatMoedaExibicao(resultadoMulta.multaAtual)}
                 </p>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                  Multa total: R$ {formatMoedaExibicao(resultadoMulta.multaTotal)} · Abatimento
-                  mensal: R$ {formatMoedaExibicao(resultadoMulta.multaMensal)} ·{" "}
-                  {resultadoMulta.mesesDecorridos} {resultadoMulta.mesesDecorridos === 1 ? "mês" : "meses"}{" "}
-                  já cumpridos de {processo.prazoMultaMeses}.
-                </p>
+                {!resultadoMulta.infracaoContratual && (
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                    Multa total: R$ {formatMoedaExibicao(resultadoMulta.multaTotal)} · Abatimento
+                    mensal: R$ {formatMoedaExibicao(resultadoMulta.multaMensal)} ·{" "}
+                    {resultadoMulta.mesesDecorridos} {resultadoMulta.mesesDecorridos === 1 ? "mês" : "meses"}{" "}
+                    já cumpridos de {processo.prazoMultaMeses}.
+                  </p>
+                )}
               </div>
             ) : (
               <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">

@@ -8,6 +8,7 @@ export type ResultadoMulta = {
   mesesDecorridos: number;
   mesesRestantes: number;
   multaAtual: number;
+  infracaoContratual: boolean;
 };
 
 export function calcularMulta({
@@ -17,6 +18,7 @@ export function calcularMulta({
   prazoMultaMeses,
   dataInicio,
   dataReferencia,
+  infracaoContratual = false,
 }: {
   valorAluguel: number;
   tipoFianca: string | null;
@@ -24,6 +26,7 @@ export function calcularMulta({
   prazoMultaMeses: number | null;
   dataInicio: Date | null;
   dataReferencia: Date;
+  infracaoContratual?: boolean;
 }): ResultadoMulta | null {
   if (!prazoContratoMeses || !prazoMultaMeses || !dataInicio) return null;
 
@@ -39,7 +42,14 @@ export function calcularMulta({
     prazoMultaMeses
   );
   const mesesRestantes = prazoMultaMeses - mesesDecorridos;
-  const multaAtual = multaMensal * mesesRestantes;
+  const multaAtual = infracaoContratual ? multaTotal : multaMensal * mesesRestantes;
 
-  return { multaTotal, multaMensal, mesesDecorridos, mesesRestantes, multaAtual };
+  return {
+    multaTotal,
+    multaMensal,
+    mesesDecorridos,
+    mesesRestantes,
+    multaAtual,
+    infracaoContratual,
+  };
 }
