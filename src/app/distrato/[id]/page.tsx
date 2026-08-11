@@ -7,6 +7,7 @@ import {
   diasEntreDatas,
   hojeSaoPaulo,
   parseDataLocal,
+  formatMesCompetencia,
 } from "@/lib/datahora";
 import {
   LABEL_TIPO_FIANCA,
@@ -20,6 +21,7 @@ import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import { formatMoedaExibicao } from "@/lib/masks";
 import { calcularMulta } from "@/lib/multa";
 import AluguelModal from "@/components/distrato/AluguelModal";
+import LancamentoFinanceiroModal from "@/components/distrato/LancamentoFinanceiroModal";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -74,6 +76,9 @@ import {
   registrarAluguel,
   editarAluguel,
   excluirAluguel,
+  registrarLancamentoFinanceiro,
+  editarLancamentoFinanceiro,
+  excluirLancamentoFinanceiro,
 } from "../actions";
 
 const SECAO_CLASSE =
@@ -211,6 +216,10 @@ export default async function DistratoDetalhePage({
       comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
       comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
       aluguel: { include: { criadoPor: { select: { nome: true } } } },
+      lancamentosFinanceiros: {
+        orderBy: { mesCompetencia: "asc" },
+        include: { criadoPor: { select: { nome: true } } },
+      },
       decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
       adequacoes: {
         orderBy: { createdAt: "desc" },
@@ -1180,6 +1189,37 @@ export default async function DistratoDetalhePage({
     </section>
   );
 
+  const sinalEntregaChaves = (() => {
+    if (!distrato.entregaChaves || !distrato.avisoPrevio) return null;
+    const prazoFim = new Date(distrato.avisoPrevio.data);
+    prazoFim.setDate(prazoFim.getDate() + 30);
+    const diferenca = diasEntreDatas(distrato.entregaChaves.data, prazoFim);
+    if (diferenca < 0) {
+      return {
+        texto: `${Math.abs(diferenca)} ${Math.abs(diferenca) === 1 ? "dia" : "dias"} antes do término do prazo`,
+        cor: "text-green-700 dark:text-green-400",
+      };
+    }
+    if (diferenca > 0) {
+      return {
+        texto: `${diferenca} ${diferenca === 1 ? "dia" : "dias"} depois do prazo`,
+        cor: "text-red-700 dark:text-red-400",
+      };
+    }
+    return { texto: "No último dia do prazo", cor: "text-green-700 dark:text-green-400" };
+  })();
+
+  const TIPOS_LANCAMENTO: {
+    tipo: "ALUGUEL" | "AGUA" | "ENERGIA" | "IPTU" | "CONDOMINIO";
+    titulo: string;
+  }[] = [
+    { tipo: "ALUGUEL", titulo: "Aluguéis em aberto" },
+    { tipo: "AGUA", titulo: "Água em aberto" },
+    { tipo: "ENERGIA", titulo: "Energia em aberto" },
+    { tipo: "IPTU", titulo: "IPTU em aberto" },
+    { tipo: "CONDOMINIO", titulo: "Condomínio em aberto" },
+  ];
+
   const resultadoMulta = distrato.aluguel
     ? calcularMulta({
         valorAluguel: distrato.aluguel.valor,
@@ -1256,6 +1296,19 @@ export default async function DistratoDetalhePage({
                   {processo.prazoMultaMeses ? `${processo.prazoMultaMeses} meses` : "—"}
                 </p>
               </div>
+              <div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  Data de Entrega das Chaves
+                </p>
+                <p className="text-slate-700 dark:text-slate-300">
+                  {distrato.entregaChaves ? formatData(distrato.entregaChaves.data) : "—"}
+                </p>
+                {sinalEntregaChaves && (
+                  <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
+                    {sinalEntregaChaves.texto}
+                  </p>
+                )}
+              </div>
             </div>
 
             {resultadoMulta ? (
@@ -1290,6 +1343,72 @@ export default async function DistratoDetalhePage({
           </Divisor>
         </div>
       )}
+
+      {TIPOS_LANCAMENTO.map(({ tipo, titulo }) => {
+        const doTipo = distrato.lancamentosFinanceiros.filter((l) => l.tipo === tipo);
+        const totalTipo = doTipo.reduce((soma, l) => soma + l.valor, 0);
+
+        return (
+          <Divisor key={tipo}>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{titulo}</p>
+              <AuditoriaButton entradas={auditoriaPorSecao(`LANCAMENTO_${tipo}`)} />
+            </div>
+
+            {doTipo.length > 0 && (
+              <ul className="mb-3 flex flex-col gap-2">
+                {doTipo.map((l) => (
+                  <li
+                    key={l.id}
+                    className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-slate-700 dark:text-slate-300">
+                          {formatMesCompetencia(l.mesCompetencia)} — R${" "}
+                          {formatMoedaExibicao(l.valor)}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <LancamentoFinanceiroModal
+                          titulo={titulo}
+                          registro={l}
+                          action={async (formData: FormData) => {
+                            "use server";
+                            await editarLancamentoFinanceiro(l.id, distrato.id, formData);
+                          }}
+                        />
+                        <ExcluirBotao
+                          onExcluir={async () => {
+                            "use server";
+                            await excluirLancamentoFinanceiro(l.id, distrato.id);
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <InfoSistema data={l.createdAt} usuario={l.criadoPor?.nome} />
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {totalTipo > 0 && (
+              <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Total: R$ {formatMoedaExibicao(totalTipo)}
+              </p>
+            )}
+
+            <LancamentoFinanceiroModal
+              titulo={titulo}
+              botaoLabel={`Novo Lançamento — ${titulo}`}
+              action={async (formData: FormData) => {
+                "use server";
+                await registrarLancamentoFinanceiro(distrato.id, tipo, formData);
+              }}
+            />
+          </Divisor>
+        );
+      })}
 
       {adequacoesLocatario.length > 0 && (
         <Divisor>

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
+import { formatData, hojeSaoPaulo, parseDataLocal, formatMesCompetencia } from "@/lib/datahora";
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
 
@@ -1176,6 +1176,80 @@ export async function excluirAluguel(distratoId: string) {
     SECAO.ALUGUEL,
     "Excluiu",
     `Valor do aluguel: R$ ${formatMoedaExibicao(registro.valor)}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+type TipoLancamentoFinanceiro = "ALUGUEL" | "AGUA" | "ENERGIA" | "IPTU" | "CONDOMINIO";
+
+export async function registrarLancamentoFinanceiro(
+  distratoId: string,
+  tipo: TipoLancamentoFinanceiro,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const mesCompetencia = String(formData.get("mesCompetencia"));
+  const valor = parseMoeda(formData.get("valor"));
+
+  await prisma.lancamentoFinanceiro.create({
+    data: {
+      distratoId,
+      tipo,
+      mesCompetencia,
+      valor,
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    `LANCAMENTO_${tipo}`,
+    "Registrou",
+    `Competência ${formatMesCompetencia(mesCompetencia)}: R$ ${formatMoedaExibicao(valor)}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function editarLancamentoFinanceiro(
+  lancamentoId: string,
+  distratoId: string,
+  formData: FormData
+) {
+  const mesCompetencia = String(formData.get("mesCompetencia"));
+  const valor = parseMoeda(formData.get("valor"));
+
+  const antigo = await prisma.lancamentoFinanceiro.findUniqueOrThrow({
+    where: { id: lancamentoId },
+  });
+
+  await prisma.lancamentoFinanceiro.update({
+    where: { id: lancamentoId },
+    data: { mesCompetencia, valor },
+  });
+
+  const detalhe = descreverAlteracoes(antigo, { mesCompetencia, valor }, {
+    mesCompetencia: { label: "a competência", formatar: (v) => formatMesCompetencia(v as string) },
+    valor: { label: "o valor", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
+  });
+
+  if (detalhe) {
+    await logAuditoria(distratoId, `LANCAMENTO_${antigo.tipo}`, "Editou", detalhe);
+  }
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function excluirLancamentoFinanceiro(lancamentoId: string, distratoId: string) {
+  const registro = await prisma.lancamentoFinanceiro.findUniqueOrThrow({
+    where: { id: lancamentoId },
+  });
+  await prisma.lancamentoFinanceiro.delete({ where: { id: lancamentoId } });
+  await logAuditoria(
+    distratoId,
+    `LANCAMENTO_${registro.tipo}`,
+    "Excluiu",
+    `Competência ${formatMesCompetencia(registro.mesCompetencia)}: R$ ${formatMoedaExibicao(registro.valor)}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }

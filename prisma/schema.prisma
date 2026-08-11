@@ -34,6 +34,14 @@ enum ManutencaoCategoria {
   ADEQUACAO
 }
 
+enum TipoLancamentoFinanceiro {
+  ALUGUEL
+  AGUA
+  ENERGIA
+  IPTU
+  CONDOMINIO
+}
+
 enum PedidoOrcamentoStatus {
   AGUARDANDO_ENTREGA
   NAO_ENTREGUE
@@ -128,6 +136,7 @@ model User {
   comunicadosEncerramentoLocatarioCriados ComunicadoEncerramentoLocatario[] @relation("ComunicadoEncerramentoLocatarioCriadoPor")
   decisoesAdequacaoCriadas DecisaoAdequacao[] @relation("DecisaoAdequacaoCriadoPor")
   alugueisDistratoCriados  AluguelDistrato[] @relation("AluguelDistratoCriadoPor")
+  lancamentosFinanceirosCriados LancamentoFinanceiro[] @relation("LancamentoFinanceiroCriadoPor")
 }
 
 model Prestador {
@@ -343,6 +352,7 @@ model Distrato {
   decisaoAdequacao DecisaoAdequacao?
   adequacoes       Manutencao[]
   aluguel          AluguelDistrato?
+  lancamentosFinanceiros LancamentoFinanceiro[]
 
   avisoPrevio         AvisoPrevioLocatario?
   comunicadoLocador   ComunicadoLocador?
@@ -380,6 +390,20 @@ model AluguelDistrato {
 
   criadoPorId String?
   criadoPor   User?   @relation("AluguelDistratoCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model LancamentoFinanceiro {
+  id             String                    @id @default(cuid())
+  tipo           TipoLancamentoFinanceiro
+  mesCompetencia String
+  valor          Float
+  createdAt      DateTime                  @default(now())
+
+  distratoId String
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("LancamentoFinanceiroCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model DistratoAuditoria {

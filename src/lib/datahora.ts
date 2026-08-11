@@ -48,3 +48,25 @@ export function formatDataHoraCurta(data: Date): string {
 export function formatSistema(data: Date): string {
   return `Sistema: ${formatDataHoraCurta(data)}`;
 }
+
+const MESES = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
+
+// Formata uma competência "YYYY-MM" (de um <input type="month">) como "Mês/AAAA".
+export function formatMesCompetencia(mesCompetencia: string): string {
+  const [ano, mes] = mesCompetencia.split("-");
+  const nome = MESES[parseInt(mes, 10) - 1] ?? mes;
+  return `${nome}/${ano}`;
+}
