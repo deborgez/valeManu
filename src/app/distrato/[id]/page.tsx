@@ -1130,36 +1130,32 @@ export default async function DistratoDetalhePage({
                       const { valorPrestador } = valoresAdequacao(a);
 
                       return (
-                        <li
-                          key={a.id}
-                          className={`rounded-lg border p-3 shadow-sm ${CARTAO_COR[severidade]}`}
-                        >
-                          <div className="mb-1 flex items-center justify-between gap-4">
-                            <ComputarValoresToggle
-                              checked={a.computarValores}
-                              action={async (computar: boolean) => {
-                                "use server";
-                                await alternarComputarValoresAdequacao(a.id, distrato.id, computar);
-                              }}
-                            />
-                            {a.emergencial && (
-                              <span className="rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
-                                Emergencial
+                        <li key={a.id}>
+                          <Link
+                            href={`/manutencoes/${a.id}`}
+                            className={`block rounded-lg border p-3 shadow-sm ${CARTAO_COR[severidade]}`}
+                          >
+                            <div className="mb-1 flex items-center justify-between gap-4">
+                              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                {a.numeroProcesso}
                               </span>
-                            )}
-                          </div>
-                          <Link href={`/manutencoes/${a.id}`} className="block">
-                            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                              {a.numeroProcesso}
-                            </span>
-                            <div className="mt-1">
-                              <span className="inline-block rounded bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-                                {etapaAdequacao(a)}
-                              </span>
+                              {a.emergencial && (
+                                <span className="rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                                  Emergencial
+                                </span>
+                              )}
                             </div>
+                            <span className="inline-block rounded bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                              {etapaAdequacao(a)}
+                            </span>
                             <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                               {a.natureza} — {a.descricaoProblema}
                             </p>
+                            {a.computarValores === false && (
+                              <p className="mt-1 text-xs font-medium text-slate-400 dark:text-slate-500">
+                                Não computado no total (ver aba Financeiro)
+                              </p>
+                            )}
                             {valorPrestador !== null && (
                               <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
                                 Valor: R$ {formatMoedaExibicao(valorPrestador)}
@@ -1190,7 +1186,8 @@ export default async function DistratoDetalhePage({
                 {formatMoedaExibicao(totalAdequacoesAdministracao)}
               </p>
               <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                Soma apenas as solicitações com &quot;Computar valores&quot; marcado.
+                Soma apenas as solicitações com &quot;Computar valores&quot; marcado (ajustável na
+                aba Financeiro).
               </p>
             </div>
           )}
@@ -1317,20 +1314,84 @@ export default async function DistratoDetalhePage({
         </div>
       )}
 
-      {totalAdequacoesGeral > 0 && (
+      {distrato.adequacoes.length > 0 && (
         <Divisor>
           <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
             Adequações
           </p>
-          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
-            <p className="font-semibold text-slate-900 dark:text-slate-100">
-              Total computado: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
-            </p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
-              {formatMoedaExibicao(totalAdequacoesAdministracao)}
-            </p>
-          </div>
+
+          {GRUPOS_COMPETENCIA.map((competencia) => {
+            const doGrupo = distrato.adequacoes.filter((a) => a.competencia === competencia);
+            if (doGrupo.length === 0) return null;
+
+            const computadasDoGrupo = doGrupo.filter((a) => a.computarValores);
+            const grupoPrestador = computadasDoGrupo.reduce(
+              (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
+              0
+            );
+            const grupoAdministracao = computadasDoGrupo.reduce(
+              (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
+              0
+            );
+
+            return (
+              <div key={competencia} className="mb-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  {LABEL_PARTE[competencia]}
+                </p>
+                <ul className="mb-2 flex flex-col gap-2">
+                  {doGrupo.map((a) => {
+                    const { valorPrestador, valorAdministracao } = valoresAdequacao(a);
+                    return (
+                      <li
+                        key={a.id}
+                        className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-medium text-slate-700 dark:text-slate-300">
+                              {a.numeroProcesso}
+                            </p>
+                            {valorPrestador !== null && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Prestador: R$ {formatMoedaExibicao(valorPrestador)} ·
+                                Administração: R$ {formatMoedaExibicao(valorAdministracao)}
+                              </p>
+                            )}
+                          </div>
+                          <ComputarValoresToggle
+                            checked={a.computarValores}
+                            action={async (computar: boolean) => {
+                              "use server";
+                              await alternarComputarValoresAdequacao(a.id, distrato.id, computar);
+                            }}
+                          />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Subtotal {LABEL_PARTE[competencia]}: R${" "}
+                  {formatMoedaExibicao(grupoPrestador + grupoAdministracao)} (Prestador: R${" "}
+                  {formatMoedaExibicao(grupoPrestador)} · Administração: R${" "}
+                  {formatMoedaExibicao(grupoAdministracao)})
+                </p>
+              </div>
+            );
+          })}
+
+          {totalAdequacoesGeral > 0 && (
+            <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
+              <p className="font-semibold text-slate-900 dark:text-slate-100">
+                Total computado: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
+                {formatMoedaExibicao(totalAdequacoesAdministracao)}
+              </p>
+            </div>
+          )}
         </Divisor>
       )}
     </section>
