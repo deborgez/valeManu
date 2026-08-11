@@ -35,7 +35,6 @@ import AuditoriaButton from "@/components/distrato/AuditoriaButton";
 import AbasDistrato from "@/components/distrato/AbasDistrato";
 import AdequacoesForm from "@/components/distrato/AdequacoesForm";
 import NovaAdequacaoModal from "@/components/distrato/NovaAdequacaoModal";
-import ComputarValoresToggle from "@/components/distrato/ComputarValoresToggle";
 import AvisoTemporario from "@/components/distrato/AvisoTemporario";
 import {
   registrarAvisoPrevio,
@@ -72,7 +71,6 @@ import {
   registrarDecisaoAdequacao,
   excluirDecisaoAdequacao,
   criarAdequacao,
-  alternarComputarValoresAdequacao,
   registrarAluguel,
   editarAluguel,
   excluirAluguel,
@@ -1053,22 +1051,22 @@ export default async function DistratoDetalhePage({
     </>
   );
 
-  const adequacoesComputadas = distrato.adequacoes.filter((a) => a.computarValores);
-  const totalAdequacoesPrestador = adequacoesComputadas.reduce(
-    (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
-    0
-  );
-  const totalAdequacoesAdministracao = adequacoesComputadas.reduce(
-    (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
-    0
-  );
-  const totalAdequacoesGeral = totalAdequacoesPrestador + totalAdequacoesAdministracao;
-
   const GRUPOS_COMPETENCIA: ("LOCATARIO" | "LOCADOR" | "IMOBILIARIA")[] = [
     "LOCATARIO",
     "LOCADOR",
     "IMOBILIARIA",
   ];
+
+  const adequacoesLocatario = distrato.adequacoes.filter((a) => a.competencia === "LOCATARIO");
+  const totalLocatarioPrestador = adequacoesLocatario.reduce(
+    (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
+    0
+  );
+  const totalLocatarioAdministracao = adequacoesLocatario.reduce(
+    (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
+    0
+  );
+  const totalLocatarioGeral = totalLocatarioPrestador + totalLocatarioAdministracao;
 
   const conteudoAdequacoes = (
     <section className={SECAO_CLASSE}>
@@ -1151,11 +1149,6 @@ export default async function DistratoDetalhePage({
                             <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                               {a.natureza} — {a.descricaoProblema}
                             </p>
-                            {a.computarValores === false && (
-                              <p className="mt-1 text-xs font-medium text-slate-400 dark:text-slate-500">
-                                Não computado no total (ver aba Financeiro)
-                              </p>
-                            )}
                             {valorPrestador !== null && (
                               <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
                                 Valor: R$ {formatMoedaExibicao(valorPrestador)}
@@ -1175,22 +1168,6 @@ export default async function DistratoDetalhePage({
                 </div>
               );
             })}
-
-          {totalAdequacoesGeral > 0 && (
-            <div className="mb-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
-              <p className="font-semibold text-slate-900 dark:text-slate-100">
-                Total computado: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
-              </p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
-                {formatMoedaExibicao(totalAdequacoesAdministracao)}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                Soma apenas as solicitações com &quot;Computar valores&quot; marcado (ajustável na
-                aba Financeiro).
-              </p>
-            </div>
-          )}
 
           <NovaAdequacaoModal
             action={async (formData: FormData) => {
@@ -1314,84 +1291,20 @@ export default async function DistratoDetalhePage({
         </div>
       )}
 
-      {distrato.adequacoes.length > 0 && (
+      {adequacoesLocatario.length > 0 && (
         <Divisor>
           <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Adequações
+            Adequações — Locatário
           </p>
-
-          {GRUPOS_COMPETENCIA.map((competencia) => {
-            const doGrupo = distrato.adequacoes.filter((a) => a.competencia === competencia);
-            if (doGrupo.length === 0) return null;
-
-            const computadasDoGrupo = doGrupo.filter((a) => a.computarValores);
-            const grupoPrestador = computadasDoGrupo.reduce(
-              (soma, a) => soma + (valoresAdequacao(a).valorPrestador ?? 0),
-              0
-            );
-            const grupoAdministracao = computadasDoGrupo.reduce(
-              (soma, a) => soma + valoresAdequacao(a).valorAdministracao,
-              0
-            );
-
-            return (
-              <div key={competencia} className="mb-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  {LABEL_PARTE[competencia]}
-                </p>
-                <ul className="mb-2 flex flex-col gap-2">
-                  {doGrupo.map((a) => {
-                    const { valorPrestador, valorAdministracao } = valoresAdequacao(a);
-                    return (
-                      <li
-                        key={a.id}
-                        className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="font-medium text-slate-700 dark:text-slate-300">
-                              {a.numeroProcesso}
-                            </p>
-                            {valorPrestador !== null && (
-                              <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Prestador: R$ {formatMoedaExibicao(valorPrestador)} ·
-                                Administração: R$ {formatMoedaExibicao(valorAdministracao)}
-                              </p>
-                            )}
-                          </div>
-                          <ComputarValoresToggle
-                            checked={a.computarValores}
-                            action={async (computar: boolean) => {
-                              "use server";
-                              await alternarComputarValoresAdequacao(a.id, distrato.id, computar);
-                            }}
-                          />
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Subtotal {LABEL_PARTE[competencia]}: R${" "}
-                  {formatMoedaExibicao(grupoPrestador + grupoAdministracao)} (Prestador: R${" "}
-                  {formatMoedaExibicao(grupoPrestador)} · Administração: R${" "}
-                  {formatMoedaExibicao(grupoAdministracao)})
-                </p>
-              </div>
-            );
-          })}
-
-          {totalAdequacoesGeral > 0 && (
-            <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
-              <p className="font-semibold text-slate-900 dark:text-slate-100">
-                Total computado: R$ {formatMoedaExibicao(totalAdequacoesGeral)}
-              </p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Prestador: R$ {formatMoedaExibicao(totalAdequacoesPrestador)} · Administração: R${" "}
-                {formatMoedaExibicao(totalAdequacoesAdministracao)}
-              </p>
-            </div>
-          )}
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
+            <p className="font-semibold text-slate-900 dark:text-slate-100">
+              Total: R$ {formatMoedaExibicao(totalLocatarioGeral)}
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Prestador: R$ {formatMoedaExibicao(totalLocatarioPrestador)} · Administração: R${" "}
+              {formatMoedaExibicao(totalLocatarioAdministracao)}
+            </p>
+          </div>
         </Divisor>
       )}
     </section>
