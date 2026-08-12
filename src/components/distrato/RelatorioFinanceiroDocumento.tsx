@@ -53,7 +53,7 @@ export default function RelatorioFinanceiroDocumento({
     0
   );
   const totalAdequacoes = adequacoes.reduce((soma, a) => soma + a.valor, 0);
-  const totalGeralAberto = totalLancamentos + totalAdequacoes;
+  const totalGeralAberto = totalLancamentos + totalAdequacoes + (valorMulta ?? 0);
 
   return (
     <div className="text-black">
@@ -188,6 +188,11 @@ export default function RelatorioFinanceiroDocumento({
         <p className="text-sm font-semibold">
           Total geral em aberto: R$ {formatMoedaExibicao(totalGeralAberto)}
         </p>
+        {valorMulta !== null && (
+          <p className="text-xs text-slate-500">
+            Inclui a multa ({tituloMulta}: R$ {formatMoedaExibicao(valorMulta)}).
+          </p>
+        )}
       </div>
     </div>
   );
