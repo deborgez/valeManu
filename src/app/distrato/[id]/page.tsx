@@ -1315,21 +1315,21 @@ export default async function DistratoDetalhePage({
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Data de Início</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Prazo da Multa</p>
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {processo.prazoMultaMeses ? `${processo.prazoMultaMeses} meses` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Início do Contrato</p>
                   <p className="text-slate-700 dark:text-slate-300">
                     {processo.prazoContratoInicio ? formatData(processo.prazoContratoInicio) : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Data do Aviso Prévio</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Aviso Prévio</p>
                   <p className="text-slate-700 dark:text-slate-300">
                     {distrato.avisoPrevio ? formatData(distrato.avisoPrevio.data) : "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Prazo da Multa</p>
-                  <p className="text-slate-700 dark:text-slate-300">
-                    {processo.prazoMultaMeses ? `${processo.prazoMultaMeses} meses` : "—"}
                   </p>
                 </div>
                 <div>
