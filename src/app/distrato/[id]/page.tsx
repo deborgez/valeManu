@@ -22,6 +22,8 @@ import { formatMoedaExibicao } from "@/lib/masks";
 import { calcularMulta } from "@/lib/multa";
 import AluguelModal from "@/components/distrato/AluguelModal";
 import TipoMultaSelector from "@/components/distrato/TipoMultaSelector";
+import ImpressaoModal from "@/components/ImpressaoModal";
+import RelatorioFinanceiroDocumento from "@/components/distrato/RelatorioFinanceiroDocumento";
 import LancamentoFinanceiroModal from "@/components/distrato/LancamentoFinanceiroModal";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
@@ -1240,6 +1242,22 @@ export default async function DistratoDetalhePage({
       })
     : null;
 
+  const tituloMulta = distrato.aluguel
+    ? distrato.aluguel.infracaoContratual
+      ? "Multa por Infração Contratual"
+      : "Multa por Distrato"
+    : null;
+
+  const detalheMulta =
+    resultadoMulta && !resultadoMulta.infracaoContratual
+      ? `Multa total: R$ ${formatMoedaExibicao(resultadoMulta.multaTotal)} · Abatimento mensal: R$ ${formatMoedaExibicao(resultadoMulta.multaMensal)} · ${resultadoMulta.mesesDecorridos} ${resultadoMulta.mesesDecorridos === 1 ? "mês" : "meses"} já cumpridos de ${processo.prazoMultaMeses}.`
+      : null;
+
+  const categoriasLancamento = TIPOS_LANCAMENTO.map(({ tipo, titulo }) => ({
+    titulo,
+    itens: distrato.lancamentosFinanceiros.filter((l) => l.tipo === tipo),
+  }));
+
   const conteudoFinanceiro = (
     <>
       <section className={SECAO_CLASSE}>
@@ -1439,7 +1457,7 @@ export default async function DistratoDetalhePage({
       {adequacoesLocatario.length > 0 && (
         <section className={SECAO_CLASSE}>
           <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Adequações — Locatário
+            Adequações
           </h2>
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm">
             <p className="font-semibold text-slate-900 dark:text-slate-100">
@@ -1452,6 +1470,26 @@ export default async function DistratoDetalhePage({
           </div>
         </section>
       )}
+
+      <div className="flex justify-end">
+        <ImpressaoModal label="Relatório Financeiro">
+          <RelatorioFinanceiroDocumento
+            numeroProcesso={processo.numeroProcesso}
+            valorAluguel={distrato.aluguel?.valor ?? null}
+            prazoContratoMeses={processo.prazoContratoMeses}
+            prazoContratoInicio={processo.prazoContratoInicio}
+            dataAvisoPrevio={distrato.avisoPrevio?.data ?? null}
+            dataEntregaChaves={distrato.entregaChaves?.data ?? null}
+            sinalEntregaChaves={sinalEntregaChaves?.texto ?? null}
+            prazoMultaMeses={processo.prazoMultaMeses}
+            tituloMulta={tituloMulta}
+            valorMulta={resultadoMulta?.multaAtual ?? null}
+            detalheMulta={detalheMulta}
+            categoriasLancamento={categoriasLancamento}
+            totalAdequacoesLocatario={totalLocatarioGeral}
+          />
+        </ImpressaoModal>
+      </div>
     </>
   );
 
