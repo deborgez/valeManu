@@ -42,6 +42,11 @@ enum TipoLancamentoFinanceiro {
   CONDOMINIO
 }
 
+enum SubtipoLancamento {
+  CONTA
+  SERVICO
+}
+
 enum PedidoOrcamentoStatus {
   AGUARDANDO_ENTREGA
   NAO_ENTREGUE
@@ -395,7 +400,10 @@ model AluguelDistrato {
 model LancamentoFinanceiro {
   id             String                    @id @default(cuid())
   tipo           TipoLancamentoFinanceiro
+  subtipo        SubtipoLancamento?
+  nomeServico    String?
   mesCompetencia String
+  periodoDias    Int?
   valor          Float
   createdAt      DateTime                  @default(now())
 

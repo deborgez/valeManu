@@ -21,6 +21,7 @@ import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import { formatMoedaExibicao } from "@/lib/masks";
 import { calcularMulta } from "@/lib/multa";
 import AluguelModal from "@/components/distrato/AluguelModal";
+import TipoMultaSelector from "@/components/distrato/TipoMultaSelector";
 import LancamentoFinanceiroModal from "@/components/distrato/LancamentoFinanceiroModal";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
@@ -76,6 +77,7 @@ import {
   registrarAluguel,
   editarAluguel,
   excluirAluguel,
+  definirTipoMulta,
   registrarLancamentoFinanceiro,
   editarLancamentoFinanceiro,
   excluirLancamentoFinanceiro,
@@ -1212,12 +1214,14 @@ export default async function DistratoDetalhePage({
   const TIPOS_LANCAMENTO: {
     tipo: "ALUGUEL" | "AGUA" | "ENERGIA" | "IPTU" | "CONDOMINIO";
     titulo: string;
+    nomeCurto: string;
+    permiteServico?: boolean;
   }[] = [
-    { tipo: "ALUGUEL", titulo: "Aluguéis em aberto" },
-    { tipo: "AGUA", titulo: "Água em aberto" },
-    { tipo: "ENERGIA", titulo: "Energia em aberto" },
-    { tipo: "IPTU", titulo: "IPTU em aberto" },
-    { tipo: "CONDOMINIO", titulo: "Condomínio em aberto" },
+    { tipo: "ALUGUEL", titulo: "Aluguéis em aberto", nomeCurto: "Aluguel" },
+    { tipo: "AGUA", titulo: "Água em aberto", nomeCurto: "Água", permiteServico: true },
+    { tipo: "ENERGIA", titulo: "Energia em aberto", nomeCurto: "Energia", permiteServico: true },
+    { tipo: "IPTU", titulo: "IPTU em aberto", nomeCurto: "IPTU" },
+    { tipo: "CONDOMINIO", titulo: "Condomínio em aberto", nomeCurto: "Condomínio" },
   ];
 
   const resultadoMulta = distrato.aluguel
@@ -1318,17 +1322,22 @@ export default async function DistratoDetalhePage({
 
       {distrato.aluguel && (
         <section className={SECAO_CLASSE}>
-          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">Multa</h2>
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {distrato.aluguel.infracaoContratual ? "Multa por Infração Contratual" : "Multa por Distrato"}
+          </h2>
+
+          <TipoMultaSelector
+            infracaoContratual={distrato.aluguel.infracaoContratual}
+            action={async (infracao: boolean) => {
+              "use server";
+              await definirTipoMulta(distrato.id, infracao);
+            }}
+          />
 
           {resultadoMulta ? (
             <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
-              {resultadoMulta.infracaoContratual && (
-                <p className="mb-2 inline-block rounded bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
-                  Infração contratual — multa integral, sem abatimento
-                </p>
-              )}
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Multa por quebra de contrato
+                Valor da multa
                 {resultadoMulta.infracaoContratual
                   ? ""
                   : ` (hoje, ${formatData(parseDataLocal(hoje))})`}
@@ -1352,9 +1361,10 @@ export default async function DistratoDetalhePage({
         </section>
       )}
 
-      {TIPOS_LANCAMENTO.map(({ tipo, titulo }) => {
+      {TIPOS_LANCAMENTO.map(({ tipo, titulo, nomeCurto, permiteServico }) => {
         const doTipo = distrato.lancamentosFinanceiros.filter((l) => l.tipo === tipo);
         const totalTipo = doTipo.reduce((soma, l) => soma + l.valor, 0);
+        const valorBaseCalculo = tipo === "ALUGUEL" ? distrato.aluguel?.valor : undefined;
 
         return (
           <section key={tipo} className={SECAO_CLASSE}>
@@ -1373,7 +1383,9 @@ export default async function DistratoDetalhePage({
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="font-medium text-slate-700 dark:text-slate-300">
-                          {formatMesCompetencia(l.mesCompetencia)} — R${" "}
+                          {l.nomeServico ? `${l.nomeServico} — ` : ""}
+                          {formatMesCompetencia(l.mesCompetencia)}
+                          {l.periodoDias ? ` — Período: ${l.periodoDias} dias` : ""} — R${" "}
                           {formatMoedaExibicao(l.valor)}
                         </p>
                       </div>
@@ -1381,6 +1393,8 @@ export default async function DistratoDetalhePage({
                         <LancamentoFinanceiroModal
                           titulo={titulo}
                           registro={l}
+                          valorBaseCalculo={valorBaseCalculo}
+                          permiteServico={permiteServico}
                           action={async (formData: FormData) => {
                             "use server";
                             await editarLancamentoFinanceiro(l.id, distrato.id, formData);
@@ -1408,7 +1422,9 @@ export default async function DistratoDetalhePage({
 
             <LancamentoFinanceiroModal
               titulo={titulo}
-              botaoLabel={`Novo Lançamento — ${titulo}`}
+              botaoLabel={`Lançar ${nomeCurto}`}
+              valorBaseCalculo={valorBaseCalculo}
+              permiteServico={permiteServico}
               action={async (formData: FormData) => {
                 "use server";
                 await registrarLancamentoFinanceiro(distrato.id, tipo, formData);

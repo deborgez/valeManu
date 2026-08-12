@@ -10,7 +10,6 @@ const CAMPO_CLASSE =
 
 type Registro = {
   valor: number;
-  infracaoContratual: boolean;
 };
 
 export default function AluguelModal({
@@ -62,27 +61,11 @@ export default function AluguelModal({
               {registro ? "Editar Valor do Aluguel" : "Informar Valor do Aluguel"}
             </h3>
 
-            <div className="mb-4">
+            <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Valor atual do aluguel (R$)
               </label>
               <MoedaInput name="valor" required defaultValue={registro?.valor} className={CAMPO_CLASSE} />
-            </div>
-
-            <div className="mb-6 flex items-center gap-2">
-              <input
-                id="infracaoContratual"
-                name="infracaoContratual"
-                type="checkbox"
-                defaultChecked={registro?.infracaoContratual}
-                className="h-4 w-4"
-              />
-              <label
-                htmlFor="infracaoContratual"
-                className="text-sm text-slate-700 dark:text-slate-300"
-              >
-                Infração contratual — cobrar a multa no valor cheio, sem abatimento proporcional
-              </label>
             </div>
 
             <div className="flex justify-end gap-2">

@@ -1122,13 +1122,11 @@ export async function registrarAluguel(distratoId: string, formData: FormData) {
   if (!session) throw new Error("Não autenticado.");
 
   const valor = parseMoeda(formData.get("valor"));
-  const infracaoContratual = formData.get("infracaoContratual") === "on";
 
   await prisma.aluguelDistrato.create({
     data: {
       distratoId,
       valor,
-      infracaoContratual,
       criadoPorId: session.user.id,
     },
   });
@@ -1137,14 +1135,13 @@ export async function registrarAluguel(distratoId: string, formData: FormData) {
     distratoId,
     SECAO.ALUGUEL,
     "Registrou",
-    `Valor do aluguel: R$ ${formatMoedaExibicao(valor)}${infracaoContratual ? " — Infração contratual" : ""}`
+    `Valor do aluguel: R$ ${formatMoedaExibicao(valor)}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
 
 export async function editarAluguel(distratoId: string, formData: FormData) {
   const valor = parseMoeda(formData.get("valor"));
-  const infracaoContratual = formData.get("infracaoContratual") === "on";
 
   const antigo = await prisma.aluguelDistrato.findUniqueOrThrow({
     where: { distratoId },
@@ -1152,17 +1149,34 @@ export async function editarAluguel(distratoId: string, formData: FormData) {
 
   await prisma.aluguelDistrato.update({
     where: { distratoId },
-    data: { valor, infracaoContratual },
+    data: { valor },
   });
 
-  const detalhe = descreverAlteracoes(antigo, { valor, infracaoContratual }, {
+  const detalhe = descreverAlteracoes(antigo, { valor }, {
     valor: { label: "o valor do aluguel", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
-    infracaoContratual: { label: "\"infração contratual\"" },
   });
 
   if (detalhe) {
     await logAuditoria(distratoId, SECAO.ALUGUEL, "Editou", detalhe);
   }
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function definirTipoMulta(distratoId: string, infracaoContratual: boolean) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  await prisma.aluguelDistrato.update({
+    where: { distratoId },
+    data: { infracaoContratual },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ALUGUEL,
+    "Editou",
+    `Tipo de multa: ${infracaoContratual ? "Infração Contratual" : "Distrato"}`
+  );
   revalidatePath(`/distrato/${distratoId}`);
 }
 
@@ -1192,12 +1206,20 @@ export async function registrarLancamentoFinanceiro(
 
   const mesCompetencia = String(formData.get("mesCompetencia"));
   const valor = parseMoeda(formData.get("valor"));
+  const subtipoBruto = (formData.get("subtipo") as string) || null;
+  const subtipo = subtipoBruto === "SERVICO" ? "SERVICO" : subtipoBruto === "CONTA" ? "CONTA" : null;
+  const nomeServico = subtipo === "SERVICO" ? (formData.get("nomeServico") as string) || null : null;
+  const periodoDiasStr = subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
+  const periodoDias = periodoDiasStr ? parseInt(periodoDiasStr, 10) : null;
 
   await prisma.lancamentoFinanceiro.create({
     data: {
       distratoId,
       tipo,
+      subtipo,
+      nomeServico,
       mesCompetencia,
+      periodoDias,
       valor,
       criadoPorId: session.user.id,
     },
@@ -1207,7 +1229,7 @@ export async function registrarLancamentoFinanceiro(
     distratoId,
     `LANCAMENTO_${tipo}`,
     "Registrou",
-    `Competência ${formatMesCompetencia(mesCompetencia)}: R$ ${formatMoedaExibicao(valor)}`
+    `${nomeServico ? `${nomeServico} — ` : ""}Competência ${formatMesCompetencia(mesCompetencia)}${periodoDias ? ` — Período: ${periodoDias} dias` : ""}: R$ ${formatMoedaExibicao(valor)}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -1219,6 +1241,11 @@ export async function editarLancamentoFinanceiro(
 ) {
   const mesCompetencia = String(formData.get("mesCompetencia"));
   const valor = parseMoeda(formData.get("valor"));
+  const subtipoBruto = (formData.get("subtipo") as string) || null;
+  const subtipo = subtipoBruto === "SERVICO" ? "SERVICO" : subtipoBruto === "CONTA" ? "CONTA" : null;
+  const nomeServico = subtipo === "SERVICO" ? (formData.get("nomeServico") as string) || null : null;
+  const periodoDiasStr = subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
+  const periodoDias = periodoDiasStr ? parseInt(periodoDiasStr, 10) : null;
 
   const antigo = await prisma.lancamentoFinanceiro.findUniqueOrThrow({
     where: { id: lancamentoId },
@@ -1226,13 +1253,20 @@ export async function editarLancamentoFinanceiro(
 
   await prisma.lancamentoFinanceiro.update({
     where: { id: lancamentoId },
-    data: { mesCompetencia, valor },
+    data: { mesCompetencia, subtipo, nomeServico, periodoDias, valor },
   });
 
-  const detalhe = descreverAlteracoes(antigo, { mesCompetencia, valor }, {
-    mesCompetencia: { label: "a competência", formatar: (v) => formatMesCompetencia(v as string) },
-    valor: { label: "o valor", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
-  });
+  const detalhe = descreverAlteracoes(
+    antigo,
+    { mesCompetencia, subtipo, nomeServico, periodoDias, valor },
+    {
+      mesCompetencia: { label: "a competência", formatar: (v) => formatMesCompetencia(v as string) },
+      subtipo: { label: "o tipo (conta/serviço)" },
+      nomeServico: { label: "o nome do serviço" },
+      periodoDias: { label: "o período (dias)" },
+      valor: { label: "o valor", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
+    }
+  );
 
   if (detalhe) {
     await logAuditoria(distratoId, `LANCAMENTO_${antigo.tipo}`, "Editou", detalhe);
