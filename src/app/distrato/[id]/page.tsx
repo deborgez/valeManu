@@ -1342,9 +1342,7 @@ export default async function DistratoDetalhePage({
             <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Valor da multa
-                {resultadoMulta.infracaoContratual
-                  ? ""
-                  : ` (${distrato.avisoPrevio ? "na data do aviso prévio" : "hoje"}, ${formatData(dataReferenciaMulta)})`}
+                {resultadoMulta.infracaoContratual ? "" : " (proporcional)"}
                 : R$ {formatMoedaExibicao(resultadoMulta.multaAtual)}
               </p>
               {!resultadoMulta.infracaoContratual && (

@@ -53,6 +53,7 @@ export default function LancamentoFinanceiroModal({
   const [valorCalculado, setValorCalculado] = useState<number | undefined>(
     registro?.valor
   );
+  const [resetKey, setResetKey] = useState(0);
   const router = useRouter();
 
   function recalcular(mes: string, periodo: string) {
@@ -62,6 +63,15 @@ export default function LancamentoFinanceiroModal({
     if (!dias || !periodoNum) return;
     const valor = Math.round(((valorBaseCalculo / dias) * periodoNum) * 100) / 100;
     setValorCalculado(valor);
+  }
+
+  function abrirParaNovoLancamento() {
+    setSubtipo("CONTA");
+    setMesCompetencia("");
+    setPeriodoDias("");
+    setValorCalculado(undefined);
+    setResetKey((atual) => atual + 1);
+    setAberto(true);
   }
 
   return (
@@ -78,7 +88,7 @@ export default function LancamentoFinanceiroModal({
       ) : (
         <button
           type="button"
-          onClick={() => setAberto(true)}
+          onClick={abrirParaNovoLancamento}
           className="w-fit rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
           {botaoLabel ?? "Novo Lançamento"}
@@ -141,6 +151,7 @@ export default function LancamentoFinanceiroModal({
                   Nome do Serviço
                 </label>
                 <input
+                  key={resetKey}
                   type="text"
                   name="nomeServico"
                   required
@@ -200,7 +211,7 @@ export default function LancamentoFinanceiroModal({
                 Valor (R$)
               </label>
               <MoedaInput
-                key={valorCalculado ?? "vazio"}
+                key={`${resetKey}-${valorCalculado ?? "vazio"}`}
                 name="valor"
                 required
                 defaultValue={valorCalculado}
