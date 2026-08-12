@@ -13,6 +13,8 @@ type Registro = {
   valorOriginal: number;
   tipoDesconto: "PERCENTUAL" | "VALOR" | null;
   valorDesconto: number;
+  tipoJuros: "PERCENTUAL" | "VALOR" | null;
+  valorJuros: number;
   numeroParcelas: number;
   primeiraParcela: string;
   observacoes: string | null;
@@ -38,16 +40,28 @@ export default function AcordoModal({
     registro?.tipoDesconto ?? ""
   );
   const [valorDesconto, setValorDesconto] = useState(registro?.valorDesconto ?? 0);
+  const [tipoJuros, setTipoJuros] = useState<"" | "PERCENTUAL" | "VALOR">(
+    registro?.tipoJuros ?? ""
+  );
+  const [valorJuros, setValorJuros] = useState(registro?.valorJuros ?? 0);
   const [numeroParcelas, setNumeroParcelas] = useState(registro?.numeroParcelas ?? 1);
 
   const router = useRouter();
 
-  const valorFinal =
+  const valorComDesconto =
     tipoDesconto === "PERCENTUAL"
-      ? Math.max(valorOriginal * (1 - valorDesconto / 100), 0)
+      ? valorOriginal * (1 - valorDesconto / 100)
       : tipoDesconto === "VALOR"
-        ? Math.max(valorOriginal - valorDesconto, 0)
+        ? valorOriginal - valorDesconto
         : valorOriginal;
+  const valorFinal = Math.max(
+    tipoJuros === "PERCENTUAL"
+      ? valorComDesconto * (1 + valorJuros / 100)
+      : tipoJuros === "VALOR"
+        ? valorComDesconto + valorJuros
+        : valorComDesconto,
+    0
+  );
   const valorParcela = numeroParcelas > 0 ? valorFinal / numeroParcelas : 0;
 
   function abrir() {
@@ -55,6 +69,8 @@ export default function AcordoModal({
       setValorOriginal(valorSugerido ?? 0);
       setTipoDesconto("");
       setValorDesconto(0);
+      setTipoJuros("");
+      setValorJuros(0);
       setNumeroParcelas(1);
     }
     setAberto(true);
@@ -147,6 +163,48 @@ export default function AcordoModal({
                     value={valorDesconto}
                     onChange={(e) => setValorDesconto(parseFloat(e.target.value) || 0)}
                     disabled={tipoDesconto === ""}
+                    className={`${CAMPO_CLASSE} disabled:opacity-50`}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="mb-4 grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Juros
+                </label>
+                <select
+                  name="tipoJuros"
+                  value={tipoJuros}
+                  onChange={(e) => setTipoJuros(e.target.value as "" | "PERCENTUAL" | "VALOR")}
+                  className={CAMPO_CLASSE}
+                >
+                  <option value="">Sem juros</option>
+                  <option value="PERCENTUAL">Percentual (%)</option>
+                  <option value="VALOR">Valor (R$)</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {tipoJuros === "PERCENTUAL" ? "Juros (%)" : "Juros (R$)"}
+                </label>
+                {tipoJuros === "VALOR" ? (
+                  <MoedaInput
+                    name="valorJuros"
+                    defaultValue={valorJuros}
+                    onValueChange={(v) => setValorJuros(parseMoeda(v))}
+                    className={CAMPO_CLASSE}
+                  />
+                ) : (
+                  <input
+                    type="number"
+                    name="valorJuros"
+                    min="0"
+                    step="0.01"
+                    value={valorJuros}
+                    onChange={(e) => setValorJuros(parseFloat(e.target.value) || 0)}
+                    disabled={tipoJuros === ""}
                     className={`${CAMPO_CLASSE} disabled:opacity-50`}
                   />
                 )}

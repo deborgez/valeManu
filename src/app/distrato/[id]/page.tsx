@@ -1548,6 +1548,14 @@ export default async function DistratoDetalhePage({
                       : `R$ ${formatMoedaExibicao(distrato.acordo.valorDesconto)}`}
                   </p>
                 )}
+                {distrato.acordo.tipoJuros && (
+                  <p className="text-slate-700 dark:text-slate-300">
+                    Juros:{" "}
+                    {distrato.acordo.tipoJuros === "PERCENTUAL"
+                      ? `${distrato.acordo.valorJuros}%`
+                      : `R$ ${formatMoedaExibicao(distrato.acordo.valorJuros)}`}
+                  </p>
+                )}
                 <p className="font-semibold text-slate-900 dark:text-slate-100">
                   Valor final: R$ {formatMoedaExibicao(distrato.acordo.valorFinal)} em{" "}
                   {distrato.acordo.numeroParcelas}x
@@ -1564,6 +1572,8 @@ export default async function DistratoDetalhePage({
                     valorOriginal: distrato.acordo.valorOriginal,
                     tipoDesconto: distrato.acordo.tipoDesconto,
                     valorDesconto: distrato.acordo.valorDesconto,
+                    tipoJuros: distrato.acordo.tipoJuros,
+                    valorJuros: distrato.acordo.valorJuros,
                     numeroParcelas: distrato.acordo.numeroParcelas,
                     primeiraParcela: distrato.acordo.primeiraParcela.toISOString().slice(0, 10),
                     observacoes: distrato.acordo.observacoes,

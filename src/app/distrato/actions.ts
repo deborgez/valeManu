@@ -1295,21 +1295,34 @@ export async function excluirLancamentoFinanceiro(lancamentoId: string, distrato
   revalidatePath(`/distrato/${distratoId}`);
 }
 
+function tipoAjusteFromForm(formData: FormData, campo: string): "PERCENTUAL" | "VALOR" | null {
+  const bruto = (formData.get(campo) as string) || "";
+  return bruto === "PERCENTUAL" || bruto === "VALOR" ? bruto : null;
+}
+
 function calcularAcordo(formData: FormData) {
   const valorOriginal = parseMoeda(formData.get("valorOriginal"));
-  const tipoDescontoBruto = (formData.get("tipoDesconto") as string) || "";
-  const tipoDesconto =
-    tipoDescontoBruto === "PERCENTUAL" || tipoDescontoBruto === "VALOR"
-      ? (tipoDescontoBruto as "PERCENTUAL" | "VALOR")
-      : null;
+
+  const tipoDesconto = tipoAjusteFromForm(formData, "tipoDesconto");
   const valorDescontoInput = parseMoeda(formData.get("valorDesconto"));
   const valorDesconto = tipoDesconto ? valorDescontoInput : 0;
 
-  let valorFinal = valorOriginal;
+  let valorComDesconto = valorOriginal;
   if (tipoDesconto === "PERCENTUAL") {
-    valorFinal = valorOriginal * (1 - valorDesconto / 100);
+    valorComDesconto = valorOriginal * (1 - valorDesconto / 100);
   } else if (tipoDesconto === "VALOR") {
-    valorFinal = valorOriginal - valorDesconto;
+    valorComDesconto = valorOriginal - valorDesconto;
+  }
+
+  const tipoJuros = tipoAjusteFromForm(formData, "tipoJuros");
+  const valorJurosInput = parseMoeda(formData.get("valorJuros"));
+  const valorJuros = tipoJuros ? valorJurosInput : 0;
+
+  let valorFinal = valorComDesconto;
+  if (tipoJuros === "PERCENTUAL") {
+    valorFinal = valorComDesconto * (1 + valorJuros / 100);
+  } else if (tipoJuros === "VALOR") {
+    valorFinal = valorComDesconto + valorJuros;
   }
   valorFinal = Math.max(Math.round(valorFinal * 100) / 100, 0);
 
@@ -1318,7 +1331,17 @@ function calcularAcordo(formData: FormData) {
   const primeiraParcela = parseDataLocal(primeiraParcelaStr);
   const observacoes = (formData.get("observacoes") as string) || null;
 
-  return { valorOriginal, tipoDesconto, valorDesconto, valorFinal, numeroParcelas, primeiraParcela, observacoes };
+  return {
+    valorOriginal,
+    tipoDesconto,
+    valorDesconto,
+    tipoJuros,
+    valorJuros,
+    valorFinal,
+    numeroParcelas,
+    primeiraParcela,
+    observacoes,
+  };
 }
 
 function gerarParcelas(
@@ -1348,8 +1371,17 @@ export async function registrarAcordo(distratoId: string, formData: FormData) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
 
-  const { valorOriginal, tipoDesconto, valorDesconto, valorFinal, numeroParcelas, primeiraParcela, observacoes } =
-    calcularAcordo(formData);
+  const {
+    valorOriginal,
+    tipoDesconto,
+    valorDesconto,
+    tipoJuros,
+    valorJuros,
+    valorFinal,
+    numeroParcelas,
+    primeiraParcela,
+    observacoes,
+  } = calcularAcordo(formData);
 
   const acordo = await prisma.acordoDistrato.create({
     data: {
@@ -1357,6 +1389,8 @@ export async function registrarAcordo(distratoId: string, formData: FormData) {
       valorOriginal,
       tipoDesconto,
       valorDesconto,
+      tipoJuros,
+      valorJuros,
       valorFinal,
       numeroParcelas,
       primeiraParcela,
@@ -1379,8 +1413,17 @@ export async function registrarAcordo(distratoId: string, formData: FormData) {
 }
 
 export async function editarAcordo(distratoId: string, formData: FormData) {
-  const { valorOriginal, tipoDesconto, valorDesconto, valorFinal, numeroParcelas, primeiraParcela, observacoes } =
-    calcularAcordo(formData);
+  const {
+    valorOriginal,
+    tipoDesconto,
+    valorDesconto,
+    tipoJuros,
+    valorJuros,
+    valorFinal,
+    numeroParcelas,
+    primeiraParcela,
+    observacoes,
+  } = calcularAcordo(formData);
 
   const antigo = await prisma.acordoDistrato.findUniqueOrThrow({
     where: { distratoId },
@@ -1394,6 +1437,8 @@ export async function editarAcordo(distratoId: string, formData: FormData) {
         valorOriginal,
         tipoDesconto,
         valorDesconto,
+        tipoJuros,
+        valorJuros,
         valorFinal,
         numeroParcelas,
         primeiraParcela,
