@@ -236,6 +236,7 @@ export default async function DistratoDetalhePage({
               valorMaoDeObra: true,
               valorMaterial: true,
               percentualAdministracao: true,
+              prestador: { select: { especialidade: true } },
             },
           },
           pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -1082,10 +1083,11 @@ export default async function DistratoDetalhePage({
   const totalLocatarioGeral = totalLocatarioPrestador + totalLocatarioAdministracao;
   const adequacoesLocatarioDetalhe = adequacoesLocatario.map((a) => {
     const { valorPrestador, valorAdministracao } = valoresAdequacao(a);
+    const pedidoAprovado = a.pedidosOrcamento.find((p) => p.status === "APROVADO");
     return {
       id: a.id,
       numeroProcesso: a.numeroProcesso,
-      natureza: a.natureza,
+      tipoServico: pedidoAprovado?.prestador.especialidade ?? "—",
       valor: (valorPrestador ?? 0) + valorAdministracao,
     };
   });
@@ -1225,14 +1227,32 @@ export default async function DistratoDetalhePage({
   const TIPOS_LANCAMENTO: {
     tipo: "ALUGUEL" | "AGUA" | "ENERGIA" | "IPTU" | "CONDOMINIO";
     titulo: string;
+    tituloRelatorio: string;
     nomeCurto: string;
     permiteServico?: boolean;
   }[] = [
-    { tipo: "ALUGUEL", titulo: "Aluguéis em aberto", nomeCurto: "Aluguel" },
-    { tipo: "AGUA", titulo: "Água em aberto", nomeCurto: "Água", permiteServico: true },
-    { tipo: "ENERGIA", titulo: "Energia em aberto", nomeCurto: "Energia", permiteServico: true },
-    { tipo: "IPTU", titulo: "IPTU em aberto", nomeCurto: "IPTU" },
-    { tipo: "CONDOMINIO", titulo: "Condomínio em aberto", nomeCurto: "Condomínio" },
+    { tipo: "ALUGUEL", titulo: "Aluguéis em aberto", tituloRelatorio: "Aluguéis", nomeCurto: "Aluguel" },
+    {
+      tipo: "AGUA",
+      titulo: "Água em aberto",
+      tituloRelatorio: "Água",
+      nomeCurto: "Água",
+      permiteServico: true,
+    },
+    {
+      tipo: "ENERGIA",
+      titulo: "Energia em aberto",
+      tituloRelatorio: "Energia",
+      nomeCurto: "Energia",
+      permiteServico: true,
+    },
+    { tipo: "IPTU", titulo: "IPTU em aberto", tituloRelatorio: "IPTU", nomeCurto: "IPTU" },
+    {
+      tipo: "CONDOMINIO",
+      titulo: "Condomínio em aberto",
+      tituloRelatorio: "Condomínio",
+      nomeCurto: "Condomínio",
+    },
   ];
 
   const dataReferenciaMulta = distrato.avisoPrevio
@@ -1262,8 +1282,8 @@ export default async function DistratoDetalhePage({
       ? `Multa total: R$ ${formatMoedaExibicao(resultadoMulta.multaTotal)} · Abatimento mensal: R$ ${formatMoedaExibicao(resultadoMulta.multaMensal)} · ${resultadoMulta.mesesDecorridos} ${resultadoMulta.mesesDecorridos === 1 ? "mês" : "meses"} já cumpridos de ${processo.prazoMultaMeses}.`
       : null;
 
-  const categoriasLancamento = TIPOS_LANCAMENTO.map(({ tipo, titulo }) => ({
-    titulo,
+  const categoriasLancamento = TIPOS_LANCAMENTO.map(({ tipo, tituloRelatorio }) => ({
+    titulo: tituloRelatorio,
     itens: distrato.lancamentosFinanceiros.filter((l) => l.tipo === tipo),
   }));
 

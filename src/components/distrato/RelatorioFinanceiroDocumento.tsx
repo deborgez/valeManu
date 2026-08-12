@@ -12,7 +12,7 @@ type Lancamento = {
 type AdequacaoDetalhe = {
   id: string;
   numeroProcesso: string;
-  natureza: string;
+  tipoServico: string;
   valor: number;
 };
 
@@ -149,41 +149,40 @@ export default function RelatorioFinanceiroDocumento({
           );
         })}
 
-        <div className="mt-2 border-t border-slate-300 pt-2">
-          <p className="text-sm font-semibold">
-            Subtotal Valores em Aberto: R$ {formatMoedaExibicao(totalLancamentos)}
-          </p>
-        </div>
-      </div>
-
-      {adequacoes.length > 0 && (
-        <div className={SECAO_CLASSE}>
-          <h2 className={TITULO_CLASSE}>Adequações</h2>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs text-slate-500">
-                <th className="pb-1 font-normal">Processo</th>
-                <th className="pb-1 font-normal">Tipo de Serviço</th>
-                <th className="pb-1 text-right font-normal">Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {adequacoes.map((a) => (
-                <tr key={a.id}>
-                  <td className="py-0.5 pr-4">{a.numeroProcesso}</td>
-                  <td className="py-0.5 pr-4">{a.natureza}</td>
-                  <td className="py-0.5 text-right">R$ {formatMoedaExibicao(a.valor)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="mt-2 border-t border-slate-300 pt-2">
-            <p className="text-sm font-semibold">
-              Subtotal Adequações: R$ {formatMoedaExibicao(totalAdequacoes)}
+        {adequacoes.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Adequações
             </p>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-slate-500">
+                  <th className="pb-1 font-normal">Processo</th>
+                  <th className="pb-1 font-normal">Tipo de Serviço</th>
+                  <th className="pb-1 text-right font-normal">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {adequacoes.map((a) => (
+                  <tr key={a.id}>
+                    <td className="py-0.5 pr-4">{a.numeroProcesso}</td>
+                    <td className="py-0.5 pr-4">{a.tipoServico}</td>
+                    <td className="py-0.5 text-right">R$ {formatMoedaExibicao(a.valor)}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <td className="py-0.5 pr-4 font-semibold" colSpan={2}>
+                    Subtotal Adequações
+                  </td>
+                  <td className="py-0.5 text-right font-semibold">
+                    R$ {formatMoedaExibicao(totalAdequacoes)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className={SECAO_CLASSE}>
         <p className="text-sm font-semibold">
