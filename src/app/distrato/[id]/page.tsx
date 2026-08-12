@@ -1224,6 +1224,10 @@ export default async function DistratoDetalhePage({
     { tipo: "CONDOMINIO", titulo: "Condomínio em aberto", nomeCurto: "Condomínio" },
   ];
 
+  const dataReferenciaMulta = distrato.avisoPrevio
+    ? distrato.avisoPrevio.data
+    : parseDataLocal(hoje);
+
   const resultadoMulta = distrato.aluguel
     ? calcularMulta({
         valorAluguel: distrato.aluguel.valor,
@@ -1231,7 +1235,7 @@ export default async function DistratoDetalhePage({
         prazoContratoMeses: processo.prazoContratoMeses,
         prazoMultaMeses: processo.prazoMultaMeses,
         dataInicio: processo.prazoContratoInicio,
-        dataReferencia: parseDataLocal(hoje),
+        dataReferencia: dataReferenciaMulta,
         infracaoContratual: distrato.aluguel.infracaoContratual,
       })
     : null;
@@ -1340,7 +1344,7 @@ export default async function DistratoDetalhePage({
                 Valor da multa
                 {resultadoMulta.infracaoContratual
                   ? ""
-                  : ` (hoje, ${formatData(parseDataLocal(hoje))})`}
+                  : ` (${distrato.avisoPrevio ? "na data do aviso prévio" : "hoje"}, ${formatData(dataReferenciaMulta)})`}
                 : R$ {formatMoedaExibicao(resultadoMulta.multaAtual)}
               </p>
               {!resultadoMulta.infracaoContratual && (

@@ -1210,7 +1210,7 @@ export async function registrarLancamentoFinanceiro(
   const subtipo = subtipoBruto === "SERVICO" ? "SERVICO" : subtipoBruto === "CONTA" ? "CONTA" : null;
   const nomeServico = subtipo === "SERVICO" ? (formData.get("nomeServico") as string) || null : null;
   const periodoDiasStr = subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
-  const periodoDias = periodoDiasStr ? parseInt(periodoDiasStr, 10) : null;
+  const periodoDias = periodoDiasStr ? Math.min(parseInt(periodoDiasStr, 10), 31) : null;
 
   await prisma.lancamentoFinanceiro.create({
     data: {
@@ -1245,7 +1245,7 @@ export async function editarLancamentoFinanceiro(
   const subtipo = subtipoBruto === "SERVICO" ? "SERVICO" : subtipoBruto === "CONTA" ? "CONTA" : null;
   const nomeServico = subtipo === "SERVICO" ? (formData.get("nomeServico") as string) || null : null;
   const periodoDiasStr = subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
-  const periodoDias = periodoDiasStr ? parseInt(periodoDiasStr, 10) : null;
+  const periodoDias = periodoDiasStr ? Math.min(parseInt(periodoDiasStr, 10), 31) : null;
 
   const antigo = await prisma.lancamentoFinanceiro.findUniqueOrThrow({
     where: { id: lancamentoId },

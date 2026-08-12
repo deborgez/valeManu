@@ -177,10 +177,13 @@ export default function LancamentoFinanceiroModal({
                   type="number"
                   name="periodoDias"
                   min="1"
+                  max="31"
                   value={periodoDias}
                   onChange={(e) => {
-                    setPeriodoDias(e.target.value);
-                    recalcular(mesCompetencia, e.target.value);
+                    const bruto = e.target.value;
+                    const valor = bruto === "" ? "" : String(Math.min(parseInt(bruto, 10) || 0, 31));
+                    setPeriodoDias(valor);
+                    recalcular(mesCompetencia, valor);
                   }}
                   className={CAMPO_CLASSE}
                 />
