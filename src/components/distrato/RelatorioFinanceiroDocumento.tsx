@@ -9,40 +9,51 @@ type Lancamento = {
   valor: number;
 };
 
+type AdequacaoDetalhe = {
+  id: string;
+  numeroProcesso: string;
+  natureza: string;
+  valor: number;
+};
+
+const SECAO_CLASSE = "mb-6 rounded border border-slate-200 p-4";
+const TITULO_CLASSE = "mb-3 border-b border-slate-200 pb-2 text-sm font-semibold";
+
 export default function RelatorioFinanceiroDocumento({
   numeroProcesso,
   valorAluguel,
   prazoContratoMeses,
+  prazoMultaMeses,
   prazoContratoInicio,
   dataAvisoPrevio,
   dataEntregaChaves,
   sinalEntregaChaves,
-  prazoMultaMeses,
   tituloMulta,
   valorMulta,
   detalheMulta,
   categoriasLancamento,
-  totalAdequacoesLocatario,
+  adequacoes,
 }: {
   numeroProcesso: string;
   valorAluguel: number | null;
   prazoContratoMeses: number | null;
+  prazoMultaMeses: number | null;
   prazoContratoInicio: Date | null;
   dataAvisoPrevio: Date | null;
   dataEntregaChaves: Date | null;
   sinalEntregaChaves: string | null;
-  prazoMultaMeses: number | null;
   tituloMulta: string | null;
   valorMulta: number | null;
   detalheMulta: string | null;
   categoriasLancamento: { titulo: string; itens: Lancamento[] }[];
-  totalAdequacoesLocatario: number;
+  adequacoes: AdequacaoDetalhe[];
 }) {
   const totalLancamentos = categoriasLancamento.reduce(
     (soma, cat) => soma + cat.itens.reduce((s, l) => s + l.valor, 0),
     0
   );
-  const totalGeralAberto = totalLancamentos + totalAdequacoesLocatario;
+  const totalAdequacoes = adequacoes.reduce((soma, a) => soma + a.valor, 0);
+  const totalGeralAberto = totalLancamentos + totalAdequacoes;
 
   return (
     <div className="text-black">
@@ -51,8 +62,8 @@ export default function RelatorioFinanceiroDocumento({
         <p className="text-xs text-slate-600">Processo {numeroProcesso}</p>
       </div>
 
-      <div className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold">Datas e Prazos</h2>
+      <div className={SECAO_CLASSE}>
+        <h2 className={TITULO_CLASSE}>Datas e Prazos</h2>
         <table className="w-full text-sm">
           <tbody>
             <tr>
@@ -66,6 +77,10 @@ export default function RelatorioFinanceiroDocumento({
               <td className="py-1">
                 {prazoContratoMeses ? `${prazoContratoMeses} meses` : "—"}
               </td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-4 text-slate-500">Prazo da multa</td>
+              <td className="py-1">{prazoMultaMeses ? `${prazoMultaMeses} meses` : "—"}</td>
             </tr>
             <tr>
               <td className="py-1 pr-4 text-slate-500">Data de início</td>
@@ -84,31 +99,27 @@ export default function RelatorioFinanceiroDocumento({
                 {sinalEntregaChaves ? ` — ${sinalEntregaChaves}` : ""}
               </td>
             </tr>
-            <tr>
-              <td className="py-1 pr-4 text-slate-500">Prazo da multa</td>
-              <td className="py-1">{prazoMultaMeses ? `${prazoMultaMeses} meses` : "—"}</td>
-            </tr>
           </tbody>
         </table>
       </div>
 
       {tituloMulta && valorMulta !== null && (
-        <div className="mb-6">
-          <h2 className="mb-2 text-sm font-semibold">{tituloMulta}</h2>
+        <div className={SECAO_CLASSE}>
+          <h2 className={TITULO_CLASSE}>{tituloMulta}</h2>
           <p className="text-sm">R$ {formatMoedaExibicao(valorMulta)}</p>
-          {detalheMulta && <p className="text-xs text-slate-500">{detalheMulta}</p>}
+          {detalheMulta && <p className="mt-1 text-xs text-slate-500">{detalheMulta}</p>}
         </div>
       )}
 
-      <div className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold">Valores em Aberto</h2>
+      <div className={SECAO_CLASSE}>
+        <h2 className={TITULO_CLASSE}>Valores em Aberto</h2>
 
         {categoriasLancamento.map((categoria) => {
           if (categoria.itens.length === 0) return null;
           const totalCategoria = categoria.itens.reduce((s, l) => s + l.valor, 0);
 
           return (
-            <div key={categoria.titulo} className="mb-3">
+            <div key={categoria.titulo} className="mb-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {categoria.titulo}
               </p>
@@ -138,20 +149,46 @@ export default function RelatorioFinanceiroDocumento({
           );
         })}
 
-        {totalAdequacoesLocatario > 0 && (
-          <div className="mb-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Adequações
-            </p>
-            <p className="text-sm">R$ {formatMoedaExibicao(totalAdequacoesLocatario)}</p>
-          </div>
-        )}
-
-        <div className="mt-4 border-t border-slate-300 pt-2">
+        <div className="mt-2 border-t border-slate-300 pt-2">
           <p className="text-sm font-semibold">
-            Total geral em aberto: R$ {formatMoedaExibicao(totalGeralAberto)}
+            Subtotal Valores em Aberto: R$ {formatMoedaExibicao(totalLancamentos)}
           </p>
         </div>
+      </div>
+
+      {adequacoes.length > 0 && (
+        <div className={SECAO_CLASSE}>
+          <h2 className={TITULO_CLASSE}>Adequações</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-slate-500">
+                <th className="pb-1 font-normal">Processo</th>
+                <th className="pb-1 font-normal">Tipo de Serviço</th>
+                <th className="pb-1 text-right font-normal">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adequacoes.map((a) => (
+                <tr key={a.id}>
+                  <td className="py-0.5 pr-4">{a.numeroProcesso}</td>
+                  <td className="py-0.5 pr-4">{a.natureza}</td>
+                  <td className="py-0.5 text-right">R$ {formatMoedaExibicao(a.valor)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="mt-2 border-t border-slate-300 pt-2">
+            <p className="text-sm font-semibold">
+              Subtotal Adequações: R$ {formatMoedaExibicao(totalAdequacoes)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className={SECAO_CLASSE}>
+        <p className="text-sm font-semibold">
+          Total geral em aberto: R$ {formatMoedaExibicao(totalGeralAberto)}
+        </p>
       </div>
     </div>
   );

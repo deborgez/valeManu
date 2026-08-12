@@ -1080,6 +1080,15 @@ export default async function DistratoDetalhePage({
     0
   );
   const totalLocatarioGeral = totalLocatarioPrestador + totalLocatarioAdministracao;
+  const adequacoesLocatarioDetalhe = adequacoesLocatario.map((a) => {
+    const { valorPrestador, valorAdministracao } = valoresAdequacao(a);
+    return {
+      id: a.id,
+      numeroProcesso: a.numeroProcesso,
+      natureza: a.natureza,
+      valor: (valorPrestador ?? 0) + valorAdministracao,
+    };
+  });
 
   const conteudoAdequacoes = (
     <section className={SECAO_CLASSE}>
@@ -1486,7 +1495,7 @@ export default async function DistratoDetalhePage({
             valorMulta={resultadoMulta?.multaAtual ?? null}
             detalheMulta={detalheMulta}
             categoriasLancamento={categoriasLancamento}
-            totalAdequacoesLocatario={totalLocatarioGeral}
+            adequacoes={adequacoesLocatarioDetalhe}
           />
         </ImpressaoModal>
       </div>
