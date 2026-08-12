@@ -47,6 +47,11 @@ enum SubtipoLancamento {
   SERVICO
 }
 
+enum TipoDesconto {
+  PERCENTUAL
+  VALOR
+}
+
 enum PedidoOrcamentoStatus {
   AGUARDANDO_ENTREGA
   NAO_ENTREGUE
@@ -142,6 +147,7 @@ model User {
   decisoesAdequacaoCriadas DecisaoAdequacao[] @relation("DecisaoAdequacaoCriadoPor")
   alugueisDistratoCriados  AluguelDistrato[] @relation("AluguelDistratoCriadoPor")
   lancamentosFinanceirosCriados LancamentoFinanceiro[] @relation("LancamentoFinanceiroCriadoPor")
+  acordosDistratoCriados AcordoDistrato[] @relation("AcordoDistratoCriadoPor")
 }
 
 model Prestador {
@@ -358,6 +364,7 @@ model Distrato {
   adequacoes       Manutencao[]
   aluguel          AluguelDistrato?
   lancamentosFinanceiros LancamentoFinanceiro[]
+  acordo                 AcordoDistrato?
 
   avisoPrevio         AvisoPrevioLocatario?
   comunicadoLocador   ComunicadoLocador?
@@ -412,6 +419,38 @@ model LancamentoFinanceiro {
 
   criadoPorId String?
   criadoPor   User?   @relation("LancamentoFinanceiroCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model AcordoDistrato {
+  id              String        @id @default(cuid())
+  valorOriginal   Float
+  tipoDesconto    TipoDesconto?
+  valorDesconto   Float         @default(0)
+  valorFinal      Float
+  numeroParcelas  Int
+  primeiraParcela DateTime
+  observacoes     String?
+  createdAt       DateTime      @default(now())
+
+  distratoId String   @unique
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("AcordoDistratoCriadoPor", fields: [criadoPorId], references: [id])
+
+  parcelas ParcelaAcordo[]
+}
+
+model ParcelaAcordo {
+  id             String    @id @default(cuid())
+  numero         Int
+  dataVencimento DateTime
+  valor          Float
+  pago           Boolean   @default(false)
+  dataPagamento  DateTime?
+
+  acordoId String
+  acordo   AcordoDistrato @relation(fields: [acordoId], references: [id])
 }
 
 model DistratoAuditoria {

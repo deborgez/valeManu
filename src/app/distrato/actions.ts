@@ -4,7 +4,13 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { formatData, hojeSaoPaulo, parseDataLocal, formatMesCompetencia } from "@/lib/datahora";
+import {
+  formatData,
+  hojeSaoPaulo,
+  parseDataLocal,
+  formatMesCompetencia,
+  addMeses,
+} from "@/lib/datahora";
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
 
@@ -22,6 +28,7 @@ const SECAO = {
   COMUNICADO_ENCERRAMENTO_LOCATARIO: "COMUNICADO_ENCERRAMENTO_LOCATARIO",
   ADEQUACOES: "ADEQUACOES",
   ALUGUEL: "ALUGUEL",
+  ACORDO: "ACORDO",
 } as const;
 
 async function logAuditoria(
@@ -1284,6 +1291,169 @@ export async function excluirLancamentoFinanceiro(lancamentoId: string, distrato
     `LANCAMENTO_${registro.tipo}`,
     "Excluiu",
     `Competência ${formatMesCompetencia(registro.mesCompetencia)}: R$ ${formatMoedaExibicao(registro.valor)}`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+function calcularAcordo(formData: FormData) {
+  const valorOriginal = parseMoeda(formData.get("valorOriginal"));
+  const tipoDescontoBruto = (formData.get("tipoDesconto") as string) || "";
+  const tipoDesconto =
+    tipoDescontoBruto === "PERCENTUAL" || tipoDescontoBruto === "VALOR"
+      ? (tipoDescontoBruto as "PERCENTUAL" | "VALOR")
+      : null;
+  const valorDescontoInput = parseMoeda(formData.get("valorDesconto"));
+  const valorDesconto = tipoDesconto ? valorDescontoInput : 0;
+
+  let valorFinal = valorOriginal;
+  if (tipoDesconto === "PERCENTUAL") {
+    valorFinal = valorOriginal * (1 - valorDesconto / 100);
+  } else if (tipoDesconto === "VALOR") {
+    valorFinal = valorOriginal - valorDesconto;
+  }
+  valorFinal = Math.max(Math.round(valorFinal * 100) / 100, 0);
+
+  const numeroParcelas = Math.max(parseInt(String(formData.get("numeroParcelas")), 10) || 1, 1);
+  const primeiraParcelaStr = String(formData.get("primeiraParcela"));
+  const primeiraParcela = parseDataLocal(primeiraParcelaStr);
+  const observacoes = (formData.get("observacoes") as string) || null;
+
+  return { valorOriginal, tipoDesconto, valorDesconto, valorFinal, numeroParcelas, primeiraParcela, observacoes };
+}
+
+function gerarParcelas(
+  acordoId: string,
+  valorFinal: number,
+  numeroParcelas: number,
+  primeiraParcela: Date
+) {
+  const valorBase = Math.floor((valorFinal / numeroParcelas) * 100) / 100;
+  const parcelas = [];
+  let acumulado = 0;
+  for (let i = 0; i < numeroParcelas; i++) {
+    const ultima = i === numeroParcelas - 1;
+    const valor = ultima ? Math.round((valorFinal - acumulado) * 100) / 100 : valorBase;
+    acumulado += valor;
+    parcelas.push({
+      acordoId,
+      numero: i + 1,
+      dataVencimento: addMeses(primeiraParcela, i),
+      valor,
+    });
+  }
+  return parcelas;
+}
+
+export async function registrarAcordo(distratoId: string, formData: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const { valorOriginal, tipoDesconto, valorDesconto, valorFinal, numeroParcelas, primeiraParcela, observacoes } =
+    calcularAcordo(formData);
+
+  const acordo = await prisma.acordoDistrato.create({
+    data: {
+      distratoId,
+      valorOriginal,
+      tipoDesconto,
+      valorDesconto,
+      valorFinal,
+      numeroParcelas,
+      primeiraParcela,
+      observacoes,
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await prisma.parcelaAcordo.createMany({
+    data: gerarParcelas(acordo.id, valorFinal, numeroParcelas, primeiraParcela),
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ACORDO,
+    "Registrou",
+    `Valor original: R$ ${formatMoedaExibicao(valorOriginal)} — Valor final: R$ ${formatMoedaExibicao(valorFinal)} em ${numeroParcelas}x`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function editarAcordo(distratoId: string, formData: FormData) {
+  const { valorOriginal, tipoDesconto, valorDesconto, valorFinal, numeroParcelas, primeiraParcela, observacoes } =
+    calcularAcordo(formData);
+
+  const antigo = await prisma.acordoDistrato.findUniqueOrThrow({
+    where: { distratoId },
+  });
+
+  await prisma.$transaction([
+    prisma.parcelaAcordo.deleteMany({ where: { acordoId: antigo.id } }),
+    prisma.acordoDistrato.update({
+      where: { distratoId },
+      data: {
+        valorOriginal,
+        tipoDesconto,
+        valorDesconto,
+        valorFinal,
+        numeroParcelas,
+        primeiraParcela,
+        observacoes,
+      },
+    }),
+    prisma.parcelaAcordo.createMany({
+      data: gerarParcelas(antigo.id, valorFinal, numeroParcelas, primeiraParcela),
+    }),
+  ]);
+
+  const detalhe = descreverAlteracoes(
+    antigo,
+    { valorOriginal, valorFinal, numeroParcelas },
+    {
+      valorOriginal: { label: "o valor original", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
+      valorFinal: { label: "o valor final", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
+      numeroParcelas: { label: "o número de parcelas" },
+    }
+  );
+
+  if (detalhe) {
+    await logAuditoria(distratoId, SECAO.ACORDO, "Editou", detalhe);
+  }
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function excluirAcordo(distratoId: string) {
+  const registro = await prisma.acordoDistrato.findUniqueOrThrow({
+    where: { distratoId },
+  });
+
+  await prisma.$transaction([
+    prisma.parcelaAcordo.deleteMany({ where: { acordoId: registro.id } }),
+    prisma.acordoDistrato.delete({ where: { distratoId } }),
+  ]);
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ACORDO,
+    "Excluiu",
+    `Valor final: R$ ${formatMoedaExibicao(registro.valorFinal)} em ${registro.numeroParcelas}x`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function alternarParcelaPaga(parcelaId: string, distratoId: string, pago: boolean) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const parcela = await prisma.parcelaAcordo.update({
+    where: { id: parcelaId },
+    data: { pago, dataPagamento: pago ? new Date() : null },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ACORDO,
+    "Editou",
+    `Parcela ${parcela.numero}: ${pago ? "marcada como paga" : "marcada como pendente"}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }

@@ -25,6 +25,8 @@ import TipoMultaSelector from "@/components/distrato/TipoMultaSelector";
 import ImpressaoModal from "@/components/ImpressaoModal";
 import RelatorioFinanceiroDocumento from "@/components/distrato/RelatorioFinanceiroDocumento";
 import LancamentoFinanceiroModal from "@/components/distrato/LancamentoFinanceiroModal";
+import AcordoModal from "@/components/distrato/AcordoModal";
+import ParcelaPagaToggle from "@/components/distrato/ParcelaPagaToggle";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -83,6 +85,10 @@ import {
   registrarLancamentoFinanceiro,
   editarLancamentoFinanceiro,
   excluirLancamentoFinanceiro,
+  registrarAcordo,
+  editarAcordo,
+  excluirAcordo,
+  alternarParcelaPaga,
 } from "../actions";
 
 const SECAO_CLASSE =
@@ -223,6 +229,12 @@ export default async function DistratoDetalhePage({
       lancamentosFinanceiros: {
         orderBy: { mesCompetencia: "asc" },
         include: { criadoPor: { select: { nome: true } } },
+      },
+      acordo: {
+        include: {
+          criadoPor: { select: { nome: true } },
+          parcelas: { orderBy: { numero: "asc" } },
+        },
       },
       decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
       adequacoes: {
@@ -1287,6 +1299,13 @@ export default async function DistratoDetalhePage({
     itens: distrato.lancamentosFinanceiros.filter((l) => l.tipo === tipo),
   }));
 
+  const totalTodosLancamentos = distrato.lancamentosFinanceiros.reduce(
+    (soma, l) => soma + l.valor,
+    0
+  );
+  const valorSugeridoAcordo =
+    totalTodosLancamentos + totalLocatarioGeral + (resultadoMulta?.multaAtual ?? 0);
+
   const conteudoFinanceiro = (
     <>
       <section className={SECAO_CLASSE}>
@@ -1499,6 +1518,102 @@ export default async function DistratoDetalhePage({
           </div>
         </section>
       )}
+
+      <section className={SECAO_CLASSE}>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Acordo</h2>
+          <AuditoriaButton entradas={auditoriaPorSecao("ACORDO")} />
+        </div>
+
+        {!distrato.acordo ? (
+          <AcordoModal
+            valorSugerido={valorSugeridoAcordo}
+            action={async (formData: FormData) => {
+              "use server";
+              await registrarAcordo(distrato.id, formData);
+            }}
+          />
+        ) : (
+          <div className="text-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-slate-700 dark:text-slate-300">
+                  Valor original: R$ {formatMoedaExibicao(distrato.acordo.valorOriginal)}
+                </p>
+                {distrato.acordo.tipoDesconto && (
+                  <p className="text-slate-700 dark:text-slate-300">
+                    Desconto:{" "}
+                    {distrato.acordo.tipoDesconto === "PERCENTUAL"
+                      ? `${distrato.acordo.valorDesconto}%`
+                      : `R$ ${formatMoedaExibicao(distrato.acordo.valorDesconto)}`}
+                  </p>
+                )}
+                <p className="font-semibold text-slate-900 dark:text-slate-100">
+                  Valor final: R$ {formatMoedaExibicao(distrato.acordo.valorFinal)} em{" "}
+                  {distrato.acordo.numeroParcelas}x
+                </p>
+                {distrato.acordo.observacoes && (
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {distrato.acordo.observacoes}
+                  </p>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <AcordoModal
+                  registro={{
+                    valorOriginal: distrato.acordo.valorOriginal,
+                    tipoDesconto: distrato.acordo.tipoDesconto,
+                    valorDesconto: distrato.acordo.valorDesconto,
+                    numeroParcelas: distrato.acordo.numeroParcelas,
+                    primeiraParcela: distrato.acordo.primeiraParcela.toISOString().slice(0, 10),
+                    observacoes: distrato.acordo.observacoes,
+                  }}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await editarAcordo(distrato.id, formData);
+                  }}
+                />
+                <ExcluirBotao
+                  onExcluir={async () => {
+                    "use server";
+                    await excluirAcordo(distrato.id);
+                  }}
+                />
+              </div>
+            </div>
+            <InfoSistema
+              data={distrato.acordo.createdAt}
+              usuario={distrato.acordo.criadoPor?.nome}
+            />
+
+            <Divisor>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Parcelas
+              </p>
+              <ul className="flex flex-col gap-2">
+                {distrato.acordo.parcelas.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+                  >
+                    <span className="text-slate-700 dark:text-slate-300">
+                      {p.numero}/{distrato.acordo!.numeroParcelas} — {formatData(p.dataVencimento)} — R${" "}
+                      {formatMoedaExibicao(p.valor)}
+                    </span>
+                    <ParcelaPagaToggle
+                      pago={p.pago}
+                      action={async (pago: boolean) => {
+                        "use server";
+                        await alternarParcelaPaga(p.id, distrato.id, pago);
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </Divisor>
+          </div>
+        )}
+      </section>
 
       <div className="flex justify-end">
         <ImpressaoModal label="Relatório Financeiro">

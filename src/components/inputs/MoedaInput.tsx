@@ -6,9 +6,12 @@ import { InputHTMLAttributes } from "react";
 export default function MoedaInput({
   className,
   defaultValue,
+  onValueChange,
   ...props
 }: Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> & {
   defaultValue?: number | null;
+  /** Chamado após a formatação, com o valor exibido (ex.: "1.234,56"). Útil para cálculos ao vivo. */
+  onValueChange?: (valorFormatado: string) => void;
 }) {
   return (
     <input
@@ -21,6 +24,7 @@ export default function MoedaInput({
       }
       onChange={(e) => {
         e.target.value = formatMoedaDigits(e.target.value);
+        onValueChange?.(e.target.value);
       }}
       className={className}
     />

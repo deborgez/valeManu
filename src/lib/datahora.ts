@@ -70,3 +70,9 @@ export function formatMesCompetencia(mesCompetencia: string): string {
   const nome = MESES[parseInt(mes, 10) - 1] ?? mes;
   return `${nome}/${ano}`;
 }
+
+export function addMeses(data: Date, meses: number): Date {
+  const nova = new Date(data);
+  nova.setMonth(nova.getMonth() + meses);
+  return nova;
+}
