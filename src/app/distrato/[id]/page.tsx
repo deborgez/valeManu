@@ -208,61 +208,76 @@ export default async function DistratoDetalhePage({
   const { id } = await params;
   const { erroComunicado, erroComunicadoVistoria, erroExcluirAdequacao } = await searchParams;
 
-  const distrato = await prisma.distrato.findUnique({
-    where: { id },
+  // Consultada separadamente (em paralelo) para não inflar a query principal:
+  // envolve um include triplamente aninhado (pedidosOrcamento -> prestador) que,
+  // combinado com as ~15 outras relações abaixo, tornava a query única muito
+  // cara de planejar/executar no Postgres.
+  const adequacoesPromise = prisma.manutencao.findMany({
+    where: { distratoId: id },
+    orderBy: { createdAt: "desc" },
     include: {
-      processo: { include: { partes: true } },
-      avisoPrevio: { include: { criadoPor: { select: { nome: true } } } },
-      comunicadoLocador: { include: { criadoPor: { select: { nome: true } } } },
-      contatos: {
-        orderBy: { data: "desc" },
-        include: { criadoPor: { select: { nome: true } } },
-      },
-      entregaChaves: { include: { criadoPor: { select: { nome: true } } } },
-      agendamentoVistoria: { include: { criadoPor: { select: { nome: true } } } },
-      comunicadoVistoria: { include: { criadoPor: { select: { nome: true } } } },
-      vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
-      laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
-      comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
-      comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
-      aluguel: { include: { criadoPor: { select: { nome: true } } } },
-      lancamentosFinanceiros: {
-        orderBy: { mesCompetencia: "asc" },
-        include: { criadoPor: { select: { nome: true } } },
-      },
-      acordo: {
-        include: {
-          criadoPor: { select: { nome: true } },
-          parcelas: { orderBy: { numero: "asc" } },
+      inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
+      pedidosOrcamento: {
+        select: {
+          id: true,
+          status: true,
+          valorMaoDeObra: true,
+          valorMaterial: true,
+          percentualAdministracao: true,
+          prestador: { select: { especialidade: true } },
         },
       },
-      decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
-      adequacoes: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
-          pedidosOrcamento: {
-            select: {
-              id: true,
-              status: true,
-              valorMaoDeObra: true,
-              valorMaterial: true,
-              percentualAdministracao: true,
-              prestador: { select: { especialidade: true } },
-            },
-          },
-          pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
-          criadoPor: { select: { nome: true } },
-        },
-      },
-      auditorias: {
-        orderBy: { createdAt: "desc" },
-        include: { usuario: { select: { nome: true } } },
-      },
+      pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
+      criadoPor: { select: { nome: true } },
     },
   });
 
-  if (!distrato) notFound();
+  const auditoriasPromise = prisma.distratoAuditoria.findMany({
+    where: { distratoId: id },
+    orderBy: { createdAt: "desc" },
+    take: 300,
+    include: { usuario: { select: { nome: true } } },
+  });
+
+  const [distratoBase, adequacoes, auditorias] = await Promise.all([
+    prisma.distrato.findUnique({
+      where: { id },
+      include: {
+        processo: { include: { partes: true } },
+        avisoPrevio: { include: { criadoPor: { select: { nome: true } } } },
+        comunicadoLocador: { include: { criadoPor: { select: { nome: true } } } },
+        contatos: {
+          orderBy: { data: "desc" },
+          include: { criadoPor: { select: { nome: true } } },
+        },
+        entregaChaves: { include: { criadoPor: { select: { nome: true } } } },
+        agendamentoVistoria: { include: { criadoPor: { select: { nome: true } } } },
+        comunicadoVistoria: { include: { criadoPor: { select: { nome: true } } } },
+        vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
+        laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
+        comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
+        comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
+        aluguel: { include: { criadoPor: { select: { nome: true } } } },
+        lancamentosFinanceiros: {
+          orderBy: { mesCompetencia: "asc" },
+          include: { criadoPor: { select: { nome: true } } },
+        },
+        acordo: {
+          include: {
+            criadoPor: { select: { nome: true } },
+            parcelas: { orderBy: { numero: "asc" } },
+          },
+        },
+        decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
+      },
+    }),
+    adequacoesPromise,
+    auditoriasPromise,
+  ]);
+
+  if (!distratoBase) notFound();
+
+  const distrato = { ...distratoBase, adequacoes, auditorias };
 
   const hoje = hojeSaoPaulo();
   const { processo } = distrato;
