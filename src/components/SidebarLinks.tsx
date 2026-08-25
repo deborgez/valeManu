@@ -10,11 +10,18 @@ export default function SidebarLinks({
 }) {
   const pathname = usePathname();
 
+  const linkAtivo = links
+    .filter((link) =>
+      link.href === "/"
+        ? pathname === "/"
+        : pathname === link.href || pathname.startsWith(`${link.href}/`)
+    )
+    .sort((a, b) => b.href.length - a.href.length)[0];
+
   return (
     <div className="flex flex-col gap-0.5">
       {links.map((link) => {
-        const ativo =
-          link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+        const ativo = link.href === linkAtivo?.href;
         return (
           <Link
             key={link.href}
