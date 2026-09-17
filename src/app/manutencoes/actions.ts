@@ -59,3 +59,26 @@ export async function atualizarEndereco(manutencaoId: string, formData: FormData
   revalidatePath("/manutencoes");
   revalidatePath("/");
 }
+
+export async function atualizarDadosSolicitante(
+  manutencaoId: string,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  await prisma.manutencao.update({
+    where: { id: manutencaoId },
+    data: {
+      solicitanteTipo: formData.get("solicitanteTipo") as "LOCADOR" | "LOCATARIO" | "IMOBILIARIA",
+      solicitanteNome: (formData.get("solicitanteNome") as string) || null,
+      solicitanteCpf: (formData.get("solicitanteCpf") as string) || null,
+      competencia: formData.get("competencia") as "LOCADOR" | "LOCATARIO" | "IMOBILIARIA",
+      natureza: String(formData.get("natureza")),
+    },
+  });
+
+  revalidatePath(`/manutencoes/${manutencaoId}`);
+  revalidatePath("/manutencoes");
+  revalidatePath("/");
+}

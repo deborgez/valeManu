@@ -22,14 +22,13 @@ import { formatMoedaExibicao } from "@/lib/masks";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import { formatEndereco } from "@/lib/endereco";
 import EditarEnderecoForm from "@/components/EditarEnderecoForm";
+import EditarDadosSolicitanteForm from "@/components/EditarDadosSolicitanteForm";
 import ReabrirServicoForm from "@/components/ReabrirServicoForm";
-import { atualizarEndereco } from "../actions";
+import { atualizarEndereco, atualizarDadosSolicitante } from "../actions";
 import TrilhaEtapas from "@/components/TrilhaEtapas";
 import { etapaAtualIndex } from "@/lib/trilha";
 import {
-  LABEL_MANUTENCAO_STATUS,
   LABEL_PEDIDO_STATUS,
-  LABEL_PARTE,
   LABEL_PAGAMENTO_STATUS,
 } from "@/lib/labels";
 import ImpressaoModal from "@/components/ImpressaoModal";
@@ -138,26 +137,13 @@ export default async function ManutencaoDetalhePage({
             await atualizarEndereco(manutencao.id, formData);
           }}
         />
-        <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
-          <p>
-            <span className="text-slate-400 dark:text-slate-500">Solicitante: </span>
-            {LABEL_PARTE[manutencao.solicitanteTipo]}
-            {manutencao.solicitanteNome ? ` — ${manutencao.solicitanteNome}` : ""}
-            {manutencao.solicitanteCpf ? ` (${manutencao.solicitanteCpf})` : ""}
-          </p>
-          <p>
-            <span className="text-slate-400 dark:text-slate-500">Competência: </span>
-            {LABEL_PARTE[manutencao.competencia]}
-          </p>
-          <p>
-            <span className="text-slate-400 dark:text-slate-500">Natureza: </span>
-            {manutencao.natureza}
-          </p>
-          <p>
-            <span className="text-slate-400 dark:text-slate-500">Status: </span>
-            {LABEL_MANUTENCAO_STATUS[manutencao.status] ?? manutencao.status}
-          </p>
-        </div>
+        <EditarDadosSolicitanteForm
+          registro={manutencao}
+          action={async (formData: FormData) => {
+            "use server";
+            await atualizarDadosSolicitante(manutencao.id, formData);
+          }}
+        />
         <p className="mt-3 text-sm text-slate-700 dark:text-slate-300">
           {manutencao.descricaoProblema}
         </p>
