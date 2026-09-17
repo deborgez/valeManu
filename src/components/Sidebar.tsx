@@ -19,6 +19,7 @@ export default async function Sidebar() {
   const linksDistrato = [
     { href: "/distrato/novo", label: "Novo Distrato" },
     { href: "/distrato", label: "Distratos" },
+    { href: "/distrato/relatorios", label: "Relatórios" },
   ];
 
   const linksConfiguracoes = [
