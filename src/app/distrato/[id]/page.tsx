@@ -253,7 +253,6 @@ export default async function DistratoDetalhePage({
         acordo: {
           include: {
             criadoPor: { select: { nome: true } },
-            enviadoJuridicoPor: { select: { nome: true } },
             parcelas: {
               orderBy: { numero: "asc" },
               include: {
@@ -266,6 +265,7 @@ export default async function DistratoDetalhePage({
           },
         },
         decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
+        enviadoJuridicoPor: { select: { nome: true } },
       },
     }),
     adequacoesPromise,
@@ -1341,6 +1341,47 @@ export default async function DistratoDetalhePage({
   const conteudoFinanceiro = (
     <>
       <section className={SECAO_CLASSE}>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Jurídico</h2>
+          <AuditoriaButton entradas={auditoriaPorSecao("JURIDICO")} />
+        </div>
+        {distrato.enviadoJuridico ? (
+          <div className="flex items-start justify-between gap-3 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs">
+            <div className="text-amber-700 dark:text-amber-400">
+              <p className="font-medium">
+                Enviado para o Jurídico em{" "}
+                {distrato.dataEnvioJuridico ? formatData(distrato.dataEnvioJuridico) : "—"}
+                {distrato.enviadoJuridicoPor?.nome
+                  ? ` por ${distrato.enviadoJuridicoPor.nome}`
+                  : ""}
+              </p>
+              {distrato.motivoJuridico && <p className="mt-0.5">{distrato.motivoJuridico}</p>}
+            </div>
+            <form
+              action={async () => {
+                "use server";
+                await retirarDoJuridico(distrato.id);
+              }}
+            >
+              <button
+                type="submit"
+                className="shrink-0 text-amber-600 dark:text-amber-400 underline hover:text-amber-800 dark:hover:text-amber-200"
+              >
+                Retirar
+              </button>
+            </form>
+          </div>
+        ) : (
+          <EnviarJuridicoModal
+            action={async (formData: FormData) => {
+              "use server";
+              await enviarParaJuridico(distrato.id, formData);
+            }}
+          />
+        )}
+      </section>
+
+      <section className={SECAO_CLASSE}>
         <SecaoTitulo titulo="Aluguel" auditoria={auditoriaPorSecao("ALUGUEL")} />
 
         {!distrato.aluguel ? (
@@ -1642,47 +1683,6 @@ export default async function DistratoDetalhePage({
             />
 
             <Divisor>
-              {distrato.acordo.enviadoJuridico ? (
-                <div className="mb-4 flex items-start justify-between gap-3 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs">
-                  <div className="text-amber-700 dark:text-amber-400">
-                    <p className="font-medium">
-                      Enviado para o Jurídico em{" "}
-                      {distrato.acordo.dataEnvioJuridico
-                        ? formatData(distrato.acordo.dataEnvioJuridico)
-                        : "—"}
-                      {distrato.acordo.enviadoJuridicoPor?.nome
-                        ? ` por ${distrato.acordo.enviadoJuridicoPor.nome}`
-                        : ""}
-                    </p>
-                    {distrato.acordo.motivoJuridico && (
-                      <p className="mt-0.5">{distrato.acordo.motivoJuridico}</p>
-                    )}
-                  </div>
-                  <form
-                    action={async () => {
-                      "use server";
-                      await retirarDoJuridico(distrato.id);
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      className="shrink-0 text-amber-600 dark:text-amber-400 underline hover:text-amber-800 dark:hover:text-amber-200"
-                    >
-                      Retirar
-                    </button>
-                  </form>
-                </div>
-              ) : (
-                <div className="mb-4">
-                  <EnviarJuridicoModal
-                    action={async (formData: FormData) => {
-                      "use server";
-                      await enviarParaJuridico(distrato.id, formData);
-                    }}
-                  />
-                </div>
-              )}
-
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Parcelas
               </p>

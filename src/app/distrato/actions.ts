@@ -30,6 +30,7 @@ const SECAO = {
   ADEQUACOES: "ADEQUACOES",
   ALUGUEL: "ALUGUEL",
   ACORDO: "ACORDO",
+  JURIDICO: "JURIDICO",
 } as const;
 
 async function logAuditoria(
@@ -1605,8 +1606,8 @@ export async function enviarParaJuridico(distratoId: string, formData: FormData)
 
   const motivo = (formData.get("motivo") as string) || null;
 
-  await prisma.acordoDistrato.update({
-    where: { distratoId },
+  await prisma.distrato.update({
+    where: { id: distratoId },
     data: {
       enviadoJuridico: true,
       dataEnvioJuridico: new Date(),
@@ -1617,7 +1618,7 @@ export async function enviarParaJuridico(distratoId: string, formData: FormData)
 
   await logAuditoria(
     distratoId,
-    SECAO.ACORDO,
+    SECAO.JURIDICO,
     "Enviou",
     motivo ? `Enviado para o Jurídico: ${motivo}` : "Enviado para o Jurídico."
   );
@@ -1629,8 +1630,8 @@ export async function retirarDoJuridico(distratoId: string) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
 
-  await prisma.acordoDistrato.update({
-    where: { distratoId },
+  await prisma.distrato.update({
+    where: { id: distratoId },
     data: {
       enviadoJuridico: false,
       dataEnvioJuridico: null,
@@ -1639,7 +1640,7 @@ export async function retirarDoJuridico(distratoId: string) {
     },
   });
 
-  await logAuditoria(distratoId, SECAO.ACORDO, "Editou", "Retirado do Jurídico.");
+  await logAuditoria(distratoId, SECAO.JURIDICO, "Editou", "Retirado do Jurídico.");
   revalidatePath(`/distrato/${distratoId}`);
   revalidatePath("/juridico");
 }

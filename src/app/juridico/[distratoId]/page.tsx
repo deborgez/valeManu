@@ -64,17 +64,17 @@ export default async function DossieJuridicoPage({
       acordo: {
         include: {
           criadoPor: { select: { nome: true } },
-          enviadoJuridicoPor: { select: { nome: true } },
           parcelas: {
             orderBy: { numero: "asc" },
             include: { cobrancas: { orderBy: { data: "desc" } } },
           },
         },
       },
+      enviadoJuridicoPor: { select: { nome: true } },
     },
   });
 
-  if (!distrato || !distrato.acordo?.enviadoJuridico) notFound();
+  if (!distrato || !distrato.enviadoJuridico) notFound();
 
   const { processo, acordo } = distrato;
   const locadores = processo.partes.filter((p) => p.tipo === "LOCADOR");
@@ -142,8 +142,8 @@ export default async function DossieJuridicoPage({
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Enviado ao Jurídico em{" "}
-            {acordo.dataEnvioJuridico ? formatData(acordo.dataEnvioJuridico) : "—"}
-            {acordo.enviadoJuridicoPor?.nome ? ` por ${acordo.enviadoJuridicoPor.nome}` : ""}
+            {distrato.dataEnvioJuridico ? formatData(distrato.dataEnvioJuridico) : "—"}
+            {distrato.enviadoJuridicoPor?.nome ? ` por ${distrato.enviadoJuridicoPor.nome}` : ""}
           </p>
         </div>
         <Link
@@ -154,10 +154,10 @@ export default async function DossieJuridicoPage({
         </Link>
       </div>
 
-      {acordo.motivoJuridico && (
+      {distrato.motivoJuridico && (
         <div className="mb-6 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-4 text-sm text-amber-700 dark:text-amber-400">
           <p className="mb-1 font-semibold">Motivo do envio</p>
-          <p>{acordo.motivoJuridico}</p>
+          <p>{distrato.motivoJuridico}</p>
         </div>
       )}
 
@@ -356,6 +356,12 @@ export default async function DossieJuridicoPage({
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
           Acordo
         </h2>
+        {!acordo ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Nenhum acordo registrado para este processo.
+          </p>
+        ) : (
+          <>
         <div className="mb-4 text-sm text-slate-700 dark:text-slate-300">
           <p>Valor original: R$ {formatMoedaExibicao(acordo.valorOriginal)}</p>
           {acordo.tipoDesconto && (
@@ -458,6 +464,8 @@ export default async function DossieJuridicoPage({
             );
           })}
         </ul>
+          </>
+        )}
       </section>
     </div>
   );
