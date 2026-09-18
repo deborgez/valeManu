@@ -16,18 +16,19 @@ export default async function NavBar() {
   const inicial = nomeUsuario.charAt(0).toUpperCase() || "?";
 
   return (
-    <nav className="print:hidden sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-3 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-800/95">
-      <div className="flex items-center gap-3">
+    <nav className="print:hidden sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-2.5 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-800/95">
+      <div className="flex items-center gap-6">
         {imobiliaria?.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imobiliaria.logoUrl}
             alt={imobiliaria.nome}
-            className="h-8 w-auto"
+            className="h-9 w-auto"
           />
         )}
+        <div className="h-9 w-px bg-slate-200 dark:bg-slate-700" />
         <div className="flex flex-col leading-tight">
-          <span className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+          <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Hub de Processos
           </span>
           {imobiliaria?.nome && (
