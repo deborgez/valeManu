@@ -217,7 +217,7 @@ export default function AcordoModal({
                     name="valorDesconto"
                     min="0"
                     step="0.01"
-                    value={valorDesconto}
+                    defaultValue={valorDesconto}
                     onChange={(e) => setValorDesconto(parseFloat(e.target.value) || 0)}
                     disabled={tipoDesconto === ""}
                     className={`${CAMPO_CLASSE} disabled:opacity-50`}
@@ -259,7 +259,7 @@ export default function AcordoModal({
                     name="valorJuros"
                     min="0"
                     step="0.01"
-                    value={valorJuros}
+                    defaultValue={valorJuros}
                     onChange={(e) => setValorJuros(parseFloat(e.target.value) || 0)}
                     disabled={tipoJuros === ""}
                     className={`${CAMPO_CLASSE} disabled:opacity-50`}
@@ -292,7 +292,7 @@ export default function AcordoModal({
                   name="numeroParcelas"
                   min="1"
                   required
-                  value={numeroParcelas}
+                  defaultValue={numeroParcelas}
                   onChange={(e) => setNumeroParcelas(Math.max(parseInt(e.target.value, 10) || 1, 1))}
                   className={CAMPO_CLASSE}
                 />
