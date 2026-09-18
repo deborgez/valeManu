@@ -22,7 +22,7 @@ export default function ImpressaoModal({
       </button>
 
       {aberto && (
-        <div className="print:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 print:bg-white print:p-0">
           <div className="print-area flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg">
             <div className="print:hidden flex justify-end gap-2 border-b border-slate-200 p-3">
               <button
