@@ -50,6 +50,27 @@ export const LABEL_FORMA_CONTATO: Record<string, string> = {
   WHATSAPP: "WhatsApp",
 };
 
+export const LABEL_PARTE_JURIDICA: Record<string, string> = {
+  LOCADOR: "Locador",
+  LOCATARIO: "Locatário",
+  FIADOR: "Fiador",
+};
+
+export const LABEL_MEIO_NOTIFICACAO: Record<string, string> = {
+  AR: "AR (Aviso de Recebimento)",
+  CARTORIO: "Cartório",
+  WHATSAPP: "WhatsApp",
+  EMAIL: "E-mail",
+  OUTRO: "Outro",
+};
+
+export const LABEL_FASE_JURIDICA: Record<string, string> = {
+  ANALISE: "Análise",
+  TRATATIVAS: "Tratativas",
+  NOTIFICACOES: "Notificações",
+  EXECUCAO: "Execução",
+};
+
 export const LABEL_LOCAL_ENTREGA: Record<string, string> = {
   IMOVEL: "Imóvel",
   IMOBILIARIA: "Imobiliária",

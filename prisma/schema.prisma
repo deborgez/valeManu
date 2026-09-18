@@ -151,6 +151,8 @@ model User {
   acordosDistratoCriados AcordoDistrato[] @relation("AcordoDistratoCriadoPor")
   cobrancasParcelaCriadas CobrancaParcela[] @relation("CobrancaParcelaCriadoPor")
   distratosEnviadosJuridico Distrato[] @relation("DistratoEnviadoJuridicoPor")
+  tratativasJuridicasCriadas TratativaJuridica[] @relation("TratativaJuridicaCriadoPor")
+  notificacoesJuridicasCriadas NotificacaoJuridica[] @relation("NotificacaoJuridicaCriadoPor")
 }
 
 model Prestador {
@@ -381,11 +383,71 @@ model Distrato {
   comunicadoEncerramentoLocatario ComunicadoEncerramentoLocatario?
   auditorias          DistratoAuditoria[]
 
-  enviadoJuridico      Boolean   @default(false)
+  enviadoJuridico      Boolean      @default(false)
   dataEnvioJuridico    DateTime?
   motivoJuridico       String?
   enviadoJuridicoPorId String?
-  enviadoJuridicoPor   User?     @relation("DistratoEnviadoJuridicoPor", fields: [enviadoJuridicoPorId], references: [id])
+  enviadoJuridicoPor   User?        @relation("DistratoEnviadoJuridicoPor", fields: [enviadoJuridicoPorId], references: [id])
+  faseJuridica         FaseJuridica @default(ANALISE)
+
+  tratativasJuridicas   TratativaJuridica[]
+  notificacoesJuridicas NotificacaoJuridica[]
+}
+
+enum FaseJuridica {
+  ANALISE
+  TRATATIVAS
+  NOTIFICACOES
+  EXECUCAO
+}
+
+enum ParteJuridica {
+  LOCADOR
+  LOCATARIO
+  FIADOR
+}
+
+enum MeioNotificacao {
+  AR
+  CARTORIO
+  WHATSAPP
+  EMAIL
+  OUTRO
+}
+
+model TratativaJuridica {
+  id          String        @id @default(cuid())
+  parte       ParteJuridica
+  descricao   String
+  data        DateTime
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
+  createdAt   DateTime      @default(now())
+
+  distratoId String
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("TratativaJuridicaCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model NotificacaoJuridica {
+  id          String          @id @default(cuid())
+  parte       ParteJuridica
+  meio        MeioNotificacao
+  descricao   String
+  data        DateTime
+  arquivoUrl  String?
+  arquivoNome String?
+  arquivoTipo String?
+  createdAt   DateTime        @default(now())
+
+  distratoId String
+  distrato   Distrato @relation(fields: [distratoId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("NotificacaoJuridicaCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model DecisaoAdequacao {

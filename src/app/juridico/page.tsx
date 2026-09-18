@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { formatData } from "@/lib/datahora";
 import { formatMoedaExibicao } from "@/lib/masks";
+import { LABEL_FASE_JURIDICA } from "@/lib/labels";
 
 export default async function JuridicoPage() {
   const distratos = await prisma.distrato.findMany({
@@ -25,6 +26,7 @@ export default async function JuridicoPage() {
           <thead className="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400">
             <tr>
               <th className="px-4 py-2">Processo</th>
+              <th className="px-4 py-2">Fase</th>
               <th className="px-4 py-2">Enviado em</th>
               <th className="px-4 py-2">Enviado por</th>
               <th className="px-4 py-2">Motivo</th>
@@ -41,6 +43,9 @@ export default async function JuridicoPage() {
                   <Link href={`/juridico/${d.id}`} className="font-medium hover:underline">
                     {d.processo.numeroProcesso}
                   </Link>
+                </td>
+                <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                  {LABEL_FASE_JURIDICA[d.faseJuridica]}
                 </td>
                 <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
                   {d.dataEnvioJuridico ? formatData(d.dataEnvioJuridico) : "—"}
@@ -60,7 +65,7 @@ export default async function JuridicoPage() {
             ))}
             {distratos.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
+                <td colSpan={6} className="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
                   Nenhum processo enviado para o Jurídico ainda.
                 </td>
               </tr>

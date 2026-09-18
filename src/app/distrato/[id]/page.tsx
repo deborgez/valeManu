@@ -94,9 +94,8 @@ import {
   confirmarPagamentoParcela,
   desfazerPagamentoParcela,
   registrarCobranca,
-  enviarParaJuridico,
-  retirarDoJuridico,
 } from "../actions";
+import { enviarParaJuridico, retirarDoJuridico } from "@/app/juridico/actions";
 
 const SECAO_CLASSE =
   "mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6";
