@@ -39,6 +39,12 @@ import {
 const SECAO_CLASSE =
   "mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6";
 
+const COR_PARTE_JURIDICA: Record<string, string> = {
+  LOCADOR: "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950",
+  LOCATARIO: "border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950",
+  FIADOR: "border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950",
+};
+
 function LinhaEvento({ titulo, detalhe }: { titulo: string; detalhe: string }) {
   return (
     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 py-2 text-sm last:border-0">
@@ -492,7 +498,7 @@ export default async function DossieJuridicoPage({
         {distrato.tratativasJuridicas.map((t) => (
           <li
             key={t.id}
-            className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+            className={`rounded border px-3 py-2 text-sm ${COR_PARTE_JURIDICA[t.parte]}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -553,7 +559,7 @@ export default async function DossieJuridicoPage({
         {distrato.notificacoesJuridicas.map((n) => (
           <li
             key={n.id}
-            className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+            className={`rounded border px-3 py-2 text-sm ${COR_PARTE_JURIDICA[n.parte]}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
