@@ -1341,47 +1341,6 @@ export default async function DistratoDetalhePage({
   const conteudoFinanceiro = (
     <>
       <section className={SECAO_CLASSE}>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Jurídico</h2>
-          <AuditoriaButton entradas={auditoriaPorSecao("JURIDICO")} />
-        </div>
-        {distrato.enviadoJuridico ? (
-          <div className="flex items-start justify-between gap-3 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs">
-            <div className="text-amber-700 dark:text-amber-400">
-              <p className="font-medium">
-                Enviado para o Jurídico em{" "}
-                {distrato.dataEnvioJuridico ? formatData(distrato.dataEnvioJuridico) : "—"}
-                {distrato.enviadoJuridicoPor?.nome
-                  ? ` por ${distrato.enviadoJuridicoPor.nome}`
-                  : ""}
-              </p>
-              {distrato.motivoJuridico && <p className="mt-0.5">{distrato.motivoJuridico}</p>}
-            </div>
-            <form
-              action={async () => {
-                "use server";
-                await retirarDoJuridico(distrato.id);
-              }}
-            >
-              <button
-                type="submit"
-                className="shrink-0 text-amber-600 dark:text-amber-400 underline hover:text-amber-800 dark:hover:text-amber-200"
-              >
-                Retirar
-              </button>
-            </form>
-          </div>
-        ) : (
-          <EnviarJuridicoModal
-            action={async (formData: FormData) => {
-              "use server";
-              await enviarParaJuridico(distrato.id, formData);
-            }}
-          />
-        )}
-      </section>
-
-      <section className={SECAO_CLASSE}>
         <SecaoTitulo titulo="Aluguel" auditoria={auditoriaPorSecao("ALUGUEL")} />
 
         {!distrato.aluguel ? (
@@ -1826,6 +1785,47 @@ export default async function DistratoDetalhePage({
           />
         </ImpressaoModal>
       </div>
+
+      <section className={SECAO_CLASSE}>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Jurídico</h2>
+          <AuditoriaButton entradas={auditoriaPorSecao("JURIDICO")} />
+        </div>
+        {distrato.enviadoJuridico ? (
+          <div className="flex items-start justify-between gap-3 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs">
+            <div className="text-amber-700 dark:text-amber-400">
+              <p className="font-medium">
+                Enviado para o Jurídico em{" "}
+                {distrato.dataEnvioJuridico ? formatData(distrato.dataEnvioJuridico) : "—"}
+                {distrato.enviadoJuridicoPor?.nome
+                  ? ` por ${distrato.enviadoJuridicoPor.nome}`
+                  : ""}
+              </p>
+              {distrato.motivoJuridico && <p className="mt-0.5">{distrato.motivoJuridico}</p>}
+            </div>
+            <form
+              action={async () => {
+                "use server";
+                await retirarDoJuridico(distrato.id);
+              }}
+            >
+              <button
+                type="submit"
+                className="shrink-0 text-amber-600 dark:text-amber-400 underline hover:text-amber-800 dark:hover:text-amber-200"
+              >
+                Retirar
+              </button>
+            </form>
+          </div>
+        ) : (
+          <EnviarJuridicoModal
+            action={async (formData: FormData) => {
+              "use server";
+              await enviarParaJuridico(distrato.id, formData);
+            }}
+          />
+        )}
+      </section>
     </>
   );
 
