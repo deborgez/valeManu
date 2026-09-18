@@ -16,6 +16,8 @@ type Registro = {
   tipoJuros: "PERCENTUAL" | "VALOR" | null;
   valorJuros: number;
   jurosAoMes: boolean;
+  tipoMultaAtraso: "PERCENTUAL" | "VALOR" | null;
+  valorMultaAtraso: number;
   numeroParcelas: number;
   primeiraParcela: string;
   observacoes: string | null;
@@ -59,6 +61,10 @@ export default function AcordoModal({
   );
   const [valorJuros, setValorJuros] = useState(registro?.valorJuros ?? 0);
   const [jurosAoMes, setJurosAoMes] = useState(registro?.jurosAoMes ?? false);
+  const [tipoMultaAtraso, setTipoMultaAtraso] = useState<"" | "PERCENTUAL" | "VALOR">(
+    registro?.tipoMultaAtraso ?? ""
+  );
+  const [valorMultaAtraso, setValorMultaAtraso] = useState(registro?.valorMultaAtraso ?? 0);
   const [numeroParcelas, setNumeroParcelas] = useState(registro?.numeroParcelas ?? 1);
 
   const router = useRouter();
@@ -89,6 +95,8 @@ export default function AcordoModal({
       setTipoJuros("");
       setValorJuros(0);
       setJurosAoMes(false);
+      setTipoMultaAtraso("");
+      setValorMultaAtraso(0);
       setNumeroParcelas(1);
     }
     setAberto(true);
@@ -281,6 +289,54 @@ export default function AcordoModal({
                 Cobrar ao mês (aplica esse juros em cada parcela, não só uma vez)
               </label>
             </div>
+
+            <div className="mb-4 grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Multa por Atraso
+                </label>
+                <select
+                  name="tipoMultaAtraso"
+                  value={tipoMultaAtraso}
+                  onChange={(e) =>
+                    setTipoMultaAtraso(e.target.value as "" | "PERCENTUAL" | "VALOR")
+                  }
+                  className={CAMPO_CLASSE}
+                >
+                  <option value="">Sem multa</option>
+                  <option value="PERCENTUAL">Percentual (%)</option>
+                  <option value="VALOR">Valor (R$)</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {tipoMultaAtraso === "PERCENTUAL" ? "Multa (%)" : "Multa (R$)"}
+                </label>
+                {tipoMultaAtraso === "VALOR" ? (
+                  <MoedaInput
+                    name="valorMultaAtraso"
+                    defaultValue={valorMultaAtraso}
+                    onValueChange={(v) => setValorMultaAtraso(parseMoeda(v))}
+                    className={CAMPO_CLASSE}
+                  />
+                ) : (
+                  <input
+                    type="number"
+                    name="valorMultaAtraso"
+                    min="0"
+                    step="0.01"
+                    defaultValue={valorMultaAtraso}
+                    onChange={(e) => setValorMultaAtraso(parseFloat(e.target.value) || 0)}
+                    disabled={tipoMultaAtraso === ""}
+                    className={`${CAMPO_CLASSE} disabled:opacity-50`}
+                  />
+                )}
+              </div>
+            </div>
+            <p className="mb-4 -mt-2 text-xs text-slate-500 dark:text-slate-400">
+              Aplicada sobre o valor da parcela quando o pagamento é confirmado após o
+              vencimento (ou enquanto ela estiver vencida e sem pagamento).
+            </p>
 
             <div className="mb-4 grid grid-cols-2 gap-4">
               <div>

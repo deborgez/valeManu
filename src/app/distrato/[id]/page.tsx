@@ -26,7 +26,7 @@ import ImpressaoModal from "@/components/ImpressaoModal";
 import RelatorioFinanceiroDocumento from "@/components/distrato/RelatorioFinanceiroDocumento";
 import LancamentoFinanceiroModal from "@/components/distrato/LancamentoFinanceiroModal";
 import AcordoModal from "@/components/distrato/AcordoModal";
-import ParcelaPagaToggle from "@/components/distrato/ParcelaPagaToggle";
+import ConfirmarPagamentoParcela from "@/components/distrato/ConfirmarPagamentoParcela";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -88,7 +88,8 @@ import {
   registrarAcordo,
   editarAcordo,
   excluirAcordo,
-  alternarParcelaPaga,
+  confirmarPagamentoParcela,
+  desfazerPagamentoParcela,
 } from "../actions";
 
 const SECAO_CLASSE =
@@ -1335,6 +1336,16 @@ export default async function DistratoDetalhePage({
       : []),
   ];
 
+  const agora = new Date();
+  const parcelasVencidasNaoPagas =
+    distrato.acordo?.parcelas.filter((p) => !p.pago && p.dataVencimento < agora) ?? [];
+  const parcelaMaisAntigaVencida =
+    parcelasVencidasNaoPagas.length > 0
+      ? parcelasVencidasNaoPagas.reduce((maisAntiga, p) =>
+          p.dataVencimento < maisAntiga.dataVencimento ? p : maisAntiga
+        )
+      : null;
+
   const conteudoFinanceiro = (
     <>
       <section className={SECAO_CLASSE}>
@@ -1586,6 +1597,15 @@ export default async function DistratoDetalhePage({
                     {distrato.acordo.jurosAoMes ? " ao mês" : ""}
                   </p>
                 )}
+                {distrato.acordo.tipoMultaAtraso && (
+                  <p className="text-slate-700 dark:text-slate-300">
+                    Multa por atraso:{" "}
+                    {distrato.acordo.tipoMultaAtraso === "PERCENTUAL"
+                      ? `${distrato.acordo.valorMultaAtraso}%`
+                      : `R$ ${formatMoedaExibicao(distrato.acordo.valorMultaAtraso)}`}
+                    {" por parcela"}
+                  </p>
+                )}
                 <p className="font-semibold text-slate-900 dark:text-slate-100">
                   Valor final: R$ {formatMoedaExibicao(distrato.acordo.valorFinal)} em{" "}
                   {distrato.acordo.numeroParcelas}x
@@ -1605,6 +1625,8 @@ export default async function DistratoDetalhePage({
                     tipoJuros: distrato.acordo.tipoJuros,
                     valorJuros: distrato.acordo.valorJuros,
                     jurosAoMes: distrato.acordo.jurosAoMes,
+                    tipoMultaAtraso: distrato.acordo.tipoMultaAtraso,
+                    valorMultaAtraso: distrato.acordo.valorMultaAtraso,
                     numeroParcelas: distrato.acordo.numeroParcelas,
                     primeiraParcela: distrato.acordo.primeiraParcela.toISOString().slice(0, 10),
                     observacoes: distrato.acordo.observacoes,
@@ -1631,25 +1653,101 @@ export default async function DistratoDetalhePage({
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Parcelas
               </p>
+              {parcelaMaisAntigaVencida && (
+                <p className="mb-3 rounded bg-red-50 dark:bg-red-950 px-3 py-2 text-xs font-medium text-red-700 dark:text-red-400">
+                  Acordo em aberto há {diasEntreDatas(agora, parcelaMaisAntigaVencida.dataVencimento)}{" "}
+                  {diasEntreDatas(agora, parcelaMaisAntigaVencida.dataVencimento) === 1
+                    ? "dia"
+                    : "dias"}{" "}
+                  (parcela {parcelaMaisAntigaVencida.numero} vencida).
+                </p>
+              )}
               <ul className="flex flex-col gap-2">
-                {distrato.acordo.parcelas.map((p) => (
-                  <li
-                    key={p.id}
-                    className="flex items-center justify-between rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
-                  >
-                    <span className="text-slate-700 dark:text-slate-300">
-                      {p.numero}/{distrato.acordo!.numeroParcelas} — {formatData(p.dataVencimento)} — R${" "}
-                      {formatMoedaExibicao(p.valor)}
-                    </span>
-                    <ParcelaPagaToggle
-                      pago={p.pago}
-                      action={async (pago: boolean) => {
-                        "use server";
-                        await alternarParcelaPaga(p.id, distrato.id, pago);
-                      }}
-                    />
-                  </li>
-                ))}
+                {distrato.acordo.parcelas.map((p) => {
+                  const diferenca = p.dataPagamento
+                    ? diasEntreDatas(p.dataPagamento, p.dataVencimento)
+                    : null;
+                  const diasVencida =
+                    !p.pago && p.dataVencimento < agora
+                      ? diasEntreDatas(agora, p.dataVencimento)
+                      : null;
+                  const multaAplicavel =
+                    (diferenca !== null && diferenca > 0) || diasVencida !== null;
+                  const valorMulta =
+                    multaAplicavel && distrato.acordo!.tipoMultaAtraso
+                      ? distrato.acordo!.tipoMultaAtraso === "PERCENTUAL"
+                        ? (p.valor * distrato.acordo!.valorMultaAtraso) / 100
+                        : distrato.acordo!.valorMultaAtraso
+                      : null;
+
+                  return (
+                    <li
+                      key={p.id}
+                      className="rounded border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-slate-700 dark:text-slate-300">
+                          {p.numero}/{distrato.acordo!.numeroParcelas} —{" "}
+                          {formatData(p.dataVencimento)} — R$ {formatMoedaExibicao(p.valor)}
+                        </span>
+                        <ConfirmarPagamentoParcela
+                          pago={p.pago}
+                          hoje={hoje}
+                          action={async (formData: FormData) => {
+                            "use server";
+                            await confirmarPagamentoParcela(p.id, distrato.id, formData);
+                          }}
+                          onDesfazer={async () => {
+                            "use server";
+                            await desfazerPagamentoParcela(p.id, distrato.id);
+                          }}
+                        />
+                      </div>
+
+                      {p.pago && p.dataPagamento && (
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="text-slate-500 dark:text-slate-400">
+                            Pago em {formatData(p.dataPagamento)}
+                          </span>
+                          {diferenca !== null && diferenca <= 0 ? (
+                            <span className="rounded bg-green-50 dark:bg-green-950 px-2 py-0.5 font-medium text-green-700 dark:text-green-400">
+                              Dentro do prazo
+                            </span>
+                          ) : (
+                            <span className="rounded bg-amber-50 dark:bg-amber-950 px-2 py-0.5 font-medium text-amber-700 dark:text-amber-400">
+                              {diferenca} {diferenca === 1 ? "dia" : "dias"} em atraso
+                            </span>
+                          )}
+                          {valorMulta !== null && (
+                            <span className="text-slate-500 dark:text-slate-400">
+                              Multa: R$ {formatMoedaExibicao(valorMulta)}
+                            </span>
+                          )}
+                          {p.comprovanteUrl && (
+                            <ArquivoPreviewBotao
+                              url={p.comprovanteUrl}
+                              nome={p.comprovanteNome}
+                              tipo={p.comprovanteTipo}
+                            />
+                          )}
+                        </div>
+                      )}
+
+                      {!p.pago && diasVencida !== null && (
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="rounded bg-red-50 dark:bg-red-950 px-2 py-0.5 font-medium text-red-700 dark:text-red-400">
+                            Vencida há {diasVencida} {diasVencida === 1 ? "dia" : "dias"}
+                          </span>
+                          {valorMulta !== null && (
+                            <span className="text-slate-500 dark:text-slate-400">
+                              Multa: R$ {formatMoedaExibicao(valorMulta)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </Divisor>
           </div>

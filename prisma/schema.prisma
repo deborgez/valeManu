@@ -430,6 +430,8 @@ model AcordoDistrato {
   tipoJuros       TipoDesconto?
   valorJuros      Float         @default(0)
   jurosAoMes      Boolean       @default(false)
+  tipoMultaAtraso  TipoDesconto?
+  valorMultaAtraso Float         @default(0)
   valorFinal      Float
   numeroParcelas  Int
   primeiraParcela DateTime
@@ -452,6 +454,10 @@ model ParcelaAcordo {
   valor          Float
   pago           Boolean   @default(false)
   dataPagamento  DateTime?
+
+  comprovanteUrl  String?
+  comprovanteNome String?
+  comprovanteTipo String?
 
   acordoId String
   acordo   AcordoDistrato @relation(fields: [acordoId], references: [id])

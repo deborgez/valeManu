@@ -10,6 +10,7 @@ import {
   parseDataLocal,
   formatMesCompetencia,
   addMeses,
+  diasEntreDatas,
 } from "@/lib/datahora";
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
@@ -1330,6 +1331,10 @@ function calcularAcordo(formData: FormData) {
   }
   valorFinal = Math.max(Math.round(valorFinal * 100) / 100, 0);
 
+  const tipoMultaAtraso = tipoAjusteFromForm(formData, "tipoMultaAtraso");
+  const valorMultaAtrasoInput = parseMoeda(formData.get("valorMultaAtraso"));
+  const valorMultaAtraso = tipoMultaAtraso ? valorMultaAtrasoInput : 0;
+
   const primeiraParcelaStr = String(formData.get("primeiraParcela"));
   const primeiraParcela = parseDataLocal(primeiraParcelaStr);
   const observacoes = (formData.get("observacoes") as string) || null;
@@ -1341,6 +1346,8 @@ function calcularAcordo(formData: FormData) {
     tipoJuros,
     valorJuros,
     jurosAoMes,
+    tipoMultaAtraso,
+    valorMultaAtraso,
     valorFinal,
     numeroParcelas,
     primeiraParcela,
@@ -1382,6 +1389,8 @@ export async function registrarAcordo(distratoId: string, formData: FormData) {
     tipoJuros,
     valorJuros,
     jurosAoMes,
+    tipoMultaAtraso,
+    valorMultaAtraso,
     valorFinal,
     numeroParcelas,
     primeiraParcela,
@@ -1397,6 +1406,8 @@ export async function registrarAcordo(distratoId: string, formData: FormData) {
       tipoJuros,
       valorJuros,
       jurosAoMes,
+      tipoMultaAtraso,
+      valorMultaAtraso,
       valorFinal,
       numeroParcelas,
       primeiraParcela,
@@ -1426,6 +1437,8 @@ export async function editarAcordo(distratoId: string, formData: FormData) {
     tipoJuros,
     valorJuros,
     jurosAoMes,
+    tipoMultaAtraso,
+    valorMultaAtraso,
     valorFinal,
     numeroParcelas,
     primeiraParcela,
@@ -1447,6 +1460,8 @@ export async function editarAcordo(distratoId: string, formData: FormData) {
         tipoJuros,
         valorJuros,
         jurosAoMes,
+        tipoMultaAtraso,
+        valorMultaAtraso,
         valorFinal,
         numeroParcelas,
         primeiraParcela,
@@ -1493,20 +1508,60 @@ export async function excluirAcordo(distratoId: string) {
   revalidatePath(`/distrato/${distratoId}`);
 }
 
-export async function alternarParcelaPaga(parcelaId: string, distratoId: string, pago: boolean) {
+export async function confirmarPagamentoParcela(
+  parcelaId: string,
+  distratoId: string,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const dataPagamento = parseDataLocal(String(formData.get("dataPagamento")));
+  const comprovanteUrl = (formData.get("comprovanteUrl") as string) || null;
+  const comprovanteNome = (formData.get("comprovanteNome") as string) || null;
+  const comprovanteTipo = (formData.get("comprovanteTipo") as string) || null;
+
+  const parcela = await prisma.parcelaAcordo.update({
+    where: { id: parcelaId },
+    data: {
+      pago: true,
+      dataPagamento,
+      comprovanteUrl,
+      comprovanteNome,
+      comprovanteTipo,
+    },
+  });
+
+  const diferenca = diasEntreDatas(dataPagamento, parcela.dataVencimento);
+  const detalhe =
+    diferenca <= 0
+      ? `Parcela ${parcela.numero}: paga em ${formatData(dataPagamento)}, dentro do prazo.`
+      : `Parcela ${parcela.numero}: paga em ${formatData(dataPagamento)}, ${diferenca} ${diferenca === 1 ? "dia" : "dias"} em atraso.`;
+
+  await logAuditoria(distratoId, SECAO.ACORDO, "Editou", detalhe);
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function desfazerPagamentoParcela(parcelaId: string, distratoId: string) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
 
   const parcela = await prisma.parcelaAcordo.update({
     where: { id: parcelaId },
-    data: { pago, dataPagamento: pago ? new Date() : null },
+    data: {
+      pago: false,
+      dataPagamento: null,
+      comprovanteUrl: null,
+      comprovanteNome: null,
+      comprovanteTipo: null,
+    },
   });
 
   await logAuditoria(
     distratoId,
     SECAO.ACORDO,
     "Editou",
-    `Parcela ${parcela.numero}: ${pago ? "marcada como paga" : "marcada como pendente"}`
+    `Parcela ${parcela.numero}: pagamento desfeito, voltou a pendente.`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
