@@ -1598,3 +1598,48 @@ export async function registrarCobranca(
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
+
+export async function enviarParaJuridico(distratoId: string, formData: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const motivo = (formData.get("motivo") as string) || null;
+
+  await prisma.acordoDistrato.update({
+    where: { distratoId },
+    data: {
+      enviadoJuridico: true,
+      dataEnvioJuridico: new Date(),
+      motivoJuridico: motivo,
+      enviadoJuridicoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ACORDO,
+    "Enviou",
+    motivo ? `Enviado para o Jurídico: ${motivo}` : "Enviado para o Jurídico."
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+  revalidatePath("/juridico");
+}
+
+export async function retirarDoJuridico(distratoId: string) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  await prisma.acordoDistrato.update({
+    where: { distratoId },
+    data: {
+      enviadoJuridico: false,
+      dataEnvioJuridico: null,
+      motivoJuridico: null,
+      enviadoJuridicoPorId: null,
+    },
+  });
+
+  await logAuditoria(distratoId, SECAO.ACORDO, "Editou", "Retirado do Jurídico.");
+  revalidatePath(`/distrato/${distratoId}`);
+  revalidatePath("/juridico");
+}

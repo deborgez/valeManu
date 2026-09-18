@@ -150,6 +150,7 @@ model User {
   lancamentosFinanceirosCriados LancamentoFinanceiro[] @relation("LancamentoFinanceiroCriadoPor")
   acordosDistratoCriados AcordoDistrato[] @relation("AcordoDistratoCriadoPor")
   cobrancasParcelaCriadas CobrancaParcela[] @relation("CobrancaParcelaCriadoPor")
+  acordosEnviadosJuridico AcordoDistrato[] @relation("AcordoEnviadoJuridicoPor")
 }
 
 model Prestador {
@@ -444,6 +445,12 @@ model AcordoDistrato {
 
   criadoPorId String?
   criadoPor   User?   @relation("AcordoDistratoCriadoPor", fields: [criadoPorId], references: [id])
+
+  enviadoJuridico      Boolean   @default(false)
+  dataEnvioJuridico    DateTime?
+  motivoJuridico       String?
+  enviadoJuridicoPorId String?
+  enviadoJuridicoPor   User?     @relation("AcordoEnviadoJuridicoPor", fields: [enviadoJuridicoPorId], references: [id])
 
   parcelas ParcelaAcordo[]
 }
