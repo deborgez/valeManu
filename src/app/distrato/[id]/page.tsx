@@ -27,6 +27,7 @@ import RelatorioFinanceiroDocumento from "@/components/distrato/RelatorioFinance
 import LancamentoFinanceiroModal from "@/components/distrato/LancamentoFinanceiroModal";
 import AcordoModal from "@/components/distrato/AcordoModal";
 import ConfirmarPagamentoParcela from "@/components/distrato/ConfirmarPagamentoParcela";
+import CobrancaModal from "@/components/distrato/CobrancaModal";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
@@ -90,6 +91,7 @@ import {
   excluirAcordo,
   confirmarPagamentoParcela,
   desfazerPagamentoParcela,
+  registrarCobranca,
 } from "../actions";
 
 const SECAO_CLASSE =
@@ -270,7 +272,15 @@ export default async function DistratoDetalhePage({
         acordo: {
           include: {
             criadoPor: { select: { nome: true } },
-            parcelas: { orderBy: { numero: "asc" } },
+            parcelas: {
+              orderBy: { numero: "asc" },
+              include: {
+                cobrancas: {
+                  orderBy: { data: "desc" },
+                  include: { criadoPor: { select: { nome: true } } },
+                },
+              },
+            },
           },
         },
         decisaoAdequacao: { include: { criadoPor: { select: { nome: true } } } },
@@ -1743,7 +1753,26 @@ export default async function DistratoDetalhePage({
                               Multa: R$ {formatMoedaExibicao(valorMulta)}
                             </span>
                           )}
+                          <CobrancaModal
+                            hoje={hoje}
+                            action={async (formData: FormData) => {
+                              "use server";
+                              await registrarCobranca(p.id, distrato.id, formData);
+                            }}
+                          />
                         </div>
+                      )}
+
+                      {p.cobrancas.length > 0 && (
+                        <ul className="mt-1 flex flex-col gap-0.5 text-xs text-slate-500 dark:text-slate-400">
+                          {p.cobrancas.map((c) => (
+                            <li key={c.id}>
+                              Cobrança em {formatData(c.data)} —{" "}
+                              {LABEL_FORMA_CONTATO[c.forma]}
+                              {c.anotacoes ? `: ${c.anotacoes}` : ""}
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </li>
                   );

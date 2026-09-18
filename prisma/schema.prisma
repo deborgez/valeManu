@@ -149,6 +149,7 @@ model User {
   alugueisDistratoCriados  AluguelDistrato[] @relation("AluguelDistratoCriadoPor")
   lancamentosFinanceirosCriados LancamentoFinanceiro[] @relation("LancamentoFinanceiroCriadoPor")
   acordosDistratoCriados AcordoDistrato[] @relation("AcordoDistratoCriadoPor")
+  cobrancasParcelaCriadas CobrancaParcela[] @relation("CobrancaParcelaCriadoPor")
 }
 
 model Prestador {
@@ -461,6 +462,22 @@ model ParcelaAcordo {
 
   acordoId String
   acordo   AcordoDistrato @relation(fields: [acordoId], references: [id])
+
+  cobrancas CobrancaParcela[]
+}
+
+model CobrancaParcela {
+  id        String       @id @default(cuid())
+  data      DateTime
+  forma     FormaContato
+  anotacoes String?
+  createdAt DateTime     @default(now())
+
+  parcelaId String
+  parcela   ParcelaAcordo @relation(fields: [parcelaId], references: [id])
+
+  criadoPorId String?
+  criadoPor   User?   @relation("CobrancaParcelaCriadoPor", fields: [criadoPorId], references: [id])
 }
 
 model DistratoAuditoria {

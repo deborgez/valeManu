@@ -1450,6 +1450,7 @@ export async function editarAcordo(distratoId: string, formData: FormData) {
   });
 
   await prisma.$transaction([
+    prisma.cobrancaParcela.deleteMany({ where: { parcela: { acordoId: antigo.id } } }),
     prisma.parcelaAcordo.deleteMany({ where: { acordoId: antigo.id } }),
     prisma.acordoDistrato.update({
       where: { distratoId },
@@ -1495,6 +1496,7 @@ export async function excluirAcordo(distratoId: string) {
   });
 
   await prisma.$transaction([
+    prisma.cobrancaParcela.deleteMany({ where: { parcela: { acordoId: registro.id } } }),
     prisma.parcelaAcordo.deleteMany({ where: { acordoId: registro.id } }),
     prisma.acordoDistrato.delete({ where: { distratoId } }),
   ]);
@@ -1562,6 +1564,37 @@ export async function desfazerPagamentoParcela(parcelaId: string, distratoId: st
     SECAO.ACORDO,
     "Editou",
     `Parcela ${parcela.numero}: pagamento desfeito, voltou a pendente.`
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+}
+
+export async function registrarCobranca(
+  parcelaId: string,
+  distratoId: string,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const parcela = await prisma.parcelaAcordo.findUniqueOrThrow({
+    where: { id: parcelaId },
+  });
+
+  await prisma.cobrancaParcela.create({
+    data: {
+      parcelaId,
+      data: parseDataLocal(String(formData.get("data"))),
+      forma: formData.get("forma") as "LIGACAO" | "WHATSAPP",
+      anotacoes: (formData.get("anotacoes") as string) || null,
+      criadoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.ACORDO,
+    "Registrou",
+    `Cobrança registrada para a parcela ${parcela.numero}.`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
