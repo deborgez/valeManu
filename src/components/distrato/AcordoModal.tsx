@@ -172,7 +172,11 @@ export default function AcordoModal({
                     </label>
                   ))}
                 </div>
-                <input type="hidden" name="valorOriginal" value={valorOriginal} />
+                <input
+                  type="hidden"
+                  name="valorOriginal"
+                  value={formatMoedaExibicao(valorOriginal)}
+                />
                 <p className="mt-2 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Total selecionado: R$ {formatMoedaExibicao(valorOriginal)}
                 </p>
