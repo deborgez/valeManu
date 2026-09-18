@@ -67,13 +67,13 @@ export default function RelatorioFinanceiroDocumento({
 
   return (
     <div className="text-black">
-      <div className="mb-6 border-b border-slate-300 pb-4 text-center">
+      <div className="relative mb-6 border-b border-slate-300 pb-4 text-center">
         {imobiliaria?.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imobiliaria.logoUrl}
             alt={imobiliaria.nome}
-            className="mx-auto mb-2 h-14"
+            className="absolute left-0 top-0 h-8 w-auto"
           />
         ) : (
           imobiliaria?.nome && <p className="text-sm font-semibold">{imobiliaria.nome}</p>
