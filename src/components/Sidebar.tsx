@@ -20,9 +20,8 @@ export default async function Sidebar() {
     { href: "/distrato/novo", label: "Novo Distrato" },
     { href: "/distrato", label: "Distratos" },
     { href: "/distrato/relatorios", label: "Relatório de Distratos" },
+    { href: "/juridico", label: "Jurídico" },
   ];
-
-  const linksJuridico = [{ href: "/juridico", label: "Jurídico" }];
 
   const linksConfiguracoes = [
     { href: "/configuracoes", label: "Unidade" },
@@ -49,11 +48,6 @@ export default async function Sidebar() {
         Distrato
       </div>
       <SidebarLinks links={linksDistrato} />
-
-      <div className="mt-4 mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
-        Jurídico
-      </div>
-      <SidebarLinks links={linksJuridico} />
 
       {session.user.role === "ADMIN" && (
         <>
