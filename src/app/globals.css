@@ -33,6 +33,15 @@ button:not(:disabled),
 }
 
 @media print {
+  @page {
+    margin: 12mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   body * {
     visibility: hidden;
   }
@@ -41,10 +50,19 @@ button:not(:disabled),
     visibility: visible;
   }
   .print-area {
-    position: fixed;
-    inset: 0;
-    width: 100%;
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    max-width: none !important;
     max-height: none !important;
     overflow: visible !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .print-area * {
+    overflow: visible !important;
+    max-height: none !important;
   }
 }
