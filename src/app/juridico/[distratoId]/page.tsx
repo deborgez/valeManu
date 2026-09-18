@@ -15,25 +15,11 @@ import {
 const SECAO_CLASSE =
   "mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6";
 
-function LinhaPrazo({
-  titulo,
-  ok,
-  detalhe,
-}: {
-  titulo: string;
-  ok: boolean | null;
-  detalhe: string;
-}) {
-  const cor =
-    ok === null
-      ? "text-slate-400 dark:text-slate-500"
-      : ok
-        ? "text-green-700 dark:text-green-400"
-        : "text-red-700 dark:text-red-400";
+function LinhaEvento({ titulo, detalhe }: { titulo: string; detalhe: string }) {
   return (
     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 py-2 text-sm last:border-0">
       <span className="text-slate-700 dark:text-slate-300">{titulo}</span>
-      <span className={cor}>{detalhe}</span>
+      <span className="text-slate-500 dark:text-slate-400">{detalhe}</span>
     </div>
   );
 }
@@ -94,35 +80,9 @@ export default async function DossieJuridicoPage({
   const locadores = processo.partes.filter((p) => p.tipo === "LOCADOR");
   const locatarios = processo.partes.filter((p) => p.tipo === "LOCATARIO");
 
-  // Prazos (mesmas regras usadas na tela do distrato)
-  const comunicadoNoPrazo =
-    distrato.avisoPrevio && distrato.comunicadoLocador
-      ? diasEntreDatas(distrato.comunicadoLocador.data, distrato.avisoPrevio.data) === 0
-      : null;
-
   const primeiroContato =
     distrato.contatos.length > 0
       ? distrato.contatos.reduce((min, c) => (c.data < min.data ? c : min))
-      : null;
-  const contatoNoPrazo = (() => {
-    if (!distrato.avisoPrevio) return null;
-    const limite = new Date(distrato.avisoPrevio.data);
-    limite.setDate(limite.getDate() + 15);
-    if (!primeiroContato) return false;
-    return primeiroContato.data <= limite;
-  })();
-
-  const entregaNoPrazo = (() => {
-    if (!distrato.avisoPrevio) return null;
-    if (!distrato.entregaChaves) return false;
-    const limite = new Date(distrato.avisoPrevio.data);
-    limite.setDate(limite.getDate() + 30);
-    return distrato.entregaChaves.data <= limite;
-  })();
-
-  const comunicadoVistoriaNoPrazo =
-    distrato.entregaChaves && distrato.comunicadoVistoria?.data
-      ? diasEntreDatas(distrato.comunicadoVistoria.data, distrato.entregaChaves.data) === 0
       : null;
 
   // Valores em aberto
@@ -260,79 +220,64 @@ export default async function DossieJuridicoPage({
 
       <section className={SECAO_CLASSE}>
         <h2 className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-          Linha do Tempo e Prazos
+          Linha do Tempo
         </h2>
-        <LinhaPrazo
+        <LinhaEvento
           titulo="Aviso Prévio do Locatário"
-          ok={distrato.avisoPrevio ? true : null}
           detalhe={
             distrato.avisoPrevio
               ? `${formatData(distrato.avisoPrevio.data)} — ${LABEL_FORMA_AVISO[distrato.avisoPrevio.forma]}`
               : "Não registrado"
           }
         />
-        <LinhaPrazo
-          titulo="Comunicado ao Locador (mesmo dia do Aviso Prévio)"
-          ok={comunicadoNoPrazo}
+        <LinhaEvento
+          titulo="Comunicado ao Locador"
           detalhe={
             distrato.comunicadoLocador
-              ? `${formatData(distrato.comunicadoLocador.data)}${comunicadoNoPrazo ? " — no prazo" : " — fora do prazo"}`
+              ? formatData(distrato.comunicadoLocador.data)
               : "Não registrado"
           }
         />
-        <LinhaPrazo
-          titulo="Acompanhamento (até 15 dias do Aviso Prévio)"
-          ok={contatoNoPrazo}
+        <LinhaEvento
+          titulo="Acompanhamento do Aviso Prévio"
+          detalhe={primeiroContato ? formatData(primeiroContato.data) : "Nenhum contato registrado"}
+        />
+        <LinhaEvento
+          titulo="Entrega de Chaves"
           detalhe={
-            primeiroContato
-              ? `${formatData(primeiroContato.data)}${contatoNoPrazo ? " — no prazo" : " — fora do prazo"}`
-              : "Nenhum contato registrado"
+            distrato.entregaChaves ? formatData(distrato.entregaChaves.data) : "Não registrada"
           }
         />
-        <LinhaPrazo
-          titulo="Entrega de Chaves (até 30 dias do Aviso Prévio)"
-          ok={entregaNoPrazo}
-          detalhe={
-            distrato.entregaChaves
-              ? `${formatData(distrato.entregaChaves.data)}${entregaNoPrazo ? " — no prazo" : " — fora do prazo"}`
-              : "Não registrada"
-          }
-        />
-        <LinhaPrazo
-          titulo="Comunicado da Vistoria (mesmo dia da Entrega de Chaves)"
-          ok={comunicadoVistoriaNoPrazo}
+        <LinhaEvento
+          titulo="Comunicado da Vistoria"
           detalhe={
             distrato.comunicadoVistoria?.data
-              ? `${formatData(distrato.comunicadoVistoria.data)}${comunicadoVistoriaNoPrazo ? " — no prazo" : " — fora do prazo"}`
+              ? formatData(distrato.comunicadoVistoria.data)
               : "Não registrado"
           }
         />
-        <LinhaPrazo
+        <LinhaEvento
           titulo="Vistoria de Saída"
-          ok={distrato.vistoriaSaida ? true : null}
           detalhe={
             distrato.vistoriaSaida ? formatData(distrato.vistoriaSaida.data) : "Não registrada"
           }
         />
-        <LinhaPrazo
+        <LinhaEvento
           titulo="Laudo de Vistoria"
-          ok={distrato.laudoVistoria ? true : null}
           detalhe={
             distrato.laudoVistoria ? formatData(distrato.laudoVistoria.data) : "Não registrado"
           }
         />
-        <LinhaPrazo
+        <LinhaEvento
           titulo="Comunicado de Encerramento ao Locador"
-          ok={distrato.comunicadoEncerramentoLocador ? true : null}
           detalhe={
             distrato.comunicadoEncerramentoLocador
               ? formatData(distrato.comunicadoEncerramentoLocador.data)
               : "Não registrado"
           }
         />
-        <LinhaPrazo
+        <LinhaEvento
           titulo="Comunicado de Encerramento ao Locatário"
-          ok={distrato.comunicadoEncerramentoLocatario ? true : null}
           detalhe={
             distrato.comunicadoEncerramentoLocatario
               ? formatData(distrato.comunicadoEncerramentoLocatario.data)
