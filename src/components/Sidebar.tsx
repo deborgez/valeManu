@@ -13,13 +13,13 @@ export default async function Sidebar() {
   const linksManutencoes = [
     { href: "/", label: "Painel" },
     { href: "/manutencoes", label: "Quadro de Manutenções" },
-    { href: "/relatorios", label: "Relatórios" },
+    { href: "/relatorios", label: "Relatório de Manutenções" },
   ];
 
   const linksDistrato = [
     { href: "/distrato/novo", label: "Novo Distrato" },
     { href: "/distrato", label: "Distratos" },
-    { href: "/distrato/relatorios", label: "Relatórios" },
+    { href: "/distrato/relatorios", label: "Relatório de Distratos" },
   ];
 
   const linksConfiguracoes = [
