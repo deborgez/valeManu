@@ -28,7 +28,7 @@ export default async function Sidebar() {
   ];
 
   return (
-    <aside className="print:hidden w-56 shrink-0 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+    <aside className="print:hidden w-56 shrink-0 overflow-y-auto border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
       <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
         Módulos
       </p>

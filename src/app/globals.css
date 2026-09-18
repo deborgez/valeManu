@@ -42,17 +42,17 @@ button:not(:disabled),
     print-color-adjust: exact;
   }
 
-  body * {
-    visibility: hidden;
+  /* O modal de impressão é portado para um filho direto de <body>.
+     Escondemos (com display:none, removendo do fluxo por completo — não
+     apenas visibility, que manteria o espaço em branco de toda a página
+     por trás do modal) todo filho direto de <body> que não contenha a
+     área a ser impressa. */
+  body > *:not(:has(.print-area)) {
+    display: none !important;
   }
-  .print-area,
-  .print-area * {
-    visibility: visible;
-  }
+
   .print-area {
-    position: absolute !important;
-    top: 0;
-    left: 0;
+    position: static !important;
     width: 100% !important;
     max-width: none !important;
     max-height: none !important;

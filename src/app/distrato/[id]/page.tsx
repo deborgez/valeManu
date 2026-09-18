@@ -239,7 +239,11 @@ export default async function DistratoDetalhePage({
     include: { usuario: { select: { nome: true } } },
   });
 
-  const [distratoBase, adequacoes, auditorias] = await Promise.all([
+  const imobiliariaPromise = prisma.imobiliaria.findUnique({
+    where: { id: "singleton" },
+  });
+
+  const [distratoBase, adequacoes, auditorias, imobiliaria] = await Promise.all([
     prisma.distrato.findUnique({
       where: { id },
       include: {
@@ -273,6 +277,7 @@ export default async function DistratoDetalhePage({
     }),
     adequacoesPromise,
     auditoriasPromise,
+    imobiliariaPromise,
   ]);
 
   if (!distratoBase) notFound();
@@ -1643,6 +1648,7 @@ export default async function DistratoDetalhePage({
       <div className="flex justify-end">
         <ImpressaoModal label="Relatório Financeiro">
           <RelatorioFinanceiroDocumento
+            imobiliaria={imobiliaria}
             numeroProcesso={processo.numeroProcesso}
             valorAluguel={distrato.aluguel?.valor ?? null}
             prazoContratoMeses={processo.prazoContratoMeses}

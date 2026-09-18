@@ -16,10 +16,19 @@ type AdequacaoDetalhe = {
   valor: number;
 };
 
+type Imobiliaria = {
+  nome: string;
+  endereco: string;
+  telefone: string;
+  email: string;
+  logoUrl: string | null;
+} | null;
+
 const SECAO_CLASSE = "mb-6 rounded border border-slate-200 p-4";
 const TITULO_CLASSE = "mb-3 border-b border-slate-200 pb-2 text-sm font-semibold";
 
 export default function RelatorioFinanceiroDocumento({
+  imobiliaria,
   numeroProcesso,
   valorAluguel,
   prazoContratoMeses,
@@ -34,6 +43,7 @@ export default function RelatorioFinanceiroDocumento({
   categoriasLancamento,
   adequacoes,
 }: {
+  imobiliaria: Imobiliaria;
   numeroProcesso: string;
   valorAluguel: number | null;
   prazoContratoMeses: number | null;
@@ -58,6 +68,16 @@ export default function RelatorioFinanceiroDocumento({
   return (
     <div className="text-black">
       <div className="mb-6 border-b border-slate-300 pb-4 text-center">
+        {imobiliaria?.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imobiliaria.logoUrl}
+            alt={imobiliaria.nome}
+            className="mx-auto mb-2 h-14"
+          />
+        ) : (
+          imobiliaria?.nome && <p className="text-sm font-semibold">{imobiliaria.nome}</p>
+        )}
         <h1 className="text-lg font-semibold">Relatório Financeiro</h1>
         <p className="text-xs text-slate-600">Processo {numeroProcesso}</p>
       </div>

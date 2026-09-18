@@ -34,11 +34,13 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-900">
+      <body className="flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-slate-900 print:h-auto print:overflow-visible">
         <NavBar />
-        <div className="flex flex-1">
+        <div className="flex flex-1 overflow-hidden print:overflow-visible">
           <Sidebar />
-          <main className="flex flex-1 flex-col">{children}</main>
+          <main className="flex flex-1 flex-col overflow-y-auto print:overflow-visible">
+            {children}
+          </main>
         </div>
       </body>
     </html>

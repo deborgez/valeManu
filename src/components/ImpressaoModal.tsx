@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 export default function ImpressaoModal({
   label,
@@ -21,30 +22,34 @@ export default function ImpressaoModal({
         {label}
       </button>
 
-      {aberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 print:static print:bg-white print:p-0">
-          <div className="print-area flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg print:max-h-none print:w-auto print:max-w-none">
-            <div className="print:hidden flex justify-end gap-2 border-b border-slate-200 p-3">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-              >
-                Imprimir
-              </button>
-              <button
-                type="button"
-                onClick={() => setAberto(false)}
-                className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
-                aria-label="Fechar"
-              >
-                ✕
-              </button>
+      {aberto &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 print:block print:bg-white print:p-0">
+            <div className="print-area flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg print:block print:max-h-none print:w-auto print:max-w-none">
+              <div className="print:hidden flex justify-end gap-2 border-b border-slate-200 p-3">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                >
+                  Imprimir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAberto(false)}
+                  className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                  aria-label="Fechar"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="overflow-y-auto p-8 print:overflow-visible print:p-0">
+                {children}
+              </div>
             </div>
-            <div className="overflow-y-auto p-8 print:overflow-visible print:p-0">{children}</div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
