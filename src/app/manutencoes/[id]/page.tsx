@@ -108,7 +108,7 @@ export default async function ManutencaoDetalhePage({
   );
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6">
+    <div className="mx-auto w-full max-w-6xl p-6">
       <TrilhaEtapas etapaAtual={etapaAtual} />
 
       <div className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">

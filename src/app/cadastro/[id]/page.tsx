@@ -23,7 +23,7 @@ export default async function ProcessoDetalhePage({
   const locatarios = processo.partes.filter((p) => p.tipo === "LOCATARIO");
 
   return (
-    <div className="mx-auto w-full max-w-2xl p-6">
+    <div className="mx-auto w-full max-w-3xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
           Processo {processo.numeroProcesso}

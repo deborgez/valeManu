@@ -159,7 +159,7 @@ export default async function RelatoriosDistratoPage({
   );
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6">
+    <div className="mx-auto w-full max-w-6xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
         Relatório de Distratos
       </h1>

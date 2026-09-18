@@ -9,7 +9,7 @@ export default async function NovoProcessoPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-2xl p-6">
+    <div className="mx-auto w-full max-w-3xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
         Novo Processo — Cadastro
       </h1>

@@ -110,7 +110,7 @@ export default async function Home() {
   }));
 
   return (
-    <div className="mx-auto w-full max-w-5xl p-6">
+    <div className="mx-auto w-full max-w-7xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
         Painel de Manutenções
       </h1>

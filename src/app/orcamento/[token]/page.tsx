@@ -35,7 +35,7 @@ export default async function OrcamentoPublicoPage({
   const aguardandoRespostaContraoferta = pedido.status === "CONTRAOFERTA_ENVIADA";
 
   return (
-    <div className="mx-auto w-full max-w-2xl p-6">
+    <div className="mx-auto w-full max-w-3xl p-6">
       <div className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 text-center">
         {imobiliaria?.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

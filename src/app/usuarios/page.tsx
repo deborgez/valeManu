@@ -11,7 +11,7 @@ export default async function UsuariosPage() {
   const usuarios = await prisma.user.findMany({ orderBy: { nome: "asc" } });
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-5xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Usuários</h1>
         <Link

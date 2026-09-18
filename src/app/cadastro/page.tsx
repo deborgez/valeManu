@@ -10,7 +10,7 @@ export default async function CadastroPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6">
+    <div className="mx-auto w-full max-w-6xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
           Cadastro de Processos
