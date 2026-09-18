@@ -429,6 +429,7 @@ model AcordoDistrato {
   valorDesconto   Float         @default(0)
   tipoJuros       TipoDesconto?
   valorJuros      Float         @default(0)
+  jurosAoMes      Boolean       @default(false)
   valorFinal      Float
   numeroParcelas  Int
   primeiraParcela DateTime

@@ -15,27 +15,41 @@ type Registro = {
   valorDesconto: number;
   tipoJuros: "PERCENTUAL" | "VALOR" | null;
   valorJuros: number;
+  jurosAoMes: boolean;
   numeroParcelas: number;
   primeiraParcela: string;
   observacoes: string | null;
 };
 
+type ItemCusto = { id: string; label: string; valor: number };
+
 export default function AcordoModal({
   action,
   registro,
-  valorSugerido,
+  itensDisponiveis,
 }: {
   action: (formData: FormData) => Promise<void>;
   registro?: Registro | null;
-  /** Valor total em aberto (lançamentos + adequações + multa) sugerido como ponto de partida. */
-  valorSugerido?: number;
+  /** Custos em aberto (lançamentos, adequações, multa) que o usuário escolhe incluir no acordo. Só usado ao criar. */
+  itensDisponiveis?: ItemCusto[];
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
-  const [valorOriginal, setValorOriginal] = useState(
-    registro?.valorOriginal ?? valorSugerido ?? 0
+  const usaSelecaoDeItens = !registro && (itensDisponiveis?.length ?? 0) > 0;
+
+  const [itensSelecionados, setItensSelecionados] = useState<string[]>(
+    () => itensDisponiveis?.map((i) => i.id) ?? []
   );
+  const valorOriginalPorSelecao = (itensDisponiveis ?? [])
+    .filter((i) => itensSelecionados.includes(i.id))
+    .reduce((soma, i) => soma + i.valor, 0);
+
+  const [valorOriginalManual, setValorOriginalManual] = useState(
+    registro?.valorOriginal ?? 0
+  );
+  const valorOriginal = usaSelecaoDeItens ? valorOriginalPorSelecao : valorOriginalManual;
+
   const [tipoDesconto, setTipoDesconto] = useState<"" | "PERCENTUAL" | "VALOR">(
     registro?.tipoDesconto ?? ""
   );
@@ -44,6 +58,7 @@ export default function AcordoModal({
     registro?.tipoJuros ?? ""
   );
   const [valorJuros, setValorJuros] = useState(registro?.valorJuros ?? 0);
+  const [jurosAoMes, setJurosAoMes] = useState(registro?.jurosAoMes ?? false);
   const [numeroParcelas, setNumeroParcelas] = useState(registro?.numeroParcelas ?? 1);
 
   const router = useRouter();
@@ -54,11 +69,12 @@ export default function AcordoModal({
       : tipoDesconto === "VALOR"
         ? valorOriginal - valorDesconto
         : valorOriginal;
+  const multiplicadorJuros = jurosAoMes ? numeroParcelas : 1;
   const valorFinal = Math.max(
     tipoJuros === "PERCENTUAL"
-      ? valorComDesconto * (1 + valorJuros / 100)
+      ? valorComDesconto * (1 + (valorJuros / 100) * multiplicadorJuros)
       : tipoJuros === "VALOR"
-        ? valorComDesconto + valorJuros
+        ? valorComDesconto + valorJuros * multiplicadorJuros
         : valorComDesconto,
     0
   );
@@ -66,14 +82,22 @@ export default function AcordoModal({
 
   function abrir() {
     if (!registro) {
-      setValorOriginal(valorSugerido ?? 0);
+      setItensSelecionados(itensDisponiveis?.map((i) => i.id) ?? []);
+      setValorOriginalManual(0);
       setTipoDesconto("");
       setValorDesconto(0);
       setTipoJuros("");
       setValorJuros(0);
+      setJurosAoMes(false);
       setNumeroParcelas(1);
     }
     setAberto(true);
+  }
+
+  function alternarItem(id: string) {
+    setItensSelecionados((atual) =>
+      atual.includes(id) ? atual.filter((i) => i !== id) : [...atual, id]
+    );
   }
 
   return (
@@ -108,24 +132,57 @@ export default function AcordoModal({
               setAberto(false);
               setEnviando(false);
             }}
-            className="w-full max-w-md rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg"
           >
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
               {registro ? "Editar Acordo" : "Registrar Acordo"}
             </h3>
 
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Valor Original (R$)
-              </label>
-              <MoedaInput
-                name="valorOriginal"
-                required
-                defaultValue={valorOriginal}
-                onValueChange={(v) => setValorOriginal(parseMoeda(v))}
-                className={CAMPO_CLASSE}
-              />
-            </div>
+            {usaSelecaoDeItens ? (
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Custos considerados no acordo
+                </label>
+                <div className="rounded border border-slate-300 dark:border-slate-600 divide-y divide-slate-100 dark:divide-slate-700">
+                  {itensDisponiveis!.map((item) => (
+                    <label
+                      key={item.id}
+                      className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                    >
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={itensSelecionados.includes(item.id)}
+                          onChange={() => alternarItem(item.id)}
+                          className="h-4 w-4"
+                        />
+                        {item.label}
+                      </span>
+                      <span className="text-slate-600 dark:text-slate-400">
+                        R$ {formatMoedaExibicao(item.valor)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <input type="hidden" name="valorOriginal" value={valorOriginal} />
+                <p className="mt-2 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Total selecionado: R$ {formatMoedaExibicao(valorOriginal)}
+                </p>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Valor Original (R$)
+                </label>
+                <MoedaInput
+                  name="valorOriginal"
+                  required
+                  defaultValue={valorOriginalManual}
+                  onValueChange={(v) => setValorOriginalManual(parseMoeda(v))}
+                  className={CAMPO_CLASSE}
+                />
+              </div>
+            )}
 
             <div className="mb-4 grid grid-cols-2 gap-4">
               <div>
@@ -169,7 +226,7 @@ export default function AcordoModal({
               </div>
             </div>
 
-            <div className="mb-4 grid grid-cols-2 gap-4">
+            <div className="mb-2 grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Juros
@@ -209,6 +266,20 @@ export default function AcordoModal({
                   />
                 )}
               </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                <input
+                  type="checkbox"
+                  name="jurosAoMes"
+                  checked={jurosAoMes}
+                  onChange={(e) => setJurosAoMes(e.target.checked)}
+                  disabled={tipoJuros === ""}
+                  className="h-3.5 w-3.5 disabled:opacity-50"
+                />
+                Cobrar ao mês (aplica esse juros em cada parcela, não só uma vez)
+              </label>
             </div>
 
             <div className="mb-4 grid grid-cols-2 gap-4">

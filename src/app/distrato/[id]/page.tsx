@@ -1319,12 +1319,21 @@ export default async function DistratoDetalhePage({
     itens: distrato.lancamentosFinanceiros.filter((l) => l.tipo === tipo),
   }));
 
-  const totalTodosLancamentos = distrato.lancamentosFinanceiros.reduce(
-    (soma, l) => soma + l.valor,
-    0
-  );
-  const valorSugeridoAcordo =
-    totalTodosLancamentos + totalLocatarioGeral + (resultadoMulta?.multaAtual ?? 0);
+  const itensAcordoDisponiveis = [
+    ...categoriasLancamento
+      .map((categoria) => ({
+        id: `lancamento-${categoria.titulo}`,
+        label: categoria.titulo,
+        valor: categoria.itens.reduce((soma, l) => soma + l.valor, 0),
+      }))
+      .filter((item) => item.valor > 0),
+    ...(totalLocatarioGeral > 0
+      ? [{ id: "adequacoes", label: "Adequações", valor: totalLocatarioGeral }]
+      : []),
+    ...(resultadoMulta && resultadoMulta.multaAtual > 0
+      ? [{ id: "multa", label: tituloMulta ?? "Multa", valor: resultadoMulta.multaAtual }]
+      : []),
+  ];
 
   const conteudoFinanceiro = (
     <>
@@ -1547,7 +1556,7 @@ export default async function DistratoDetalhePage({
 
         {!distrato.acordo ? (
           <AcordoModal
-            valorSugerido={valorSugeridoAcordo}
+            itensDisponiveis={itensAcordoDisponiveis}
             action={async (formData: FormData) => {
               "use server";
               await registrarAcordo(distrato.id, formData);
@@ -1574,6 +1583,7 @@ export default async function DistratoDetalhePage({
                     {distrato.acordo.tipoJuros === "PERCENTUAL"
                       ? `${distrato.acordo.valorJuros}%`
                       : `R$ ${formatMoedaExibicao(distrato.acordo.valorJuros)}`}
+                    {distrato.acordo.jurosAoMes ? " ao mês" : ""}
                   </p>
                 )}
                 <p className="font-semibold text-slate-900 dark:text-slate-100">
@@ -1594,6 +1604,7 @@ export default async function DistratoDetalhePage({
                     valorDesconto: distrato.acordo.valorDesconto,
                     tipoJuros: distrato.acordo.tipoJuros,
                     valorJuros: distrato.acordo.valorJuros,
+                    jurosAoMes: distrato.acordo.jurosAoMes,
                     numeroParcelas: distrato.acordo.numeroParcelas,
                     primeiraParcela: distrato.acordo.primeiraParcela.toISOString().slice(0, 10),
                     observacoes: distrato.acordo.observacoes,

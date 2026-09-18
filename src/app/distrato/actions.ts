@@ -1317,16 +1317,19 @@ function calcularAcordo(formData: FormData) {
   const tipoJuros = tipoAjusteFromForm(formData, "tipoJuros");
   const valorJurosInput = parseMoeda(formData.get("valorJuros"));
   const valorJuros = tipoJuros ? valorJurosInput : 0;
+  const jurosAoMes = tipoJuros ? formData.get("jurosAoMes") === "on" : false;
+
+  const numeroParcelas = Math.max(parseInt(String(formData.get("numeroParcelas")), 10) || 1, 1);
+  const multiplicadorJuros = jurosAoMes ? numeroParcelas : 1;
 
   let valorFinal = valorComDesconto;
   if (tipoJuros === "PERCENTUAL") {
-    valorFinal = valorComDesconto * (1 + valorJuros / 100);
+    valorFinal = valorComDesconto * (1 + (valorJuros / 100) * multiplicadorJuros);
   } else if (tipoJuros === "VALOR") {
-    valorFinal = valorComDesconto + valorJuros;
+    valorFinal = valorComDesconto + valorJuros * multiplicadorJuros;
   }
   valorFinal = Math.max(Math.round(valorFinal * 100) / 100, 0);
 
-  const numeroParcelas = Math.max(parseInt(String(formData.get("numeroParcelas")), 10) || 1, 1);
   const primeiraParcelaStr = String(formData.get("primeiraParcela"));
   const primeiraParcela = parseDataLocal(primeiraParcelaStr);
   const observacoes = (formData.get("observacoes") as string) || null;
@@ -1337,6 +1340,7 @@ function calcularAcordo(formData: FormData) {
     valorDesconto,
     tipoJuros,
     valorJuros,
+    jurosAoMes,
     valorFinal,
     numeroParcelas,
     primeiraParcela,
@@ -1377,6 +1381,7 @@ export async function registrarAcordo(distratoId: string, formData: FormData) {
     valorDesconto,
     tipoJuros,
     valorJuros,
+    jurosAoMes,
     valorFinal,
     numeroParcelas,
     primeiraParcela,
@@ -1391,6 +1396,7 @@ export async function registrarAcordo(distratoId: string, formData: FormData) {
       valorDesconto,
       tipoJuros,
       valorJuros,
+      jurosAoMes,
       valorFinal,
       numeroParcelas,
       primeiraParcela,
@@ -1419,6 +1425,7 @@ export async function editarAcordo(distratoId: string, formData: FormData) {
     valorDesconto,
     tipoJuros,
     valorJuros,
+    jurosAoMes,
     valorFinal,
     numeroParcelas,
     primeiraParcela,
@@ -1439,6 +1446,7 @@ export async function editarAcordo(distratoId: string, formData: FormData) {
         valorDesconto,
         tipoJuros,
         valorJuros,
+        jurosAoMes,
         valorFinal,
         numeroParcelas,
         primeiraParcela,
