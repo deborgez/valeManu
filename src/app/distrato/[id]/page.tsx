@@ -20,6 +20,7 @@ import Link from "next/link";
 import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import { formatMoedaExibicao } from "@/lib/masks";
 import { calcularMulta } from "@/lib/multa";
+import { valoresAdequacao } from "@/lib/adequacoes";
 import AluguelModal from "@/components/distrato/AluguelModal";
 import TipoMultaSelector from "@/components/distrato/TipoMultaSelector";
 import ImpressaoModal from "@/components/ImpressaoModal";
@@ -175,29 +176,6 @@ function etapaAdequacao(a: {
     return "Início do serviço";
   }
   return LABEL_MANUTENCAO_STATUS[a.status] ?? a.status;
-}
-
-function valoresAdequacao(a: {
-  pedidosOrcamento: {
-    status: string;
-    valorMaoDeObra: number | null;
-    valorMaterial: number | null;
-    percentualAdministracao: number;
-  }[];
-  pagamentos: { valor: number | null }[];
-}): { valorPrestador: number | null; valorAdministracao: number } {
-  const pedidoAprovado = a.pedidosOrcamento.find((p) => p.status === "APROVADO");
-  const valorPrestador =
-    a.pagamentos[0]?.valor ??
-    (pedidoAprovado
-      ? (pedidoAprovado.valorMaoDeObra ?? 0) + (pedidoAprovado.valorMaterial ?? 0)
-      : null);
-  const valorAdministracao =
-    valorPrestador !== null && pedidoAprovado
-      ? valorPrestador * (pedidoAprovado.percentualAdministracao / 100)
-      : 0;
-
-  return { valorPrestador, valorAdministracao };
 }
 
 export default async function DistratoDetalhePage({

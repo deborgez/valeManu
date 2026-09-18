@@ -38,7 +38,7 @@ export default async function JuridicoPage() {
               >
                 <td className="px-4 py-2">
                   <Link
-                    href={`/distrato/${a.distrato.id}`}
+                    href={`/juridico/${a.distrato.id}`}
                     className="font-medium hover:underline"
                   >
                     {a.distrato.processo.numeroProcesso}
