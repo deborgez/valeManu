@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { FILE_INPUT_CLASSE } from "@/lib/ui";
+import { comprimirImagem } from "@/lib/comprimirImagem";
 
 type ArquivoEnviado = { url: string; nome: string; tipo: string };
 
@@ -33,7 +34,8 @@ export default function BlobUploadInput({
 
     try {
       const enviados: ArquivoEnviado[] = [];
-      for (const file of Array.from(files)) {
+      for (const arquivoOriginal of Array.from(files)) {
+        const file = await comprimirImagem(arquivoOriginal);
         const contentType = file.type || "application/octet-stream";
 
         const respostaAssinatura = await fetch("/api/blob/upload", {
