@@ -116,8 +116,9 @@ model Imobiliaria {
   endereco  String
   telefone  String
   email     String
-  logoUrl   String?
-  updatedAt DateTime @updatedAt
+  logoUrl     String?
+  logoUrlDark String?
+  updatedAt   DateTime @updatedAt
 }
 
 model User {

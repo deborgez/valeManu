@@ -9,7 +9,7 @@ export default async function NavBar() {
 
   const imobiliaria = await prisma.imobiliaria.findUnique({
     where: { id: "singleton" },
-    select: { nome: true, logoUrl: true },
+    select: { nome: true, logoUrl: true, logoUrlDark: true },
   });
 
   const nomeUsuario = session.user.name ?? "";
@@ -23,7 +23,15 @@ export default async function NavBar() {
           <img
             src={imobiliaria.logoUrl}
             alt={imobiliaria.nome}
-            className="h-9 w-auto"
+            className={`h-9 w-auto ${imobiliaria.logoUrlDark ? "dark:hidden" : ""}`}
+          />
+        )}
+        {imobiliaria?.logoUrlDark && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imobiliaria.logoUrlDark}
+            alt={imobiliaria.nome}
+            className="hidden h-9 w-auto dark:block"
           />
         )}
         <div className="h-9 w-px bg-slate-200 dark:bg-slate-700" />

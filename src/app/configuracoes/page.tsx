@@ -28,13 +28,25 @@ export default async function ConfiguracoesPage({
         action={atualizarImobiliaria}
         className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6"
       >
-        {imobiliaria?.logoUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imobiliaria.logoUrl}
-            alt="Logo atual"
-            className="mb-4 h-16"
-          />
+        {(imobiliaria?.logoUrl || imobiliaria?.logoUrlDark) && (
+          <div className="mb-4 flex gap-4">
+            {imobiliaria?.logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imobiliaria.logoUrl}
+                alt="Logo atual (modo claro)"
+                className="h-16 rounded border border-slate-200 bg-white p-2"
+              />
+            )}
+            {imobiliaria?.logoUrlDark && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imobiliaria.logoUrlDark}
+                alt="Logo atual (modo escuro)"
+                className="h-16 rounded border border-slate-700 bg-slate-900 p-2"
+              />
+            )}
+          </div>
         )}
 
         <div className="mb-4">
@@ -86,11 +98,21 @@ export default async function ConfiguracoesPage({
           />
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            Logo (opcional)
+            Logo — modo claro (opcional)
           </label>
           <BlobUploadInput name="logo" accept="image/*" />
+        </div>
+
+        <div className="mb-6">
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Logo — modo escuro (opcional)
+          </label>
+          <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">
+            Usada no lugar da logo padrão quando o usuário estiver com o tema escuro ativado.
+          </p>
+          <BlobUploadInput name="logoDark" accept="image/*" />
         </div>
 
         <div className="flex items-center gap-3">

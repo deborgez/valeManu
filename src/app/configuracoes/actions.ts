@@ -12,6 +12,7 @@ export async function atualizarImobiliaria(formData: FormData) {
   }
 
   const logoUrl = (formData.get("logoUrl") as string) || undefined;
+  const logoUrlDark = (formData.get("logoDarkUrl") as string) || undefined;
 
   await prisma.imobiliaria.upsert({
     where: { id: "singleton" },
@@ -21,6 +22,7 @@ export async function atualizarImobiliaria(formData: FormData) {
       telefone: String(formData.get("telefone")),
       email: String(formData.get("email")),
       ...(logoUrl ? { logoUrl } : {}),
+      ...(logoUrlDark ? { logoUrlDark } : {}),
     },
     create: {
       id: "singleton",
@@ -29,6 +31,7 @@ export async function atualizarImobiliaria(formData: FormData) {
       telefone: String(formData.get("telefone")),
       email: String(formData.get("email")),
       logoUrl,
+      logoUrlDark,
     },
   });
 
