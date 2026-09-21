@@ -1,6 +1,5 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import { useState, type ChangeEvent } from "react";
 import { FILE_INPUT_CLASSE } from "@/lib/ui";
 
@@ -35,14 +34,35 @@ export default function BlobUploadInput({
     try {
       const enviados: ArquivoEnviado[] = [];
       for (const file of Array.from(files)) {
-        const resultado = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/blob/upload",
+        const contentType = file.type || "application/octet-stream";
+
+        const respostaAssinatura = await fetch("/api/blob/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType,
+            size: file.size,
+          }),
         });
+        if (!respostaAssinatura.ok) {
+          throw new Error("Falha ao preparar o envio do arquivo.");
+        }
+        const { uploadUrl, publicUrl } = await respostaAssinatura.json();
+
+        const respostaUpload = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": contentType },
+          body: file,
+        });
+        if (!respostaUpload.ok) {
+          throw new Error("Falha ao enviar o arquivo.");
+        }
+
         enviados.push({
-          url: resultado.url,
+          url: publicUrl,
           nome: file.name,
-          tipo: file.type || "application/octet-stream",
+          tipo: contentType,
         });
       }
       setArquivos((atual) => (multiple ? [...atual, ...enviados] : enviados));

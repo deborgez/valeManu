@@ -14,9 +14,10 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
+    "@aws-sdk/s3-request-presigner": "^3.1136.0",
     "@paralleldrive/cuid2": "^3.3.0",
     "@prisma/client": "^6.19.3",
-    "@vercel/blob": "^2.6.1",
     "bcryptjs": "^3.0.3",
     "next": "16.2.10",
     "next-auth": "^5.0.0-beta.31",
