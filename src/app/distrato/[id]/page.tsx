@@ -37,6 +37,8 @@ import LocalEntregaChavesForm from "@/components/distrato/LocalEntregaChavesForm
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
+import OrdemServicoVistoriaDocumento from "@/components/distrato/OrdemServicoVistoriaDocumento";
+import { adicionarDiasUteis } from "@/lib/diasUteis";
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
 import LaudoVistoriaModal from "@/components/distrato/LaudoVistoriaModal";
 import ExcluirBotao from "@/components/distrato/ExcluirBotao";
@@ -702,6 +704,13 @@ export default async function DistratoDetalhePage({
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
+                          <ImpressaoModal label="Imprimir OS da Vistoria">
+                            <OrdemServicoVistoriaDocumento
+                              numeroProcesso={processo.numeroProcesso}
+                              endereco={processo}
+                              dataEntregaLaudo={adicionarDiasUteis(distrato.agendamentoVistoria.data, 5)}
+                            />
+                          </ImpressaoModal>
                           <AgendamentoVistoriaModal
                             registro={distrato.agendamentoVistoria}
                             action={async (formData: FormData) => {

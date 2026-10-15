@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { formatEndereco } from "@/lib/endereco";
 import { criarManutencao } from "../actions";
 import CpfInput from "@/components/inputs/CpfInput";
 import EnderecoComCep from "@/components/inputs/EnderecoComCep";
@@ -6,7 +9,79 @@ import NumeroProcessoInput from "@/components/inputs/NumeroProcessoInput";
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
-export default function NovaManutencaoPage() {
+export default async function NovaManutencaoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; processoId?: string }>;
+}) {
+  const params = await searchParams;
+  const q = params.q?.trim() || "";
+  const processoId = params.processoId;
+
+  const processoSelecionado = processoId
+    ? await prisma.processo.findUnique({ where: { id: processoId } })
+    : null;
+
+  if (!processoSelecionado) {
+    const processos = q
+      ? await prisma.processo.findMany({
+          where: { numeroProcesso: { contains: q, mode: "insensitive" } },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        })
+      : [];
+
+    return (
+      <div className="mx-auto w-full max-w-3xl p-6">
+        <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
+          Nova Manutenção — Solicitação
+        </h1>
+
+        <div className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Número do Processo
+          </label>
+          <form className="flex gap-3">
+            <NumeroProcessoInput
+              name="q"
+              defaultValue={q}
+              className={CAMPO_CLASSE}
+            />
+            <button
+              type="submit"
+              className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+            >
+              Buscar
+            </button>
+          </form>
+        </div>
+
+        {q && (
+          <div className="flex flex-col gap-2">
+            {processos.map((p) => (
+              <Link
+                key={p.id}
+                href={`/manutencoes/nova?processoId=${p.id}`}
+                className="w-full rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-left text-sm hover:border-slate-400 dark:hover:border-slate-500"
+              >
+                <p className="font-medium text-slate-900 dark:text-slate-100">
+                  {p.numeroProcesso}
+                </p>
+                <p className="text-slate-500 dark:text-slate-400">{formatEndereco(p)}</p>
+              </Link>
+            ))}
+            {processos.length === 0 && (
+              <p className="text-sm text-slate-400 dark:text-slate-500">
+                Nenhum processo encontrado para &quot;{q}&quot;. O processo precisa estar
+                previamente cadastrado.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-3xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
@@ -21,14 +96,25 @@ export default function NovaManutencaoPage() {
           <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Número do Processo
           </label>
-          <NumeroProcessoInput
+          <div className="flex items-center justify-between rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm">
+            <span className="text-slate-900 dark:text-slate-100">
+              {processoSelecionado.numeroProcesso}
+            </span>
+            <Link
+              href="/manutencoes/nova"
+              className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            >
+              Trocar processo
+            </Link>
+          </div>
+          <input
+            type="hidden"
             name="numeroProcesso"
-            required
-            className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
+            value={processoSelecionado.numeroProcesso}
           />
         </div>
 
-        <EnderecoComCep />
+        <EnderecoComCep defaultValues={processoSelecionado} />
 
         <div className="mb-4 grid grid-cols-2 gap-4">
           <div>
