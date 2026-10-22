@@ -12,6 +12,7 @@ export async function criarPrestador(formData: FormData) {
   await prisma.prestador.create({
     data: {
       nome: String(formData.get("nome")),
+      empresa: (formData.get("empresa") as string) || null,
       especialidade: String(formData.get("especialidade")),
       telefone: String(formData.get("telefone")),
       cpf: (formData.get("cpf") as string) || null,
@@ -32,6 +33,7 @@ export async function atualizarPrestador(id: string, formData: FormData) {
     where: { id },
     data: {
       nome: String(formData.get("nome")),
+      empresa: (formData.get("empresa") as string) || null,
       especialidade: String(formData.get("especialidade")),
       telefone: String(formData.get("telefone")),
       cpf: (formData.get("cpf") as string) || null,

@@ -4,6 +4,7 @@ import EspecialidadeSelect from "@/components/inputs/EspecialidadeSelect";
 
 type Prestador = {
   nome: string;
+  empresa: string | null;
   especialidade: string;
   telefone: string;
   cpf: string | null;
@@ -34,6 +35,17 @@ export default function PrestadorForm({
           name="nome"
           required
           defaultValue={prestador?.nome}
+          className={CAMPO_CLASSE}
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+          Empresa (opcional)
+        </label>
+        <input
+          name="empresa"
+          defaultValue={prestador?.empresa ?? ""}
           className={CAMPO_CLASSE}
         />
       </div>

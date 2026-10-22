@@ -9,6 +9,7 @@ export default async function PrestadoresPage() {
     select: {
       id: true,
       nome: true,
+      empresa: true,
       especialidade: true,
       telefone: true,
       email: true,

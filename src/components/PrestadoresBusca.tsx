@@ -7,6 +7,7 @@ import { ESPECIALIDADES_PRESTADOR } from "@/lib/labels";
 type Prestador = {
   id: string;
   nome: string;
+  empresa: string | null;
   especialidade: string;
   telefone: string;
   email: string | null;
@@ -26,7 +27,7 @@ export default function PrestadoresBusca({
     if (!termo) return prestadores;
 
     return prestadores.filter((p) =>
-      [p.nome, p.especialidade, p.telefone, p.email ?? ""]
+      [p.nome, p.empresa ?? "", p.especialidade, p.telefone, p.email ?? ""]
         .join(" ")
         .toLowerCase()
         .includes(termo)
@@ -92,7 +93,14 @@ export default function PrestadoresBusca({
                 <tbody>
                   {grupo.prestadores.map((p) => (
                     <tr key={p.id} className="border-t border-slate-100 dark:border-slate-700">
-                      <td className="px-4 py-2">{p.nome}</td>
+                      <td className="px-4 py-2">
+                        {p.nome}
+                        {p.empresa && (
+                          <span className="block text-xs text-slate-500 dark:text-slate-400">
+                            {p.empresa}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-2">{p.telefone}</td>
                       <td className="px-4 py-2">{p.email ?? "-"}</td>
                       <td className="px-4 py-2 text-right">
