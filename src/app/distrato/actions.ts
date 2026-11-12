@@ -484,6 +484,13 @@ export async function definirLocalEntregaChaves(
   formData: FormData
 ) {
   const local = formData.get("local") as "IMOVEL" | "IMOBILIARIA";
+  if (local !== "IMOVEL" && local !== "IMOBILIARIA") throw new Error("Local inválido.");
+
+  const atual = await prisma.distrato.findUniqueOrThrow({
+    where: { id: distratoId },
+    select: { localEntregaChaves: true },
+  });
+  if (atual.localEntregaChaves === local) return;
 
   await prisma.distrato.update({
     where: { id: distratoId },
@@ -493,8 +500,10 @@ export async function definirLocalEntregaChaves(
   await logAuditoria(
     distratoId,
     SECAO.LOCAL_ENTREGA_CHAVES,
-    "Registrou",
-    `Local: ${LABEL_LOCAL_ENTREGA[local]}`
+    atual.localEntregaChaves ? "Editou" : "Registrou",
+    atual.localEntregaChaves
+      ? `Alterou o local de ${LABEL_LOCAL_ENTREGA[atual.localEntregaChaves]} para ${LABEL_LOCAL_ENTREGA[local]}`
+      : `Local: ${LABEL_LOCAL_ENTREGA[local]}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -1202,7 +1211,13 @@ export async function excluirAluguel(distratoId: string) {
   revalidatePath(`/distrato/${distratoId}`);
 }
 
-type TipoLancamentoFinanceiro = "ALUGUEL" | "AGUA" | "ENERGIA" | "IPTU" | "CONDOMINIO";
+type TipoLancamentoFinanceiro =
+  | "ALUGUEL"
+  | "AGUA"
+  | "ENERGIA"
+  | "IPTU"
+  | "CONDOMINIO"
+  | "SEGURO";
 
 export async function registrarLancamentoFinanceiro(
   distratoId: string,
@@ -1216,8 +1231,12 @@ export async function registrarLancamentoFinanceiro(
   const valor = parseMoeda(formData.get("valor"));
   const subtipoBruto = (formData.get("subtipo") as string) || null;
   const subtipo = subtipoBruto === "SERVICO" ? "SERVICO" : subtipoBruto === "CONTA" ? "CONTA" : null;
-  const nomeServico = subtipo === "SERVICO" ? (formData.get("nomeServico") as string) || null : null;
-  const periodoDiasStr = subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
+  const nomeServico =
+    tipo === "SEGURO" || subtipo === "SERVICO"
+      ? (formData.get("nomeServico") as string) || null
+      : null;
+  const periodoDiasStr =
+    tipo === "SEGURO" || subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
   const periodoDias = periodoDiasStr ? Math.min(parseInt(periodoDiasStr, 10), 31) : null;
 
   await prisma.lancamentoFinanceiro.create({
@@ -1251,13 +1270,15 @@ export async function editarLancamentoFinanceiro(
   const valor = parseMoeda(formData.get("valor"));
   const subtipoBruto = (formData.get("subtipo") as string) || null;
   const subtipo = subtipoBruto === "SERVICO" ? "SERVICO" : subtipoBruto === "CONTA" ? "CONTA" : null;
-  const nomeServico = subtipo === "SERVICO" ? (formData.get("nomeServico") as string) || null : null;
-  const periodoDiasStr = subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
-  const periodoDias = periodoDiasStr ? Math.min(parseInt(periodoDiasStr, 10), 31) : null;
-
   const antigo = await prisma.lancamentoFinanceiro.findUniqueOrThrow({
     where: { id: lancamentoId },
   });
+  const ehSeguro = antigo.tipo === "SEGURO";
+  const nomeServico =
+    ehSeguro || subtipo === "SERVICO" ? (formData.get("nomeServico") as string) || null : null;
+  const periodoDiasStr =
+    ehSeguro || subtipo === "SERVICO" ? null : (formData.get("periodoDias") as string) || null;
+  const periodoDias = periodoDiasStr ? Math.min(parseInt(periodoDiasStr, 10), 31) : null;
 
   await prisma.lancamentoFinanceiro.update({
     where: { id: lancamentoId },
@@ -1270,7 +1291,7 @@ export async function editarLancamentoFinanceiro(
     {
       mesCompetencia: { label: "a competência", formatar: (v) => formatMesCompetencia(v as string) },
       subtipo: { label: "o tipo (conta/serviço)" },
-      nomeServico: { label: "o nome do serviço" },
+      nomeServico: { label: "o nome do serviço / tipo de seguro" },
       periodoDias: { label: "o período (dias)" },
       valor: { label: "o valor", formatar: (v) => `R$ ${formatMoedaExibicao(v as number)}` },
     }

@@ -39,6 +39,12 @@ import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaM
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
 import OrdemServicoVistoriaDocumento from "@/components/distrato/OrdemServicoVistoriaDocumento";
 import { adicionarDiasUteis } from "@/lib/diasUteis";
+import {
+  sinalEntregaChaves as calcularSinalEntregaChaves,
+  sinalVistoriaSaida,
+  sinalLaudo,
+  prazoLaudo,
+} from "@/lib/prazosDistrato";
 import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
 import LaudoVistoriaModal from "@/components/distrato/LaudoVistoriaModal";
 import ExcluirBotao from "@/components/distrato/ExcluirBotao";
@@ -323,6 +329,23 @@ export default async function DistratoDetalhePage({
       }
     }
   }
+
+  const dataEntregaChaves =
+    distrato.entregaChaves?.data ?? (ramoImovel ? (distrato.vistoriaSaida?.data ?? null) : null);
+  const entregaChavesNaVistoria = !distrato.entregaChaves && Boolean(dataEntregaChaves);
+  const sinalEntregaChaves =
+    distrato.avisoPrevio && dataEntregaChaves
+      ? calcularSinalEntregaChaves(distrato.avisoPrevio.data, dataEntregaChaves)
+      : null;
+  const sinalVistoria =
+    distrato.agendamentoVistoria && distrato.vistoriaSaida
+      ? sinalVistoriaSaida(distrato.agendamentoVistoria.data, distrato.vistoriaSaida.data)
+      : null;
+  const limiteLaudo = distrato.vistoriaSaida ? prazoLaudo(distrato.vistoriaSaida.data) : null;
+  const sinalDoLaudo =
+    distrato.vistoriaSaida && distrato.laudoVistoria
+      ? sinalLaudo(distrato.vistoriaSaida.data, distrato.laudoVistoria.data)
+      : null;
 
   const cabecalhoProcesso = (
     <>
@@ -611,6 +634,16 @@ export default async function DistratoDetalhePage({
             />
           ) : (
             <>
+              <div className="mb-4">
+                <LocalEntregaChavesForm
+                  valorAtual={distrato.localEntregaChaves}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await definirLocalEntregaChaves(distrato.id, formData);
+                  }}
+                />
+              </div>
+
               {/* Etapa 1 · Entrega das Chaves (só no ramo Imobiliária) */}
               {podeEntregaChaves && (
                 <div>
@@ -636,6 +669,11 @@ export default async function DistratoDetalhePage({
                               ? ` às ${distrato.entregaChaves.hora}`
                               : ""}
                           </p>
+                          {sinalEntregaChaves && (
+                            <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
+                              {sinalEntregaChaves.texto}
+                            </p>
+                          )}
                           {distrato.entregaChaves.termoUrl && (
                             <ArquivoPreviewBotao
                               url={distrato.entregaChaves.termoUrl}
@@ -854,6 +892,16 @@ export default async function DistratoDetalhePage({
                               ? ` às ${distrato.vistoriaSaida.hora}`
                               : ""}
                           </p>
+                          {distrato.agendamentoVistoria && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              Data agendada: {formatData(distrato.agendamentoVistoria.data)}
+                            </p>
+                          )}
+                          {sinalVistoria && (
+                            <p className={`text-xs font-medium ${sinalVistoria.cor}`}>
+                              {sinalVistoria.texto}
+                            </p>
+                          )}
                           {distrato.vistoriaSaida.responsavel && (
                             <p className="text-slate-500 dark:text-slate-400">
                               Responsável: {distrato.vistoriaSaida.responsavel}
@@ -916,6 +964,12 @@ export default async function DistratoDetalhePage({
                     titulo="Entrega do Laudo"
                     auditoria={auditoriaPorSecao("LAUDO_VISTORIA")}
                   />
+                  {limiteLaudo && (
+                    <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                      Prazo para entrega do laudo: {formatData(limiteLaudo)} (5 dias úteis após a
+                      vistoria de saída)
+                    </p>
+                  )}
                   {!distrato.laudoVistoria ? (
                     <LaudoVistoriaModal
                       hoje={hoje}
@@ -931,6 +985,11 @@ export default async function DistratoDetalhePage({
                           <p className="text-slate-700 dark:text-slate-300">
                             Laudo entregue em {formatData(distrato.laudoVistoria.data)}
                           </p>
+                          {sinalDoLaudo && (
+                            <p className={`text-xs font-medium ${sinalDoLaudo.cor}`}>
+                              {sinalDoLaudo.texto}
+                            </p>
+                          )}
                           {distrato.laudoVistoria.arquivoUrl && (
                             <ArquivoPreviewBotao
                               url={distrato.laudoVistoria.arquivoUrl}
@@ -1237,32 +1296,13 @@ export default async function DistratoDetalhePage({
     </section>
   );
 
-  const sinalEntregaChaves = (() => {
-    if (!distrato.entregaChaves || !distrato.avisoPrevio) return null;
-    const prazoFim = new Date(distrato.avisoPrevio.data);
-    prazoFim.setDate(prazoFim.getDate() + 30);
-    const diferenca = diasEntreDatas(distrato.entregaChaves.data, prazoFim);
-    if (diferenca < 0) {
-      return {
-        texto: `${Math.abs(diferenca)} ${Math.abs(diferenca) === 1 ? "dia" : "dias"} antes do término do prazo`,
-        cor: "text-green-700 dark:text-green-400",
-      };
-    }
-    if (diferenca > 0) {
-      return {
-        texto: `${diferenca} ${diferenca === 1 ? "dia" : "dias"} depois do prazo`,
-        cor: "text-red-700 dark:text-red-400",
-      };
-    }
-    return { texto: "No último dia do prazo", cor: "text-green-700 dark:text-green-400" };
-  })();
-
   const TIPOS_LANCAMENTO: {
-    tipo: "ALUGUEL" | "AGUA" | "ENERGIA" | "IPTU" | "CONDOMINIO";
+    tipo: "ALUGUEL" | "AGUA" | "ENERGIA" | "IPTU" | "CONDOMINIO" | "SEGURO";
     titulo: string;
     tituloRelatorio: string;
     nomeCurto: string;
     permiteServico?: boolean;
+    permiteSeguro?: boolean;
   }[] = [
     { tipo: "ALUGUEL", titulo: "Aluguéis em aberto", tituloRelatorio: "Aluguéis", nomeCurto: "Aluguel" },
     {
@@ -1285,6 +1325,13 @@ export default async function DistratoDetalhePage({
       titulo: "Condomínio em aberto",
       tituloRelatorio: "Condomínio",
       nomeCurto: "Condomínio",
+    },
+    {
+      tipo: "SEGURO",
+      titulo: "Seguros em aberto",
+      tituloRelatorio: "Seguros",
+      nomeCurto: "Seguro",
+      permiteSeguro: true,
     },
   ];
 
@@ -1416,8 +1463,13 @@ export default async function DistratoDetalhePage({
                     Data de Entrega das Chaves
                   </p>
                   <p className="text-slate-700 dark:text-slate-300">
-                    {distrato.entregaChaves ? formatData(distrato.entregaChaves.data) : "—"}
+                    {dataEntregaChaves ? formatData(dataEntregaChaves) : "—"}
                   </p>
+                  {entregaChavesNaVistoria && (
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                      Entrega no imóvel (data da vistoria de saída)
+                    </p>
+                  )}
                   {sinalEntregaChaves && (
                     <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
                       {sinalEntregaChaves.texto}
@@ -1469,7 +1521,7 @@ export default async function DistratoDetalhePage({
         </section>
       )}
 
-      {TIPOS_LANCAMENTO.map(({ tipo, titulo, nomeCurto, permiteServico }) => {
+      {TIPOS_LANCAMENTO.map(({ tipo, titulo, nomeCurto, permiteServico, permiteSeguro }) => {
         const doTipo = distrato.lancamentosFinanceiros.filter((l) => l.tipo === tipo);
         const totalTipo = doTipo.reduce((soma, l) => soma + l.valor, 0);
         const valorBaseCalculo = tipo === "ALUGUEL" ? distrato.aluguel?.valor : undefined;
@@ -1503,6 +1555,7 @@ export default async function DistratoDetalhePage({
                           registro={l}
                           valorBaseCalculo={valorBaseCalculo}
                           permiteServico={permiteServico}
+                          permiteSeguro={permiteSeguro}
                           action={async (formData: FormData) => {
                             "use server";
                             await editarLancamentoFinanceiro(l.id, distrato.id, formData);
@@ -1533,6 +1586,7 @@ export default async function DistratoDetalhePage({
               botaoLabel={`Lançar ${nomeCurto}`}
               valorBaseCalculo={valorBaseCalculo}
               permiteServico={permiteServico}
+              permiteSeguro={permiteSeguro}
               action={async (formData: FormData) => {
                 "use server";
                 await registrarLancamentoFinanceiro(distrato.id, tipo, formData);
@@ -1782,7 +1836,7 @@ export default async function DistratoDetalhePage({
             prazoContratoMeses={processo.prazoContratoMeses}
             prazoContratoInicio={processo.prazoContratoInicio}
             dataAvisoPrevio={distrato.avisoPrevio?.data ?? null}
-            dataEntregaChaves={distrato.entregaChaves?.data ?? null}
+            dataEntregaChaves={dataEntregaChaves}
             sinalEntregaChaves={sinalEntregaChaves?.texto ?? null}
             prazoMultaMeses={processo.prazoMultaMeses}
             tituloMulta={tituloMulta}

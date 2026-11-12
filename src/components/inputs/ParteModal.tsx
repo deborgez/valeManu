@@ -10,7 +10,6 @@ export type Parte = {
   tipo: "LOCADOR" | "LOCATARIO";
   nome: string;
   telefone: string;
-  rg: string;
   cpf: string;
 };
 
@@ -29,24 +28,22 @@ export default function ParteModal({
   const [aberto, setAberto] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [rg, setRg] = useState("");
   const [cpf, setCpf] = useState("");
 
   function abrir() {
     setNome("");
     setTelefone("");
-    setRg("");
     setCpf("");
     setAberto(true);
   }
 
   function podeSalvar() {
-    return Boolean(nome && telefone && rg && cpf);
+    return Boolean(nome && telefone && cpf);
   }
 
   function salvar() {
     if (!podeSalvar()) return;
-    onSalvar({ tipo, nome, telefone, rg, cpf });
+    onSalvar({ tipo, nome, telefone, cpf });
     setAberto(false);
   }
 
@@ -91,26 +88,18 @@ export default function ParteModal({
                 className={CAMPO_CLASSE}
               />
             </div>
-            <div className="mb-4 grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  RG
-                </label>
-                <input value={rg} onChange={(e) => setRg(e.target.value)} className={CAMPO_CLASSE} />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  CPF
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="000.000.000-00"
-                  value={cpf}
-                  onChange={(e) => setCpf(formatCPF(e.target.value))}
-                  className={CAMPO_CLASSE}
-                />
-              </div>
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                CPF
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={(e) => setCpf(formatCPF(e.target.value))}
+                className={CAMPO_CLASSE}
+              />
             </div>
 
             <div className="flex justify-end gap-2">

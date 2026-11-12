@@ -71,14 +71,12 @@ function parsePartesProcesso(formData: FormData) {
   const partesTipo = formData.getAll("parteTipo") as string[];
   const partesNome = formData.getAll("parteNome") as string[];
   const partesTelefone = formData.getAll("parteTelefone") as string[];
-  const partesRg = formData.getAll("parteRg") as string[];
   const partesCpf = formData.getAll("parteCpf") as string[];
 
   return partesTipo.map((tipo, i) => ({
     tipo: tipo as "LOCADOR" | "LOCATARIO" | "IMOBILIARIA",
     nome: partesNome[i],
     telefone: partesTelefone[i],
-    rg: partesRg[i],
     cpf: partesCpf[i],
   }));
 }

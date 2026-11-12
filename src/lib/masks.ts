@@ -34,11 +34,9 @@ export function formatNumeroProcesso(value: string): string {
 
   if (value.startsWith(PREFIXO_NUMERO_PROCESSO)) {
     semPrefixo = value.slice(PREFIXO_NUMERO_PROCESSO.length);
-  } else if (PREFIXO_NUMERO_PROCESSO.startsWith(value)) {
-    // usuário apagou parte do prefixo fixo; mantém apenas o prefixo
-    semPrefixo = "";
   } else {
-    semPrefixo = value;
+    // prefixo apagado ou alterado: o usuário edita livremente
+    return value.toUpperCase().replace(/[^A-Z0-9.]/g, "");
   }
 
   const digits = semPrefixo.replace(/\D/g, "").slice(0, 9);

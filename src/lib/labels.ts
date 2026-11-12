@@ -98,3 +98,11 @@ export const ESPECIALIDADES_PRESTADOR: string[] = [
   "Gás",
   "Engenharia/Laudos",
 ];
+
+export const TIPOS_SEGURO = [
+  "Incêndio",
+  "Residencial",
+  "Empresarial",
+  "Fiança Onerosa",
+  "Seguro Fiança",
+];

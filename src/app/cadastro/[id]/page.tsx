@@ -91,7 +91,7 @@ export default async function ProcessoDetalhePage({
               <ul className="flex flex-col gap-1 text-sm">
                 {locadores.map((parte) => (
                   <li key={parte.id} className="text-slate-700 dark:text-slate-300">
-                    {parte.nome} — {parte.telefone} — RG {parte.rg}, CPF {parte.cpf}
+                    {parte.nome} — {parte.telefone} — CPF {parte.cpf}
                   </li>
                 ))}
               </ul>
@@ -105,7 +105,7 @@ export default async function ProcessoDetalhePage({
               <ul className="flex flex-col gap-1 text-sm">
                 {locatarios.map((parte) => (
                   <li key={parte.id} className="text-slate-700 dark:text-slate-300">
-                    {parte.nome} — {parte.telefone} — RG {parte.rg}, CPF {parte.cpf}
+                    {parte.nome} — {parte.telefone} — CPF {parte.cpf}
                   </li>
                 ))}
               </ul>

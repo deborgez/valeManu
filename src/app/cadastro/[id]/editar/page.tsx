@@ -53,7 +53,6 @@ export default async function EditarProcessoPage({
         tipo: p.tipo as "LOCADOR" | "LOCATARIO",
         nome: p.nome,
         telefone: p.telefone,
-        rg: p.rg,
         cpf: p.cpf,
       })),
   };

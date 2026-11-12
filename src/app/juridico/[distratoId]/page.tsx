@@ -131,6 +131,7 @@ export default async function DossieJuridicoPage({
     { tipo: "ENERGIA", titulo: "Energia" },
     { tipo: "IPTU", titulo: "IPTU" },
     { tipo: "CONDOMINIO", titulo: "Condomínio" },
+    { tipo: "SEGURO", titulo: "Seguros" },
   ];
   const categoriasLancamento = TIPOS_LANCAMENTO.map(({ tipo, titulo }) => ({
     titulo,

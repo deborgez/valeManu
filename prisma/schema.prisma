@@ -41,6 +41,7 @@ enum TipoLancamentoFinanceiro {
   ENERGIA
   IPTU
   CONDOMINIO
+  SEGURO
 }
 
 enum SubtipoLancamento {
@@ -348,7 +349,7 @@ model ParteProcesso {
   tipo     ParteInteressada
   nome     String
   telefone String
-  rg       String
+  rg       String           @default("")
   cpf      String
 
   processoId String

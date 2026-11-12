@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MoedaInput from "@/components/inputs/MoedaInput";
 import { IconeEditar } from "./icones";
+import { TIPOS_SEGURO } from "@/lib/labels";
 
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
@@ -31,6 +32,7 @@ export default function LancamentoFinanceiroModal({
   registro,
   valorBaseCalculo,
   permiteServico = false,
+  permiteSeguro = false,
 }: {
   titulo: string;
   botaoLabel?: string;
@@ -40,6 +42,8 @@ export default function LancamentoFinanceiroModal({
   valorBaseCalculo?: number | null;
   /** Permite escolher entre lançamento de Conta (competência/período/valor) ou Serviço (nome/competência/valor). */
   permiteServico?: boolean;
+  /** Exige a escolha do tipo de seguro (Incêndio, Residencial, etc.). */
+  permiteSeguro?: boolean;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -145,6 +149,30 @@ export default function LancamentoFinanceiroModal({
               </div>
             )}
 
+            {permiteSeguro && (
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Seguro
+                </label>
+                <select
+                  key={resetKey}
+                  name="nomeServico"
+                  required
+                  defaultValue={registro?.nomeServico ?? ""}
+                  className={CAMPO_CLASSE}
+                >
+                  <option value="" disabled>
+                    Selecione
+                  </option>
+                  {TIPOS_SEGURO.map((tipo) => (
+                    <option key={tipo} value={tipo}>
+                      {tipo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {subtipo === "SERVICO" && (
               <div className="mb-4">
                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -179,7 +207,7 @@ export default function LancamentoFinanceiroModal({
               />
             </div>
 
-            {subtipo === "CONTA" && (
+            {subtipo === "CONTA" && !permiteSeguro && (
               <div className="mb-4">
                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Período (dias)
