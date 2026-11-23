@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
 import { podeEntregarVistoria, podeSolicitarVistoria } from "@/lib/perfis";
+import { notificar } from "@/lib/notificacoes";
 
 function revalidarVistorias() {
   revalidatePath("/vistorias/entrada");
@@ -28,7 +29,10 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
   if (!processoId) throw new Error("Selecione o processo.");
   if (!comprovanteUrl) throw new Error("Anexe o comprovante do pagamento do sinal.");
 
-  await prisma.processo.findUniqueOrThrow({ where: { id: processoId }, select: { id: true } });
+  const processo = await prisma.processo.findUniqueOrThrow({
+    where: { id: processoId },
+    select: { id: true, numeroProcesso: true },
+  });
 
   await prisma.vistoria.create({
     data: {
@@ -39,6 +43,13 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
       comprovanteTipo: (formData.get("comprovanteTipo") as string) || null,
       solicitadoPorId: session.user.id,
     },
+  });
+
+  await notificar({
+    perfis: ["ADMIN", "VISTORIADOR"],
+    excetoUsuarioId: session.user.id,
+    mensagem: `Nova vistoria de entrada solicitada — processo ${processo.numeroProcesso}`,
+    link: "/vistorias/solicitacoes",
   });
 
   revalidarVistorias();
@@ -56,8 +67,13 @@ export async function concluirVistoria(vistoriaId: string, formData: FormData) {
   if (!dataStr || !hora) throw new Error("Informe a data e o horário da entrega.");
   if (dataStr > hojeSaoPaulo()) throw new Error("A data de entrega não pode ser no futuro.");
 
-  const vistoria = await prisma.vistoria.findUniqueOrThrow({ where: { id: vistoriaId } });
+  const vistoria = await prisma.vistoria.findUniqueOrThrow({
+    where: { id: vistoriaId },
+    include: { processo: { select: { numeroProcesso: true } } },
+  });
   if (vistoria.status === "ENTREGUE") return;
+  const participouLocador = formData.get("locadorParticipou") === "on";
+  const participouLocatario = formData.get("locatarioParticipou") === "on";
 
   const entregueData = parseDataLocal(dataStr);
   const solicitadaEm = parseDataLocal(
@@ -74,7 +90,38 @@ export async function concluirVistoria(vistoriaId: string, formData: FormData) {
       entregueData,
       entregueHora: hora,
       entreguePorId: session.user.id,
+      ...(vistoria.tipo === "SAIDA"
+        ? { locadorParticipou: participouLocador, locatarioParticipou: participouLocatario }
+        : {}),
     },
+  });
+
+  const tipoTexto = vistoria.tipo === "SAIDA" ? "saída" : "entrada";
+  const numero = vistoria.processo.numeroProcesso;
+
+  if (vistoria.distratoId) {
+    const partes = [
+      participouLocador && "locador participou",
+      participouLocatario && "locatário participou",
+    ].filter(Boolean);
+    await prisma.distratoAuditoria.create({
+      data: {
+        distratoId: vistoria.distratoId,
+        secao: "SOLICITACAO_VISTORIA_SAIDA",
+        acao: "Editou",
+        detalhe: `Vistoria de saída concluída em ${formatData(entregueData)} às ${hora}${partes.length ? ` (${partes.join(", ")})` : ""}`,
+        usuarioId: session.user.id,
+      },
+    });
+    revalidatePath(`/distrato/${vistoria.distratoId}`);
+  }
+
+  await notificar({
+    perfis: vistoria.distratoId ? ["ADMIN", "ADMINISTRATIVO"] : ["ADMIN"],
+    usuarios: [vistoria.solicitadoPorId],
+    excetoUsuarioId: session.user.id,
+    mensagem: `Vistoria de ${tipoTexto} concluída — processo ${numero}${vistoria.distratoId ? ": os comunicados de encerramento já podem ser registrados" : ""}`,
+    link: vistoria.distratoId ? `/distrato/${vistoria.distratoId}` : `/vistorias/${vistoria.tipo === "SAIDA" ? "saida" : "entrada"}`,
   });
 
   revalidarVistorias();

@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sair } from "./actions";
 import ThemeToggle from "./ThemeToggle";
+import NotificacoesSino from "./NotificacoesSino";
+import { formatDataHora } from "@/lib/datahora";
 
 export default async function NavBar() {
   const session = await auth();
@@ -11,6 +13,15 @@ export default async function NavBar() {
     where: { id: "singleton" },
     select: { nome: true, logoUrl: true, logoUrlDark: true },
   });
+
+  const [notificacoes, naoLidas] = await Promise.all([
+    prisma.notificacao.findMany({
+      where: { usuarioId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.notificacao.count({ where: { usuarioId: session.user.id, lida: false } }),
+  ]);
 
   const nomeUsuario = session.user.name ?? "";
   const inicial = nomeUsuario.charAt(0).toUpperCase() || "?";
@@ -47,6 +58,16 @@ export default async function NavBar() {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <NotificacoesSino
+          naoLidas={naoLidas}
+          itens={notificacoes.map((n) => ({
+            id: n.id,
+            mensagem: n.mensagem,
+            link: n.link,
+            lida: n.lida,
+            quando: formatDataHora(n.createdAt),
+          }))}
+        />
         <ThemeToggle />
         <div className="mx-1 h-6 w-px bg-slate-200 dark:bg-slate-700" />
         <div className="flex items-center gap-2 pl-1">

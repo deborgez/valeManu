@@ -15,6 +15,7 @@ import {
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
 import { podeSolicitarVistoria } from "@/lib/perfis";
+import { notificar, LABEL_SECAO_DISTRATO } from "@/lib/notificacoes";
 
 const SECAO = {
   AVISO_PREVIO: "AVISO_PREVIO",
@@ -51,6 +52,17 @@ async function logAuditoria(
       detalhe: detalhe ?? null,
       usuarioId: session.user.id,
     },
+  });
+
+  const distrato = await prisma.distrato.findUnique({
+    where: { id: distratoId },
+    select: { processo: { select: { numeroProcesso: true } } },
+  });
+  await notificar({
+    perfis: ["ADMIN", "ADMINISTRATIVO"],
+    excetoUsuarioId: session.user.id,
+    mensagem: `Distrato ${distrato?.processo.numeroProcesso ?? ""}: ${session.user.name ?? "Um usuário"} ${acao.toLowerCase()} ${LABEL_SECAO_DISTRATO[secao] ?? secao.toLowerCase()}`,
+    link: `/distrato/${distratoId}`,
   });
 }
 
@@ -1655,16 +1667,29 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
       comprovanteUrl,
       comprovanteNome: (formData.get("comprovanteNome") as string) || null,
       comprovanteTipo: (formData.get("comprovanteTipo") as string) || null,
+      locadorDesejaParticipar: formData.get("locadorDesejaParticipar") === "on",
+      locatarioDesejaParticipar: formData.get("locatarioDesejaParticipar") === "on",
       solicitadoPorId: session.user.id,
     },
   });
+
+  const quemParticipa = [
+    formData.get("locadorDesejaParticipar") === "on" && "locador deseja participar",
+    formData.get("locatarioDesejaParticipar") === "on" && "locatário deseja participar",
+  ].filter(Boolean);
 
   await logAuditoria(
     distratoId,
     SECAO.SOLICITACAO_VISTORIA_SAIDA,
     "Registrou",
-    "Solicitou a vistoria de saída"
+    `Solicitou a vistoria de saída${quemParticipa.length ? ` (${quemParticipa.join(", ")})` : ""}`
   );
+  await notificar({
+    perfis: ["VISTORIADOR", "ADMIN"],
+    excetoUsuarioId: session.user.id,
+    mensagem: `Nova vistoria de saída solicitada${quemParticipa.length ? ` (${quemParticipa.join(", ")})` : ""}`,
+    link: "/vistorias/solicitacoes",
+  });
   revalidatePath(`/distrato/${distratoId}`);
   revalidatePath("/vistorias/saida");
   revalidatePath("/vistorias/solicitacoes");

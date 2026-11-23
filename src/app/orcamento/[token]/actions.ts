@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { parseMoeda } from "@/lib/masks";
 import { revalidatePath } from "next/cache";
+import { notificar } from "@/lib/notificacoes";
 
 export async function enviarOrcamentoProfissional(
   token: string,
@@ -45,6 +46,16 @@ export async function enviarOrcamentoProfissional(
     data: { status: "AGUARDANDO_APROVACAO" },
   });
 
+  const manutencao = await prisma.manutencao.findUnique({
+    where: { id: pedido.manutencaoId },
+    select: { numeroProcesso: true },
+  });
+  await notificar({
+    perfis: ["ADMIN", "ADMINISTRATIVO"],
+    mensagem: `Manutenção ${manutencao?.numeroProcesso ?? ""}: orçamento entregue pelo prestador`,
+    link: `/manutencoes/${pedido.manutencaoId}`,
+  });
+
   revalidatePath(`/orcamento/${token}`);
   revalidatePath(`/manutencoes/${pedido.manutencaoId}`);
 }
@@ -78,6 +89,16 @@ export async function responderContraoferta(token: string, aceitar: boolean) {
       data: { manutencaoId: pedido.manutencaoId, etapa: "Contraoferta recusada" },
     });
   }
+
+  const manutencao = await prisma.manutencao.findUnique({
+    where: { id: pedido.manutencaoId },
+    select: { numeroProcesso: true },
+  });
+  await notificar({
+    perfis: ["ADMIN", "ADMINISTRATIVO"],
+    mensagem: `Manutenção ${manutencao?.numeroProcesso ?? ""}: prestador ${aceitar ? "aceitou" : "recusou"} a contraoferta`,
+    link: `/manutencoes/${pedido.manutencaoId}`,
+  });
 
   revalidatePath(`/orcamento/${token}`);
   revalidatePath(`/manutencoes/${pedido.manutencaoId}`);

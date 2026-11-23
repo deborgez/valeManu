@@ -9,9 +9,11 @@ const CAMPO_CLASSE =
 export default function ConcluirVistoriaModal({
   action,
   hoje,
+  participacao = false,
 }: {
   action: (formData: FormData) => Promise<void>;
   hoje: string;
+  participacao?: boolean;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -74,6 +76,21 @@ export default function ConcluirVistoriaModal({
                 <input type="time" name="hora" required className={CAMPO_CLASSE} />
               </div>
             </div>
+            {participacao && (
+              <fieldset className="mb-4">
+                <legend className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Quem participou da vistoria?
+                </legend>
+                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                  <input type="checkbox" name="locadorParticipou" className="h-4 w-4" />
+                  Locador participou
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                  <input type="checkbox" name="locatarioParticipou" className="h-4 w-4" />
+                  Locatário participou
+                </label>
+              </fieldset>
+            )}
             {erro && <p className="mb-3 text-xs text-red-600 dark:text-red-400">{erro}</p>}
             <div className="flex justify-end gap-2">
               <button

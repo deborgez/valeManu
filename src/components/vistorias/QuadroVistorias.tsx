@@ -69,6 +69,21 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {formatEndereco(v.processo)}
             </p>
+            {v.tipo === "SAIDA" && (v.locadorDesejaParticipar || v.locatarioDesejaParticipar) && (
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                {[v.locadorDesejaParticipar && "Locador deseja participar", v.locatarioDesejaParticipar && "Locatário deseja participar"]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
+            {v.tipo === "SAIDA" && v.status === "ENTREGUE" && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Participaram:{" "}
+                {[v.locadorParticipou && "locador", v.locatarioParticipou && "locatário"]
+                  .filter(Boolean)
+                  .join(" e ") || "ninguém"}
+              </p>
+            )}
             {v.distratoId && podeVerDistrato && (
               <Link
                 href={`/distrato/${v.distratoId}`}
@@ -112,6 +127,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
               {v.status === "PENDENTE" && (
                 <ConcluirVistoriaModal
                   hoje={hojeStr}
+                  participacao={v.tipo === "SAIDA"}
                   action={async (formData: FormData) => {
                     "use server";
                     await concluirVistoria(v.id, formData);

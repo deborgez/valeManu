@@ -87,6 +87,16 @@ export default async function QuadroSolicitacoesPage() {
                 <p className="text-slate-500 dark:text-slate-400">
                   Entregar até {formatData(limite)}
                 </p>
+                {v.tipo === "SAIDA" && (v.locadorDesejaParticipar || v.locatarioDesejaParticipar) && (
+                  <p className="mt-2 rounded bg-amber-50 dark:bg-amber-950 px-2 py-1 text-xs font-medium text-amber-800 dark:text-amber-300">
+                    {[
+                      v.locadorDesejaParticipar && "Locador deseja participar",
+                      v.locatarioDesejaParticipar && "Locatário deseja participar",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
                 <div className="mt-3 flex items-center justify-between">
                   <ArquivoPreviewBotao
                     url={v.comprovanteUrl}
@@ -96,6 +106,7 @@ export default async function QuadroSolicitacoesPage() {
                   />
                   <ConcluirVistoriaModal
                     hoje={hojeStr}
+                    participacao={v.tipo === "SAIDA"}
                     action={async (formData: FormData) => {
                       "use server";
                       await concluirVistoria(v.id, formData);

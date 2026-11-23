@@ -70,10 +70,8 @@ export default async function DossieJuridicoPage({
       comunicadoLocador: true,
       contatos: { orderBy: { data: "asc" } },
       entregaChaves: true,
-      agendamentoVistoria: true,
       comunicadoVistoria: true,
-      vistoriaSaida: true,
-      laudoVistoria: true,
+      solicitacaoVistoria: true,
       comunicadoEncerramentoLocador: true,
       comunicadoEncerramentoLocatario: true,
       aluguel: true,
@@ -273,13 +271,17 @@ export default async function DossieJuridicoPage({
         <LinhaEvento
           titulo="Vistoria de Saída"
           detalhe={
-            distrato.vistoriaSaida ? formatData(distrato.vistoriaSaida.data) : "Não registrada"
+            distrato.solicitacaoVistoria?.entregueData
+              ? formatData(distrato.solicitacaoVistoria.entregueData)
+              : "Não concluída"
           }
         />
         <LinhaEvento
           titulo="Laudo de Vistoria"
           detalhe={
-            distrato.laudoVistoria ? formatData(distrato.laudoVistoria.data) : "Não registrado"
+            distrato.solicitacaoVistoria?.entregueData
+              ? formatData(distrato.solicitacaoVistoria.entregueData)
+              : "Não entregue"
           }
         />
         <LinhaEvento
@@ -623,8 +625,8 @@ export default async function DossieJuridicoPage({
               { titulo: "Acompanhamento do Aviso Prévio", data: primeiroContato?.data ?? null },
               { titulo: "Entrega de Chaves", data: distrato.entregaChaves?.data ?? null },
               { titulo: "Comunicado da Vistoria", data: distrato.comunicadoVistoria?.data ?? null },
-              { titulo: "Vistoria de Saída", data: distrato.vistoriaSaida?.data ?? null },
-              { titulo: "Laudo de Vistoria", data: distrato.laudoVistoria?.data ?? null },
+              { titulo: "Vistoria de Saída", data: distrato.solicitacaoVistoria?.entregueData ?? null },
+              { titulo: "Laudo de Vistoria", data: distrato.solicitacaoVistoria?.entregueData ?? null },
               {
                 titulo: "Comunicado de Encerramento ao Locador",
                 data: distrato.comunicadoEncerramentoLocador?.data ?? null,

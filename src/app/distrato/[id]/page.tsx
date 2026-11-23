@@ -34,23 +34,16 @@ import EnviarJuridicoModal from "@/components/distrato/EnviarJuridicoModal";
 import AvisoPrevioModal from "@/components/distrato/AvisoPrevioModal";
 import ComunicadoModal from "@/components/distrato/ComunicadoModal";
 import ContatoModal from "@/components/distrato/ContatoModal";
-import LocalEntregaChavesForm from "@/components/distrato/LocalEntregaChavesForm";
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
-import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
+import ReciboEntregaChavesDocumento from "@/components/distrato/ReciboEntregaChavesDocumento";
 import SolicitarVistoriaSaidaModal from "@/components/distrato/SolicitarVistoriaSaidaModal";
 import { situacaoVistoria, prazoVistoria } from "@/lib/vistorias";
 import { podeSolicitarVistoria } from "@/lib/perfis";
 import OrdemServicoVistoriaDocumento from "@/components/distrato/OrdemServicoVistoriaDocumento";
-import { adicionarDiasUteis } from "@/lib/diasUteis";
 import {
   sinalEntregaChaves as calcularSinalEntregaChaves,
-  sinalVistoriaSaida,
-  sinalLaudo,
-  prazoLaudo,
 } from "@/lib/prazosDistrato";
-import VistoriaSaidaModal from "@/components/distrato/VistoriaSaidaModal";
-import LaudoVistoriaModal from "@/components/distrato/LaudoVistoriaModal";
 import ExcluirBotao from "@/components/distrato/ExcluirBotao";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import AuditoriaButton from "@/components/distrato/AuditoriaButton";
@@ -68,24 +61,14 @@ import {
   registrarContato,
   editarContato,
   excluirContato,
-  definirLocalEntregaChaves,
   registrarEntregaChaves,
   editarEntregaChaves,
   excluirEntregaChaves,
   solicitarVistoriaSaida,
   cancelarSolicitacaoVistoriaSaida,
-  agendarVistoriaSaida,
-  editarAgendamentoVistoria,
-  excluirAgendamentoVistoria,
   registrarComunicadoVistoria,
   editarComunicadoVistoria,
   excluirComunicadoVistoria,
-  registrarVistoriaSaida,
-  editarVistoriaSaida,
-  excluirVistoriaSaida,
-  registrarLaudoVistoria,
-  editarLaudoVistoria,
-  excluirLaudoVistoria,
   registrarComunicadoEncerramentoLocador,
   editarComunicadoEncerramentoLocador,
   excluirComunicadoEncerramentoLocador,
@@ -305,19 +288,16 @@ export default async function DistratoDetalhePage({
   const podeComunicado = Boolean(distrato.avisoPrevio);
   const podeAcompanhamento = Boolean(distrato.comunicadoLocador);
 
-  const ramoImobiliaria = distrato.localEntregaChaves === "IMOBILIARIA";
-  const ramoImovel = distrato.localEntregaChaves === "IMOVEL";
-  const podeEntregaChaves = ramoImobiliaria;
-  const podeAgendamento = ramoImobiliaria && Boolean(distrato.entregaChaves);
-  const podeComunicadoVistoria =
-    ramoImovel || (ramoImobiliaria && Boolean(distrato.agendamentoVistoria));
-  const podeVistoria = Boolean(distrato.comunicadoVistoria);
-  const podeLaudo = Boolean(distrato.vistoriaSaida);
-  const podeComunicadoEncerramentoLocador = Boolean(distrato.laudoVistoria);
-  const podeComunicadoEncerramentoLocatario = Boolean(
-    distrato.comunicadoEncerramentoLocador
+  const solicitacao = distrato.solicitacaoVistoria;
+  const vistoriaConcluida = solicitacao?.status === "ENTREGUE";
+  const podeEntregaChaves = true;
+  const podeComunicadoVistoria = Boolean(distrato.entregaChaves);
+  const podeSolicitacaoVistoria = Boolean(distrato.comunicadoVistoria);
+  const podeComunicadoEncerramentoLocador = vistoriaConcluida;
+  const podeComunicadoEncerramentoLocatario = vistoriaConcluida;
+  const concluido = Boolean(
+    distrato.comunicadoEncerramentoLocador && distrato.comunicadoEncerramentoLocatario
   );
-  const concluido = Boolean(distrato.comunicadoEncerramentoLocatario);
 
   const auditoriaPorSecao = (secao: string) =>
     distrato.auditorias.filter((a) => a.secao === secao);
@@ -343,22 +323,12 @@ export default async function DistratoDetalhePage({
     }
   }
 
-  const dataEntregaChaves =
-    distrato.entregaChaves?.data ?? (ramoImovel ? (distrato.vistoriaSaida?.data ?? null) : null);
-  const entregaChavesNaVistoria = !distrato.entregaChaves && Boolean(dataEntregaChaves);
+  const dataEntregaChaves = distrato.entregaChaves?.data ?? null;
   const sinalEntregaChaves =
     distrato.avisoPrevio && dataEntregaChaves
       ? calcularSinalEntregaChaves(distrato.avisoPrevio.data, dataEntregaChaves)
       : null;
-  const sinalVistoria =
-    distrato.agendamentoVistoria && distrato.vistoriaSaida
-      ? sinalVistoriaSaida(distrato.agendamentoVistoria.data, distrato.vistoriaSaida.data)
-      : null;
-  const limiteLaudo = distrato.vistoriaSaida ? prazoLaudo(distrato.vistoriaSaida.data) : null;
-  const sinalDoLaudo =
-    distrato.vistoriaSaida && distrato.laudoVistoria
-      ? sinalLaudo(distrato.vistoriaSaida.data, distrato.laudoVistoria.data)
-      : null;
+  const sinalSolicitacao = solicitacao ? situacaoVistoria(solicitacao, parseDataLocal(hoje)) : null;
 
   const cabecalhoProcesso = (
     <>
@@ -641,33 +611,15 @@ export default async function DistratoDetalhePage({
         </section>
       )}
 
-      {/* Entrega de Chaves e Vistoria — fluxo único, condicional ao local */}
+      {/* Entrega de Chaves e Vistoria */}
       {podeAcompanhamento && (
         <section className={SECAO_CLASSE}>
           <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
             Entrega de Chaves e Vistoria
           </h2>
 
-          {!distrato.localEntregaChaves ? (
-            <LocalEntregaChavesForm
-              action={async (formData: FormData) => {
-                "use server";
-                await definirLocalEntregaChaves(distrato.id, formData);
-              }}
-            />
-          ) : (
-            <>
-              <div className="mb-4">
-                <LocalEntregaChavesForm
-                  valorAtual={distrato.localEntregaChaves}
-                  action={async (formData: FormData) => {
-                    "use server";
-                    await definirLocalEntregaChaves(distrato.id, formData);
-                  }}
-                />
-              </div>
-
-              {/* Etapa 1 · Entrega das Chaves (só no ramo Imobiliária) */}
+          <>
+              {/* Etapa 1 · Entrega das Chaves */}
               {podeEntregaChaves && (
                 <div>
                   <SecaoTitulo
@@ -707,6 +659,17 @@ export default async function DistratoDetalhePage({
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
+                          <ImpressaoModal label="Imprimir recibo">
+                            <ReciboEntregaChavesDocumento
+                              imobiliaria={imobiliaria}
+                              numeroProcesso={processo.numeroProcesso}
+                              endereco={formatEndereco(processo)}
+                              locatarios={locatarios}
+                              locadores={locadores}
+                              dataEntrega={distrato.entregaChaves.data}
+                              horaEntrega={distrato.entregaChaves.hora}
+                            />
+                          </ImpressaoModal>
                           <EntregaChavesModal
                             registro={distrato.entregaChaves}
                             hoje={hoje}
@@ -737,76 +700,8 @@ export default async function DistratoDetalhePage({
                 </div>
               )}
 
-              {/* Etapa 2 · Agendar Vistoria (só no ramo Imobiliária) */}
-              {podeAgendamento && (
-                <Divisor>
-                  <SecaoTitulo
-                    titulo="Agendamento da Vistoria"
-                    auditoria={auditoriaPorSecao("AGENDAMENTO_VISTORIA")}
-                  />
-                  {!distrato.agendamentoVistoria ? (
-                    <AgendamentoVistoriaModal
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await agendarVistoriaSaida(distrato.id, formData);
-                      }}
-                    />
-                  ) : (
-                    <div className="text-sm">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-slate-700 dark:text-slate-300">
-                            Vistoria agendada para {formatData(distrato.agendamentoVistoria.data)}
-                            {distrato.agendamentoVistoria.hora
-                              ? ` às ${distrato.agendamentoVistoria.hora}`
-                              : ""}
-                          </p>
-                          {distrato.agendamentoVistoria.arquivoUrl && (
-                            <ArquivoPreviewBotao
-                              url={distrato.agendamentoVistoria.arquivoUrl}
-                              nome={distrato.agendamentoVistoria.arquivoNome}
-                              tipo={distrato.agendamentoVistoria.arquivoTipo}
-                            />
-                          )}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <ImpressaoModal label="Imprimir OS da Vistoria">
-                            <OrdemServicoVistoriaDocumento
-                              numeroProcesso={processo.numeroProcesso}
-                              endereco={processo}
-                              dataEntregaLaudo={adicionarDiasUteis(distrato.agendamentoVistoria.data, 5)}
-                            />
-                          </ImpressaoModal>
-                          <AgendamentoVistoriaModal
-                            registro={distrato.agendamentoVistoria}
-                            action={async (formData: FormData) => {
-                              "use server";
-                              await editarAgendamentoVistoria(distrato.id, formData);
-                            }}
-                          />
-                          <ExcluirBotao
-                            onExcluir={async () => {
-                              "use server";
-                              await excluirAgendamentoVistoria(distrato.id);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      {distrato.agendamentoVistoria.descricao && (
-                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
-                          {distrato.agendamentoVistoria.descricao}
-                        </p>
-                      )}
-                      <InfoSistema
-                        data={distrato.agendamentoVistoria.createdAt}
-                        usuario={distrato.agendamentoVistoria.criadoPor?.nome}
-                      />
-                    </div>
-                  )}
-                </Divisor>
-              )}
 
-              {/* Etapa 3 · Comunicado ao Locador (ambos os ramos) */}
+              {/* Etapa 3 · Comunicado ao Locador  */}
               {podeComunicadoVistoria && (
                 <Divisor>
                   <SecaoTitulo
@@ -905,164 +800,120 @@ export default async function DistratoDetalhePage({
                 </Divisor>
               )}
 
-              {/* Etapa 4 · Realizar Vistoria */}
-              {podeVistoria && (
+              {/* Etapa 3 · Vistoria de Saída (solicitação ao vistoriador) */}
+              {podeSolicitacaoVistoria && (
                 <Divisor>
                   <SecaoTitulo
                     titulo="Vistoria de Saída"
-                    auditoria={auditoriaPorSecao("VISTORIA_SAIDA")}
+                    auditoria={auditoriaPorSecao("SOLICITACAO_VISTORIA_SAIDA")}
                   />
-                  {!distrato.vistoriaSaida ? (
-                    <VistoriaSaidaModal
-                      hoje={hoje}
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await registrarVistoriaSaida(distrato.id, formData);
-                      }}
-                    />
+                  {!solicitacao ? (
+                    podeSolicitarVistoria(sessao?.user.role) ? (
+                      <SolicitarVistoriaSaidaModal
+                        action={async (formData: FormData) => {
+                          "use server";
+                          await solicitarVistoriaSaida(distrato.id, formData);
+                        }}
+                      />
+                    ) : (
+                      <p className="text-sm text-slate-400 dark:text-slate-500">
+                        Nenhuma solicitação registrada.
+                      </p>
+                    )
                   ) : (
                     <div className="text-sm">
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className="text-slate-700 dark:text-slate-300">
-                            Vistoria realizada em {formatData(distrato.vistoriaSaida.data)}
-                            {distrato.vistoriaSaida.hora
-                              ? ` às ${distrato.vistoriaSaida.hora}`
-                              : ""}
+                            Solicitada em {formatData(solicitacao.createdAt)} por{" "}
+                            {solicitacao.solicitadoPor.nome}
                           </p>
-                          {distrato.agendamentoVistoria && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                              Data agendada: {formatData(distrato.agendamentoVistoria.data)}
+                          {(solicitacao.locadorDesejaParticipar ||
+                            solicitacao.locatarioDesejaParticipar) && (
+                            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                              {[
+                                solicitacao.locadorDesejaParticipar && "Locador deseja participar",
+                                solicitacao.locatarioDesejaParticipar &&
+                                  "Locatário deseja participar",
+                              ]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </p>
                           )}
-                          {sinalVistoria && (
-                            <p className={`text-xs font-medium ${sinalVistoria.cor}`}>
-                              {sinalVistoria.texto}
-                            </p>
-                          )}
-                          {distrato.vistoriaSaida.responsavel && (
-                            <p className="text-slate-500 dark:text-slate-400">
-                              Responsável: {distrato.vistoriaSaida.responsavel}
-                            </p>
-                          )}
-                          <p
-                            className={
-                              distrato.vistoriaSaida.locadorCompareceu
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-amber-600 dark:text-amber-400"
-                            }
-                          >
-                            {distrato.vistoriaSaida.locadorCompareceu
-                              ? "Locador compareceu"
-                              : "Locador não compareceu"}
-                          </p>
-                          {distrato.vistoriaSaida.observacoes && (
-                            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                              {distrato.vistoriaSaida.observacoes}
-                            </p>
-                          )}
-                          {distrato.vistoriaSaida.arquivoUrl && (
-                            <ArquivoPreviewBotao
-                              url={distrato.vistoriaSaida.arquivoUrl}
-                              nome={distrato.vistoriaSaida.arquivoNome}
-                              tipo={distrato.vistoriaSaida.arquivoTipo}
-                            />
-                          )}
+                          <ArquivoPreviewBotao
+                            url={solicitacao.comprovanteUrl}
+                            nome={solicitacao.comprovanteNome}
+                            tipo={solicitacao.comprovanteTipo}
+                            label="Ver comprovante do sinal"
+                          />
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
-                          <VistoriaSaidaModal
-                            registro={distrato.vistoriaSaida}
-                            hoje={hoje}
-                            action={async (formData: FormData) => {
-                              "use server";
-                              await editarVistoriaSaida(distrato.id, formData);
-                            }}
-                          />
-                          <ExcluirBotao
-                            onExcluir={async () => {
-                              "use server";
-                              await excluirVistoriaSaida(distrato.id);
-                            }}
-                          />
+                          <ImpressaoModal label="Imprimir OS da Vistoria">
+                            <OrdemServicoVistoriaDocumento
+                              numeroProcesso={processo.numeroProcesso}
+                              endereco={processo}
+                              dataEntregaLaudo={prazoVistoria(solicitacao.createdAt)}
+                            />
+                          </ImpressaoModal>
+                          {solicitacao.status === "PENDENTE" &&
+                            podeSolicitarVistoria(sessao?.user.role) && (
+                              <ExcluirBotao
+                                onExcluir={async () => {
+                                  "use server";
+                                  await cancelarSolicitacaoVistoriaSaida(distrato.id);
+                                }}
+                              />
+                            )}
                         </div>
                       </div>
                       <InfoSistema
-                        data={distrato.vistoriaSaida.createdAt}
-                        usuario={distrato.vistoriaSaida.criadoPor?.nome}
+                        data={solicitacao.createdAt}
+                        usuario={solicitacao.solicitadoPor.nome}
                       />
                     </div>
                   )}
                 </Divisor>
               )}
 
-              {/* Etapa 5 · Registrar Laudo */}
-              {podeLaudo && (
+              {/* Etapa 4 · Entrega do Laudo (concluída pelo vistoriador) */}
+              {solicitacao && (
                 <Divisor>
                   <SecaoTitulo
                     titulo="Entrega do Laudo"
                     auditoria={auditoriaPorSecao("LAUDO_VISTORIA")}
                   />
-                  {limiteLaudo && (
-                    <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
-                      Prazo para entrega do laudo: {formatData(limiteLaudo)} (5 dias úteis após a
-                      vistoria de saída)
-                    </p>
-                  )}
-                  {!distrato.laudoVistoria ? (
-                    <LaudoVistoriaModal
-                      hoje={hoje}
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await registrarLaudoVistoria(distrato.id, formData);
-                      }}
-                    />
+                  {!vistoriaConcluida ? (
+                    <div className="text-sm">
+                      <p className="font-medium text-amber-700 dark:text-amber-400">
+                        Aguardando o vistoriador
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Prazo de entrega: {formatData(prazoVistoria(solicitacao.createdAt))} (5
+                        dias úteis após a solicitação)
+                      </p>
+                    </div>
                   ) : (
                     <div className="text-sm">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-slate-700 dark:text-slate-300">
-                            Laudo entregue em {formatData(distrato.laudoVistoria.data)}
-                          </p>
-                          {sinalDoLaudo && (
-                            <p className={`text-xs font-medium ${sinalDoLaudo.cor}`}>
-                              {sinalDoLaudo.texto}
-                            </p>
-                          )}
-                          {distrato.laudoVistoria.arquivoUrl && (
-                            <ArquivoPreviewBotao
-                              url={distrato.laudoVistoria.arquivoUrl}
-                              nome={distrato.laudoVistoria.arquivoNome}
-                              tipo={distrato.laudoVistoria.arquivoTipo}
-                              label="Ver laudo"
-                            />
-                          )}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <LaudoVistoriaModal
-                            registro={distrato.laudoVistoria}
-                            hoje={hoje}
-                            action={async (formData: FormData) => {
-                              "use server";
-                              await editarLaudoVistoria(distrato.id, formData);
-                            }}
-                          />
-                          <ExcluirBotao
-                            onExcluir={async () => {
-                              "use server";
-                              await excluirLaudoVistoria(distrato.id);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      {distrato.laudoVistoria.descricao && (
-                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
-                          {distrato.laudoVistoria.descricao}
+                      <p className="text-slate-700 dark:text-slate-300">
+                        Vistoria concluída em{" "}
+                        {solicitacao.entregueData ? formatData(solicitacao.entregueData) : "—"}
+                        {solicitacao.entregueHora ? ` às ${solicitacao.entregueHora}` : ""}
+                        {solicitacao.entreguePor ? ` por ${solicitacao.entreguePor.nome}` : ""}
+                      </p>
+                      {sinalSolicitacao && (
+                        <p className={`text-xs font-medium ${sinalSolicitacao.cor}`}>
+                          {sinalSolicitacao.texto}
                         </p>
                       )}
-                      <InfoSistema
-                        data={distrato.laudoVistoria.createdAt}
-                        usuario={distrato.laudoVistoria.criadoPor?.nome}
-                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Participaram:{" "}
+                        {[
+                          solicitacao.locadorParticipou && "locador",
+                          solicitacao.locatarioParticipou && "locatário",
+                        ]
+                          .filter(Boolean)
+                          .join(" e ") || "nenhuma das partes"}
+                      </p>
                     </div>
                   )}
                 </Divisor>
@@ -1199,77 +1050,11 @@ export default async function DistratoDetalhePage({
               {concluido && (
                 <Divisor>
                   <p className="rounded bg-green-50 dark:bg-green-950 px-3 py-2 text-sm font-medium text-green-700 dark:text-green-400">
-                    Entrega de Chaves e Vistoria concluída.
+                    Relacionamento concluído.
                   </p>
                 </Divisor>
               )}
-            </>
-          )}
-        </section>
-      )}
-
-      {/* Solicitação da Vistoria de Saída (enviada ao vistoriador) */}
-      {podeAcompanhamento && (
-        <section className={SECAO_CLASSE}>
-          <SecaoTitulo
-            titulo="Solicitação da Vistoria de Saída"
-            auditoria={auditoriaPorSecao("SOLICITACAO_VISTORIA_SAIDA")}
-          />
-          {!distrato.solicitacaoVistoria ? (
-            podeSolicitarVistoria(sessao?.user.role) ? (
-              <SolicitarVistoriaSaidaModal
-                action={async (formData: FormData) => {
-                  "use server";
-                  await solicitarVistoriaSaida(distrato.id, formData);
-                }}
-              />
-            ) : (
-              <p className="text-sm text-slate-400 dark:text-slate-500">
-                Nenhuma solicitação registrada.
-              </p>
-            )
-          ) : (
-            (() => {
-              const v = distrato.solicitacaoVistoria;
-              const situacao = situacaoVistoria(v, parseDataLocal(hoje));
-              return (
-                <div className="text-sm">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-slate-700 dark:text-slate-300">
-                        Solicitada em {formatData(v.createdAt)} por {v.solicitadoPor.nome}
-                      </p>
-                      <p className="text-slate-500 dark:text-slate-400">
-                        Prazo de entrega: {formatData(prazoVistoria(v.createdAt))} (5 dias úteis)
-                      </p>
-                      <p className={`font-medium ${situacao.cor}`}>{situacao.texto}</p>
-                      {v.status === "ENTREGUE" && v.entregueHora && (
-                        <p className="text-xs text-slate-400 dark:text-slate-500">
-                          às {v.entregueHora}
-                          {v.entreguePor ? ` — ${v.entreguePor.nome}` : ""}
-                        </p>
-                      )}
-                      <ArquivoPreviewBotao
-                        url={v.comprovanteUrl}
-                        nome={v.comprovanteNome}
-                        tipo={v.comprovanteTipo}
-                        label="Ver comprovante do sinal"
-                      />
-                    </div>
-                    {v.status === "PENDENTE" && podeSolicitarVistoria(sessao?.user.role) && (
-                      <ExcluirBotao
-                        onExcluir={async () => {
-                          "use server";
-                          await cancelarSolicitacaoVistoriaSaida(distrato.id);
-                        }}
-                      />
-                    )}
-                  </div>
-                  <InfoSistema data={v.createdAt} usuario={v.solicitadoPor.nome} />
-                </div>
-              );
-            })()
-          )}
+          </>
         </section>
       )}
     </>
@@ -1583,11 +1368,7 @@ export default async function DistratoDetalhePage({
                   <p className="text-slate-700 dark:text-slate-300">
                     {dataEntregaChaves ? formatData(dataEntregaChaves) : "—"}
                   </p>
-                  {entregaChavesNaVistoria && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
-                      Entrega no imóvel (data da vistoria de saída)
-                    </p>
-                  )}
+
                   {sinalEntregaChaves && (
                     <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
                       {sinalEntregaChaves.texto}

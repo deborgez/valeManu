@@ -150,6 +150,7 @@ model User {
   distratoAuditorias DistratoAuditoria[] @relation("DistratoAuditoriaUsuario")
   vistoriasSolicitadas Vistoria[] @relation("VistoriaSolicitadaPor")
   vistoriasEntregues   Vistoria[] @relation("VistoriaEntreguePor")
+  notificacoes         Notificacao[] @relation("NotificacaoUsuario")
 
   avisosPrevioCriados      AvisoPrevioLocatario[]     @relation("AvisoPrevioCriadoPor")
   comunicadosCriados       ComunicadoLocador[]        @relation("ComunicadoCriadoPor")
@@ -790,6 +791,11 @@ model Vistoria {
   entregueData DateTime?
   entregueHora String?
 
+  locadorDesejaParticipar   Boolean @default(false)
+  locatarioDesejaParticipar Boolean @default(false)
+  locadorParticipou         Boolean @default(false)
+  locatarioParticipou       Boolean @default(false)
+
   processoId String
   processo   Processo @relation(fields: [processoId], references: [id])
 
@@ -803,4 +809,17 @@ model Vistoria {
   distrato   Distrato? @relation(fields: [distratoId], references: [id])
 
   @@index([tipo, status])
+}
+
+model Notificacao {
+  id        String   @id @default(cuid())
+  mensagem  String
+  link      String?
+  lida      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  usuarioId String
+  usuario   User   @relation("NotificacaoUsuario", fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, lida])
 }

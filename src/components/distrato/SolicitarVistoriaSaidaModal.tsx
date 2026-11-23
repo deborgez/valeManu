@@ -50,6 +50,20 @@ export default function SolicitarVistoriaSaidaModal({
               Solicitar Vistoria de Saída
             </h3>
 
+            <fieldset className="mb-4">
+              <legend className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
+                Participação na vistoria
+              </legend>
+              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <input type="checkbox" name="locadorDesejaParticipar" className="h-4 w-4" />
+                Locador deseja participar
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <input type="checkbox" name="locatarioDesejaParticipar" className="h-4 w-4" />
+                Locatário deseja participar
+              </label>
+            </fieldset>
+
             <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Comprovante do pagamento do sinal

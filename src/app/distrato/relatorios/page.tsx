@@ -39,16 +39,24 @@ export default async function RelatoriosDistratoPage({
       comunicadoLocador: { select: { data: true } },
       contatos: { select: { data: true } },
       entregaChaves: { select: { data: true } },
-      vistoriaSaida: { select: { data: true } },
+      solicitacaoVistoria: { select: { entregueData: true } },
       comunicadoVistoria: { select: { data: true } },
-      laudoVistoria: { select: { data: true } },
       comunicadoEncerramentoLocador: { select: { data: true } },
       comunicadoEncerramentoLocatario: { select: { data: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const metricas = calcularMetricasDistrato(distratos);
+  const metricas = calcularMetricasDistrato(
+    distratos.map((d) => {
+      const concluida = d.solicitacaoVistoria?.entregueData ?? null;
+      return {
+        ...d,
+        vistoriaSaida: concluida ? { data: concluida } : null,
+        laudoVistoria: concluida ? { data: concluida } : null,
+      };
+    })
+  );
 
   const itemDe = (d: (typeof distratos)[number]): ItemLista => ({
     id: d.id,

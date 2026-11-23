@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { parseMoeda } from "@/lib/masks";
 import { formatDataHora } from "@/lib/datahora";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/lib/auth";
+import { notificar } from "@/lib/notificacoes";
 
 async function revalidarManutencao(manutencaoId: string) {
   revalidatePath(`/manutencoes/${manutencaoId}`);
@@ -17,6 +19,17 @@ async function registrarHistorico(
 ) {
   await prisma.historicoEtapa.create({
     data: { manutencaoId, etapa, detalhe: detalhe || null },
+  });
+
+  const [session, manutencao] = await Promise.all([
+    auth(),
+    prisma.manutencao.findUnique({ where: { id: manutencaoId }, select: { numeroProcesso: true } }),
+  ]);
+  await notificar({
+    perfis: ["ADMIN", "ADMINISTRATIVO"],
+    excetoUsuarioId: session?.user.id,
+    mensagem: `Manutenção ${manutencao?.numeroProcesso ?? ""}: ${etapa}`,
+    link: `/manutencoes/${manutencaoId}`,
   });
 }
 

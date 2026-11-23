@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { notificar } from "@/lib/notificacoes";
 
 export async function criarManutencao(formData: FormData) {
   const session = await auth();
@@ -33,6 +34,12 @@ export async function criarManutencao(formData: FormData) {
 
   await prisma.historicoEtapa.create({
     data: { manutencaoId: manutencao.id, etapa: "Solicitação criada" },
+  });
+  await notificar({
+    perfis: ["ADMIN", "ADMINISTRATIVO"],
+    excetoUsuarioId: session.user.id,
+    mensagem: `Manutenção ${manutencao.numeroProcesso}: solicitação criada por ${session.user.name ?? "um usuário"}`,
+    link: `/manutencoes/${manutencao.id}`,
   });
 
   redirect(`/manutencoes/${manutencao.id}`);
