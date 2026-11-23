@@ -32,12 +32,10 @@ export default function NovaVistoriaModal({
 
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    const lista = termo
-      ? processos.filter((p) =>
-          `${p.numeroProcesso} ${p.endereco}`.toLowerCase().includes(termo)
-        )
-      : processos;
-    return lista.slice(0, 20);
+    if (!termo) return [];
+    return processos
+      .filter((p) => `${p.numeroProcesso} ${p.endereco}`.toLowerCase().includes(termo))
+      .slice(0, 20);
   }, [busca, processos]);
 
   function abrir() {
@@ -114,29 +112,31 @@ export default function NovaVistoriaModal({
                     className={CAMPO_CLASSE}
                     autoFocus
                   />
-                  <ul className="mt-2 max-h-48 overflow-y-auto rounded border border-slate-200 dark:border-slate-700">
-                    {filtrados.map((p) => (
-                      <li key={p.id}>
-                        <button
-                          type="button"
-                          onClick={() => setSelecionado(p)}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
-                        >
-                          <span className="font-medium text-slate-900 dark:text-slate-100">
-                            {p.numeroProcesso}
-                          </span>
-                          <span className="block text-xs text-slate-500 dark:text-slate-400">
-                            {p.endereco}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                    {filtrados.length === 0 && (
-                      <li className="px-3 py-2 text-sm text-slate-400">
-                        Nenhum processo encontrado.
-                      </li>
-                    )}
-                  </ul>
+                  {busca.trim() !== "" && (
+                    <ul className="mt-2 max-h-48 overflow-y-auto rounded border border-slate-200 dark:border-slate-700">
+                      {filtrados.map((p) => (
+                        <li key={p.id}>
+                          <button
+                            type="button"
+                            onClick={() => setSelecionado(p)}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
+                          >
+                            <span className="font-medium text-slate-900 dark:text-slate-100">
+                              {p.numeroProcesso}
+                            </span>
+                            <span className="block text-xs text-slate-500 dark:text-slate-400">
+                              {p.endereco}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                      {filtrados.length === 0 && (
+                        <li className="px-3 py-2 text-sm text-slate-400">
+                          Nenhum processo encontrado.
+                        </li>
+                      )}
+                    </ul>
+                  )}
                 </>
               )}
               <input type="hidden" name="processoId" value={selecionado?.id ?? ""} />
