@@ -9,6 +9,7 @@ import { concluirVistoria, solicitarVistoria } from "@/app/vistorias/actions";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import NovaVistoriaModal from "./NovaVistoriaModal";
 import ConcluirVistoriaModal from "./ConcluirVistoriaModal";
+import BuscaVistorias, { type ItemVistoria } from "./BuscaVistorias";
 
 export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAIDA" }) {
   const session = await auth();
@@ -46,6 +47,74 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
       })
     : [];
 
+  const itens: ItemVistoria[] = vistorias.map((v) => {
+    const situacao = situacaoVistoria(v, hoje);
+    return {
+      id: v.id,
+      busca: [
+        v.processo.numeroProcesso,
+        formatEndereco(v.processo),
+        v.solicitadoPor.nome,
+        v.entreguePor?.nome ?? "",
+        situacao.texto,
+      ].join(" "),
+      linha: (
+        <tr key={v.id} className="border-t border-slate-100 dark:border-slate-700 align-top">
+          <td className="px-4 py-2">
+            <p className="font-medium text-slate-900 dark:text-slate-100">
+              {v.processo.numeroProcesso}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {formatEndereco(v.processo)}
+            </p>
+          </td>
+          <td className="whitespace-nowrap px-4 py-2">
+            {v.processo.valorAluguel ? `R$ ${formatMoedaExibicao(v.processo.valorAluguel)}` : "—"}
+          </td>
+          <td className="px-4 py-2">
+            {formatData(v.createdAt)}
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              {v.solicitadoPor.nome}
+            </p>
+          </td>
+          <td className="whitespace-nowrap px-4 py-2">
+            {formatData(prazoVistoria(v.createdAt))}
+          </td>
+          <td className="px-4 py-2">
+            <p className={`font-medium ${situacao.cor}`}>{situacao.texto}</p>
+            {v.status === "ENTREGUE" && v.entregueHora && (
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                às {v.entregueHora}
+                {v.entreguePor ? ` — ${v.entreguePor.nome}` : ""}
+              </p>
+            )}
+          </td>
+          <td className="px-4 py-2">
+            <ArquivoPreviewBotao
+              url={v.comprovanteUrl}
+              nome={v.comprovanteNome}
+              tipo={v.comprovanteTipo}
+              label="Ver comprovante"
+            />
+          </td>
+          {podeEntregar && (
+            <td className="px-4 py-2 text-right">
+              {v.status === "PENDENTE" && (
+                <ConcluirVistoriaModal
+                  hoje={hojeStr}
+                  action={async (formData: FormData) => {
+                    "use server";
+                    await concluirVistoria(v.id, formData);
+                  }}
+                />
+              )}
+            </td>
+          )}
+        </tr>
+      ),
+    };
+  });
+
   return (
     <div className="mx-auto w-full max-w-6xl p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -69,10 +138,12 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400">
-            <tr>
+      <BuscaVistorias
+        itens={itens}
+        colunas={podeEntregar ? 7 : 6}
+        vazio={`Nenhuma vistoria de ${tipoLabel.toLowerCase()} solicitada ainda.`}
+        cabecalho={
+          <tr>
               <th className="px-4 py-2">Imóvel</th>
               <th className="px-4 py-2">Valor</th>
               <th className="px-4 py-2">Solicitada em</th>
@@ -81,78 +152,8 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
               <th className="px-4 py-2">Sinal</th>
               {podeEntregar && <th className="px-4 py-2"></th>}
             </tr>
-          </thead>
-          <tbody>
-            {vistorias.map((v) => {
-              const situacao = situacaoVistoria(v, hoje);
-              return (
-                <tr key={v.id} className="border-t border-slate-100 dark:border-slate-700 align-top">
-                  <td className="px-4 py-2">
-                    <p className="font-medium text-slate-900 dark:text-slate-100">
-                      {v.processo.numeroProcesso}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {formatEndereco(v.processo)}
-                    </p>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2">
-                    {v.processo.valorAluguel ? `R$ ${formatMoedaExibicao(v.processo.valorAluguel)}` : "—"}
-                  </td>
-                  <td className="px-4 py-2">
-                    {formatData(v.createdAt)}
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
-                      {v.solicitadoPor.nome}
-                    </p>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2">
-                    {formatData(prazoVistoria(v.createdAt))}
-                  </td>
-                  <td className="px-4 py-2">
-                    <p className={`font-medium ${situacao.cor}`}>{situacao.texto}</p>
-                    {v.status === "ENTREGUE" && v.entregueHora && (
-                      <p className="text-xs text-slate-400 dark:text-slate-500">
-                        às {v.entregueHora}
-                        {v.entreguePor ? ` — ${v.entreguePor.nome}` : ""}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    <ArquivoPreviewBotao
-                      url={v.comprovanteUrl}
-                      nome={v.comprovanteNome}
-                      tipo={v.comprovanteTipo}
-                      label="Ver comprovante"
-                    />
-                  </td>
-                  {podeEntregar && (
-                    <td className="px-4 py-2 text-right">
-                      {v.status === "PENDENTE" && (
-                        <ConcluirVistoriaModal
-                          hoje={hojeStr}
-                          action={async (formData: FormData) => {
-                            "use server";
-                            await concluirVistoria(v.id, formData);
-                          }}
-                        />
-                      )}
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-            {vistorias.length === 0 && (
-              <tr>
-                <td
-                  colSpan={podeEntregar ? 7 : 6}
-                  className="px-4 py-6 text-center text-slate-400 dark:text-slate-500"
-                >
-                  Nenhuma vistoria de {tipoLabel.toLowerCase()} solicitada ainda.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+        }
+      />
       <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
         Prazo de entrega: 5 dias úteis a partir da data de solicitação. Atualizado em{" "}
         {formatDataHora(new Date())}.
