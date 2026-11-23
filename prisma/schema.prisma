@@ -399,6 +399,7 @@ model Distrato {
   entregaChaves       EntregaChaves?
   vistoriaSaida       VistoriaSaida?
   laudoVistoria       LaudoVistoria?
+  solicitacaoVistoria Vistoria?
   comunicadoEncerramentoLocador   ComunicadoEncerramentoLocador?
   comunicadoEncerramentoLocatario ComunicadoEncerramentoLocatario?
   auditorias          DistratoAuditoria[]
@@ -797,6 +798,9 @@ model Vistoria {
 
   entreguePorId String?
   entreguePor   User?   @relation("VistoriaEntreguePor", fields: [entreguePorId], references: [id])
+
+  distratoId String?   @unique
+  distrato   Distrato? @relation(fields: [distratoId], references: [id])
 
   @@index([tipo, status])
 }

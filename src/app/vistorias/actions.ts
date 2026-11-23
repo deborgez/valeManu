@@ -19,7 +19,9 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
   if (!podeSolicitarVistoria(session.user.role)) {
     throw new Error("Seu perfil não pode solicitar vistorias.");
   }
-  if (tipo !== "ENTRADA" && tipo !== "SAIDA") throw new Error("Tipo de vistoria inválido.");
+  if (tipo !== "ENTRADA") {
+    throw new Error("A vistoria de saída é solicitada pelo Distrato, na aba Relacionamento.");
+  }
 
   const processoId = String(formData.get("processoId") || "");
   const comprovanteUrl = String(formData.get("comprovanteUrl") || "");

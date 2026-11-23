@@ -14,6 +14,7 @@ import {
 } from "@/lib/datahora";
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
+import { podeSolicitarVistoria } from "@/lib/perfis";
 
 const SECAO = {
   AVISO_PREVIO: "AVISO_PREVIO",
@@ -24,6 +25,7 @@ const SECAO = {
   AGENDAMENTO_VISTORIA: "AGENDAMENTO_VISTORIA",
   COMUNICADO_VISTORIA: "COMUNICADO_VISTORIA",
   VISTORIA_SAIDA: "VISTORIA_SAIDA",
+  SOLICITACAO_VISTORIA_SAIDA: "SOLICITACAO_VISTORIA_SAIDA",
   LAUDO_VISTORIA: "LAUDO_VISTORIA",
   COMUNICADO_ENCERRAMENTO_LOCADOR: "COMUNICADO_ENCERRAMENTO_LOCADOR",
   COMUNICADO_ENCERRAMENTO_LOCATARIO: "COMUNICADO_ENCERRAMENTO_LOCATARIO",
@@ -1628,3 +1630,66 @@ export async function registrarCobranca(
   revalidatePath(`/distrato/${distratoId}`);
 }
 
+
+export async function solicitarVistoriaSaida(distratoId: string, formData: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+  if (!podeSolicitarVistoria(session.user.role)) {
+    throw new Error("Seu perfil não pode solicitar vistorias.");
+  }
+
+  const comprovanteUrl = String(formData.get("comprovanteUrl") || "");
+  if (!comprovanteUrl) throw new Error("Anexe o comprovante do pagamento do sinal.");
+
+  const distrato = await prisma.distrato.findUniqueOrThrow({
+    where: { id: distratoId },
+    select: { processoId: true, solicitacaoVistoria: { select: { id: true } } },
+  });
+  if (distrato.solicitacaoVistoria) throw new Error("A vistoria de saída já foi solicitada.");
+
+  await prisma.vistoria.create({
+    data: {
+      tipo: "SAIDA",
+      processoId: distrato.processoId,
+      distratoId,
+      comprovanteUrl,
+      comprovanteNome: (formData.get("comprovanteNome") as string) || null,
+      comprovanteTipo: (formData.get("comprovanteTipo") as string) || null,
+      solicitadoPorId: session.user.id,
+    },
+  });
+
+  await logAuditoria(
+    distratoId,
+    SECAO.SOLICITACAO_VISTORIA_SAIDA,
+    "Registrou",
+    "Solicitou a vistoria de saída"
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+  revalidatePath("/vistorias/saida");
+  revalidatePath("/vistorias/solicitacoes");
+}
+
+export async function cancelarSolicitacaoVistoriaSaida(distratoId: string) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+  if (!podeSolicitarVistoria(session.user.role)) {
+    throw new Error("Seu perfil não pode cancelar solicitações de vistoria.");
+  }
+
+  const vistoria = await prisma.vistoria.findUniqueOrThrow({ where: { distratoId } });
+  if (vistoria.status === "ENTREGUE") {
+    throw new Error("A vistoria já foi entregue e não pode ser cancelada.");
+  }
+
+  await prisma.vistoria.delete({ where: { id: vistoria.id } });
+  await logAuditoria(
+    distratoId,
+    SECAO.SOLICITACAO_VISTORIA_SAIDA,
+    "Excluiu",
+    "Cancelou a solicitação da vistoria de saída"
+  );
+  revalidatePath(`/distrato/${distratoId}`);
+  revalidatePath("/vistorias/saida");
+  revalidatePath("/vistorias/solicitacoes");
+}

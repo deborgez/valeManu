@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatEndereco } from "@/lib/endereco";
@@ -16,6 +17,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
   const role = session?.user.role;
   const podeSolicitar = podeSolicitarVistoria(role);
   const podeEntregar = podeEntregarVistoria(role);
+  const podeVerDistrato = role === "ADMIN" || role === "ADMINISTRATIVO";
   const tipoLabel = LABEL_TIPO_VISTORIA[tipo];
   const hojeStr = hojeSaoPaulo();
   const hoje = parseDataLocal(hojeStr);
@@ -67,6 +69,14 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {formatEndereco(v.processo)}
             </p>
+            {v.distratoId && podeVerDistrato && (
+              <Link
+                href={`/distrato/${v.distratoId}`}
+                className="text-xs text-slate-500 dark:text-slate-400 underline"
+              >
+                Ver distrato
+              </Link>
+            )}
           </td>
           <td className="whitespace-nowrap px-4 py-2">
             {v.processo.valorAluguel ? `R$ ${formatMoedaExibicao(v.processo.valorAluguel)}` : "—"}
@@ -121,7 +131,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
           Vistorias de {tipoLabel}
         </h1>
-        {podeSolicitar && (
+        {podeSolicitar && tipo === "ENTRADA" && (
           <NovaVistoriaModal
             tipoLabel={tipoLabel}
             processos={processos.map((p) => ({
@@ -137,6 +147,12 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
           />
         )}
       </div>
+
+      {tipo === "SAIDA" && (
+        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+          A vistoria de saída é solicitada pelo Distrato, na aba Relacionamento.
+        </p>
+      )}
 
       <BuscaVistorias
         itens={itens}

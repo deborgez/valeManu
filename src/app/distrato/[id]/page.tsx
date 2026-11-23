@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { formatEndereco } from "@/lib/endereco";
 import {
@@ -37,6 +38,9 @@ import LocalEntregaChavesForm from "@/components/distrato/LocalEntregaChavesForm
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import AgendamentoVistoriaModal from "@/components/distrato/AgendamentoVistoriaModal";
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
+import SolicitarVistoriaSaidaModal from "@/components/distrato/SolicitarVistoriaSaidaModal";
+import { situacaoVistoria, prazoVistoria } from "@/lib/vistorias";
+import { podeSolicitarVistoria } from "@/lib/perfis";
 import OrdemServicoVistoriaDocumento from "@/components/distrato/OrdemServicoVistoriaDocumento";
 import { adicionarDiasUteis } from "@/lib/diasUteis";
 import {
@@ -68,6 +72,8 @@ import {
   registrarEntregaChaves,
   editarEntregaChaves,
   excluirEntregaChaves,
+  solicitarVistoriaSaida,
+  cancelarSolicitacaoVistoriaSaida,
   agendarVistoriaSaida,
   editarAgendamentoVistoria,
   excluirAgendamentoVistoria,
@@ -197,6 +203,7 @@ export default async function DistratoDetalhePage({
   }>;
 }) {
   const { id } = await params;
+  const sessao = await auth();
   const { erroComunicado, erroComunicadoVistoria, erroExcluirAdequacao } = await searchParams;
 
   // Consultada separadamente (em paralelo) para não inflar a query principal:
@@ -250,6 +257,12 @@ export default async function DistratoDetalhePage({
         comunicadoVistoria: { include: { criadoPor: { select: { nome: true } } } },
         vistoriaSaida: { include: { criadoPor: { select: { nome: true } } } },
         laudoVistoria: { include: { criadoPor: { select: { nome: true } } } },
+        solicitacaoVistoria: {
+          include: {
+            solicitadoPor: { select: { nome: true } },
+            entreguePor: { select: { nome: true } },
+          },
+        },
         comunicadoEncerramentoLocador: { include: { criadoPor: { select: { nome: true } } } },
         comunicadoEncerramentoLocatario: { include: { criadoPor: { select: { nome: true } } } },
         aluguel: { include: { criadoPor: { select: { nome: true } } } },
@@ -1191,6 +1204,71 @@ export default async function DistratoDetalhePage({
                 </Divisor>
               )}
             </>
+          )}
+        </section>
+      )}
+
+      {/* Solicitação da Vistoria de Saída (enviada ao vistoriador) */}
+      {podeAcompanhamento && (
+        <section className={SECAO_CLASSE}>
+          <SecaoTitulo
+            titulo="Solicitação da Vistoria de Saída"
+            auditoria={auditoriaPorSecao("SOLICITACAO_VISTORIA_SAIDA")}
+          />
+          {!distrato.solicitacaoVistoria ? (
+            podeSolicitarVistoria(sessao?.user.role) ? (
+              <SolicitarVistoriaSaidaModal
+                action={async (formData: FormData) => {
+                  "use server";
+                  await solicitarVistoriaSaida(distrato.id, formData);
+                }}
+              />
+            ) : (
+              <p className="text-sm text-slate-400 dark:text-slate-500">
+                Nenhuma solicitação registrada.
+              </p>
+            )
+          ) : (
+            (() => {
+              const v = distrato.solicitacaoVistoria;
+              const situacao = situacaoVistoria(v, parseDataLocal(hoje));
+              return (
+                <div className="text-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-slate-700 dark:text-slate-300">
+                        Solicitada em {formatData(v.createdAt)} por {v.solicitadoPor.nome}
+                      </p>
+                      <p className="text-slate-500 dark:text-slate-400">
+                        Prazo de entrega: {formatData(prazoVistoria(v.createdAt))} (5 dias úteis)
+                      </p>
+                      <p className={`font-medium ${situacao.cor}`}>{situacao.texto}</p>
+                      {v.status === "ENTREGUE" && v.entregueHora && (
+                        <p className="text-xs text-slate-400 dark:text-slate-500">
+                          às {v.entregueHora}
+                          {v.entreguePor ? ` — ${v.entreguePor.nome}` : ""}
+                        </p>
+                      )}
+                      <ArquivoPreviewBotao
+                        url={v.comprovanteUrl}
+                        nome={v.comprovanteNome}
+                        tipo={v.comprovanteTipo}
+                        label="Ver comprovante do sinal"
+                      />
+                    </div>
+                    {v.status === "PENDENTE" && podeSolicitarVistoria(sessao?.user.role) && (
+                      <ExcluirBotao
+                        onExcluir={async () => {
+                          "use server";
+                          await cancelarSolicitacaoVistoriaSaida(distrato.id);
+                        }}
+                      />
+                    )}
+                  </div>
+                  <InfoSistema data={v.createdAt} usuario={v.solicitadoPor.nome} />
+                </div>
+              );
+            })()
           )}
         </section>
       )}
