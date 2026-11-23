@@ -42,3 +42,17 @@ export function adicionarDiasUteis(data: Date, dias: number): Date {
   }
   return new Date(`${atual.toISOString().slice(0, 10)}T00:00:00-03:00`);
 }
+
+export function diasUteisEntre(inicio: Date, fim: Date): number {
+  const atual = paraUtc(inicio);
+  const limite = paraUtc(fim);
+  let total = 0;
+  while (atual < limite) {
+    atual.setUTCDate(atual.getUTCDate() + 1);
+    const diaSemana = atual.getUTCDay();
+    if (diaSemana === 0 || diaSemana === 6) continue;
+    if (feriadosNacionais(atual.getUTCFullYear()).has(atual.toISOString().slice(0, 10))) continue;
+    total++;
+  }
+  return total;
+}

@@ -456,6 +456,11 @@ export default async function DistratoDetalhePage({
                 />
               </div>
             </div>
+            {distrato.avisoPrevio.descricao && (
+              <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                {distrato.avisoPrevio.descricao}
+              </p>
+            )}
             <InfoSistema
               data={distrato.avisoPrevio.createdAt}
               usuario={distrato.avisoPrevio.criadoPor?.nome}
@@ -531,6 +536,11 @@ export default async function DistratoDetalhePage({
                       </p>
                     );
                   })()}
+                {distrato.comunicadoLocador.descricao && (
+                  <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                    {distrato.comunicadoLocador.descricao}
+                  </p>
+                )}
                 <InfoSistema
                   data={distrato.comunicadoLocador.createdAt}
                   usuario={distrato.comunicadoLocador.criadoPor?.nome}
@@ -700,6 +710,11 @@ export default async function DistratoDetalhePage({
                           />
                         </div>
                       </div>
+                      {distrato.entregaChaves.descricao && (
+                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                          {distrato.entregaChaves.descricao}
+                        </p>
+                      )}
                       <InfoSistema
                         data={distrato.entregaChaves.createdAt}
                         usuario={distrato.entregaChaves.criadoPor?.nome}
@@ -764,6 +779,11 @@ export default async function DistratoDetalhePage({
                           />
                         </div>
                       </div>
+                      {distrato.agendamentoVistoria.descricao && (
+                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                          {distrato.agendamentoVistoria.descricao}
+                        </p>
+                      )}
                       <InfoSistema
                         data={distrato.agendamentoVistoria.createdAt}
                         usuario={distrato.agendamentoVistoria.criadoPor?.nome}
@@ -858,6 +878,11 @@ export default async function DistratoDetalhePage({
                           />
                         </div>
                       </div>
+                      {distrato.comunicadoVistoria.descricao && (
+                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                          {distrato.comunicadoVistoria.descricao}
+                        </p>
+                      )}
                       <InfoSistema
                         data={distrato.comunicadoVistoria.createdAt}
                         usuario={distrato.comunicadoVistoria.criadoPor?.nome}
@@ -1016,6 +1041,11 @@ export default async function DistratoDetalhePage({
                           />
                         </div>
                       </div>
+                      {distrato.laudoVistoria.descricao && (
+                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                          {distrato.laudoVistoria.descricao}
+                        </p>
+                      )}
                       <InfoSistema
                         data={distrato.laudoVistoria.createdAt}
                         usuario={distrato.laudoVistoria.criadoPor?.nome}
@@ -1075,6 +1105,11 @@ export default async function DistratoDetalhePage({
                           />
                         </div>
                       </div>
+                      {distrato.comunicadoEncerramentoLocador.descricao && (
+                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                          {distrato.comunicadoEncerramentoLocador.descricao}
+                        </p>
+                      )}
                       <InfoSistema
                         data={distrato.comunicadoEncerramentoLocador.createdAt}
                         usuario={distrato.comunicadoEncerramentoLocador.criadoPor?.nome}
@@ -1134,6 +1169,11 @@ export default async function DistratoDetalhePage({
                           />
                         </div>
                       </div>
+                      {distrato.comunicadoEncerramentoLocatario.descricao && (
+                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                          {distrato.comunicadoEncerramentoLocatario.descricao}
+                        </p>
+                      )}
                       <InfoSistema
                         data={distrato.comunicadoEncerramentoLocatario.createdAt}
                         usuario={distrato.comunicadoEncerramentoLocatario.criadoPor?.nome}

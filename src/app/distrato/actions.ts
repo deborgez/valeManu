@@ -127,6 +127,7 @@ export async function registrarAvisoPrevio(
 
   await prisma.avisoPrevioLocatario.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       forma,
@@ -164,7 +165,7 @@ export async function editarAvisoPrevio(
 
   await prisma.avisoPrevioLocatario.update({
     where: { distratoId },
-    data: { data, forma, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, forma, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(antigo, { data, forma, arquivoUrl }, {
@@ -216,6 +217,7 @@ export async function registrarComunicado(
 
   await prisma.comunicadoLocador.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       forma,
@@ -258,7 +260,7 @@ export async function editarComunicado(
 
   await prisma.comunicadoLocador.update({
     where: { distratoId },
-    data: { data, forma, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, forma, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(
@@ -414,6 +416,7 @@ export async function agendarVistoriaSaida(
 
   await prisma.agendamentoVistoriaSaida.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       hora,
@@ -450,7 +453,7 @@ export async function editarAgendamentoVistoria(
 
   await prisma.agendamentoVistoriaSaida.update({
     where: { distratoId },
-    data: { data, hora, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, hora, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(antigo, { data, hora, arquivoUrl }, {
@@ -522,6 +525,7 @@ export async function registrarEntregaChaves(
 
   await prisma.entregaChaves.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       hora,
@@ -559,7 +563,7 @@ export async function editarEntregaChaves(
 
   await prisma.entregaChaves.update({
     where: { distratoId },
-    data: { data, hora, termoUrl, termoNome, termoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, hora, termoUrl, termoNome, termoTipo },
   });
 
   const detalhe = descreverAlteracoes(
@@ -615,6 +619,7 @@ export async function registrarComunicadoVistoria(
 
   await prisma.comunicadoVistoriaSaida.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       forma,
@@ -662,7 +667,7 @@ export async function editarComunicadoVistoria(
 
   await prisma.comunicadoVistoriaSaida.update({
     where: { distratoId },
-    data: { data, forma, locadorDesejaParticipar, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, forma, locadorDesejaParticipar, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(
@@ -814,6 +819,7 @@ export async function registrarLaudoVistoria(
 
   await prisma.laudoVistoria.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
@@ -849,7 +855,7 @@ export async function editarLaudoVistoria(
 
   await prisma.laudoVistoria.update({
     where: { distratoId },
-    data: { data, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(antigo, { data, arquivoUrl }, {
@@ -891,6 +897,7 @@ export async function registrarComunicadoEncerramentoLocador(
 
   await prisma.comunicadoEncerramentoLocador.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       forma,
@@ -928,7 +935,7 @@ export async function editarComunicadoEncerramentoLocador(
 
   await prisma.comunicadoEncerramentoLocador.update({
     where: { distratoId },
-    data: { data, forma, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, forma, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(antigo, { data, forma, arquivoUrl }, {
@@ -971,6 +978,7 @@ export async function registrarComunicadoEncerramentoLocatario(
 
   await prisma.comunicadoEncerramentoLocatario.create({
     data: {
+      descricao: (formData.get("descricao") as string) || null,
       distratoId,
       data,
       forma,
@@ -1008,7 +1016,7 @@ export async function editarComunicadoEncerramentoLocatario(
 
   await prisma.comunicadoEncerramentoLocatario.update({
     where: { distratoId },
-    data: { data, forma, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, forma, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(antigo, { data, forma, arquivoUrl }, {

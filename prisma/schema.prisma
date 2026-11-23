@@ -11,7 +11,19 @@ datasource db {
 
 enum Role {
   ADMIN
-  USER
+  ADMINISTRATIVO
+  VISTORIADOR
+  CORRETOR
+}
+
+enum TipoVistoria {
+  ENTRADA
+  SAIDA
+}
+
+enum StatusVistoria {
+  PENDENTE
+  ENTREGUE
 }
 
 enum ParteInteressada {
@@ -127,7 +139,7 @@ model User {
   nome       String
   email      String   @unique
   senhaHash  String
-  role       Role     @default(USER)
+  role       Role     @default(ADMINISTRATIVO)
   unidade    String?
   createdAt  DateTime @default(now())
 
@@ -136,6 +148,8 @@ model User {
   processosCriados   Processo[]        @relation("ProcessoCriadoPor")
   distratosCriados   Distrato[]        @relation("DistratoCriadoPor")
   distratoAuditorias DistratoAuditoria[] @relation("DistratoAuditoriaUsuario")
+  vistoriasSolicitadas Vistoria[] @relation("VistoriaSolicitadaPor")
+  vistoriasEntregues   Vistoria[] @relation("VistoriaEntreguePor")
 
   avisosPrevioCriados      AvisoPrevioLocatario[]     @relation("AvisoPrevioCriadoPor")
   comunicadosCriados       ComunicadoLocador[]        @relation("ComunicadoCriadoPor")
@@ -340,8 +354,11 @@ model Processo {
   criadoPorId String
   criadoPor   User   @relation("ProcessoCriadoPor", fields: [criadoPorId], references: [id])
 
+  valorAluguel Float?
+
   partes    ParteProcesso[]
   distratos Distrato[]
+  vistorias Vistoria[]
 }
 
 model ParteProcesso {
@@ -573,6 +590,8 @@ model AvisoPrevioLocatario {
   arquivoUrl    String?
   arquivoNome   String?
   arquivoTipo   String?
+  descricao String?
+
   createdAt     DateTime   @default(now())
 
   distratoId String   @unique
@@ -589,6 +608,8 @@ model ComunicadoLocador {
   arquivoUrl    String?
   arquivoNome   String?
   arquivoTipo   String?
+  descricao String?
+
   createdAt     DateTime   @default(now())
 
   distratoId String   @unique
@@ -627,6 +648,8 @@ model AgendamentoVistoriaSaida {
   arquivoNome String?
   arquivoTipo String?
 
+  descricao String?
+
   createdAt DateTime @default(now())
 
   distratoId String   @unique
@@ -647,6 +670,8 @@ model ComunicadoVistoriaSaida {
   arquivoNome String?
   arquivoTipo String?
 
+  descricao String?
+
   createdAt DateTime @default(now())
 
   distratoId String   @unique
@@ -663,6 +688,8 @@ model EntregaChaves {
   termoUrl  String?
   termoNome String?
   termoTipo String?
+
+  descricao String?
 
   createdAt DateTime @default(now())
 
@@ -701,6 +728,8 @@ model LaudoVistoria {
   arquivoNome String?
   arquivoTipo String?
 
+  descricao String?
+
   createdAt DateTime @default(now())
 
   distratoId String   @unique
@@ -717,6 +746,8 @@ model ComunicadoEncerramentoLocador {
   arquivoUrl    String?
   arquivoNome   String?
   arquivoTipo   String?
+  descricao String?
+
   createdAt     DateTime   @default(now())
 
   distratoId String   @unique
@@ -733,6 +764,8 @@ model ComunicadoEncerramentoLocatario {
   arquivoUrl    String?
   arquivoNome   String?
   arquivoTipo   String?
+  descricao String?
+
   createdAt     DateTime   @default(now())
 
   distratoId String   @unique
@@ -740,4 +773,30 @@ model ComunicadoEncerramentoLocatario {
 
   criadoPorId String?
   criadoPor   User?   @relation("ComunicadoEncerramentoLocatarioCriadoPor", fields: [criadoPorId], references: [id])
+}
+
+model Vistoria {
+  id     String         @id @default(cuid())
+  tipo   TipoVistoria
+  status StatusVistoria @default(PENDENTE)
+
+  comprovanteUrl  String
+  comprovanteNome String?
+  comprovanteTipo String?
+
+  createdAt DateTime @default(now())
+
+  entregueData DateTime?
+  entregueHora String?
+
+  processoId String
+  processo   Processo @relation(fields: [processoId], references: [id])
+
+  solicitadoPorId String
+  solicitadoPor   User   @relation("VistoriaSolicitadaPor", fields: [solicitadoPorId], references: [id])
+
+  entreguePorId String?
+  entreguePor   User?   @relation("VistoriaEntreguePor", fields: [entreguePorId], references: [id])
+
+  @@index([tipo, status])
 }

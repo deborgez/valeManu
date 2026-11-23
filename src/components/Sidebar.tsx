@@ -1,13 +1,45 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { podeEntregarVistoria } from "@/lib/perfis";
 import SidebarLinks from "./SidebarLinks";
+
+function Titulo({ children, primeiro }: { children: React.ReactNode; primeiro?: boolean }) {
+  return (
+    <div
+      className={`${primeiro ? "" : "mt-4 "}mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200`}
+    >
+      {children}
+    </div>
+  );
+}
 
 export default async function Sidebar() {
   const session = await auth();
   if (!session) return null;
 
-  const linksCadastro = [
-    { href: "/cadastro", label: "Processos" },
-    { href: "/prestadores", label: "Prestadores" },
+  const role = session.user.role;
+  const restrito = role === "VISTORIADOR" || role === "CORRETOR";
+  const veEntregas = podeEntregarVistoria(role);
+
+  const pendentes = veEntregas
+    ? await prisma.vistoria.count({ where: { status: "PENDENTE" } })
+    : 0;
+
+  const linksCadastro =
+    role === "CORRETOR"
+      ? [{ href: "/cadastro", label: "Processos" }]
+      : [
+          { href: "/cadastro", label: "Processos" },
+          { href: "/prestadores", label: "Prestadores" },
+        ];
+
+  const linksVistorias = [
+    ...(veEntregas
+      ? [{ href: "/vistorias/solicitacoes", label: "Quadro de Solicitações", badge: pendentes }]
+      : []),
+    { href: "/vistorias/entrada", label: "Vistorias de Entrada" },
+    { href: "/vistorias/saida", label: "Vistorias de Saída" },
+    { href: "/vistorias/relatorios", label: "Relatório de Vistorias" },
   ];
 
   const linksManutencoes = [
@@ -34,26 +66,29 @@ export default async function Sidebar() {
         Módulos
       </p>
 
-      <div className="mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
-        Cadastro
-      </div>
-      <SidebarLinks links={linksCadastro} />
-
-      <div className="mt-4 mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
-        Manutenções
-      </div>
-      <SidebarLinks links={linksManutencoes} />
-
-      <div className="mt-4 mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
-        Distrato
-      </div>
-      <SidebarLinks links={linksDistrato} />
-
-      {session.user.role === "ADMIN" && (
+      {role !== "VISTORIADOR" && (
         <>
-          <div className="mt-4 mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
-            Configurações
-          </div>
+          <Titulo primeiro>Cadastro</Titulo>
+          <SidebarLinks links={linksCadastro} />
+        </>
+      )}
+
+      <Titulo primeiro={role === "VISTORIADOR"}>Vistorias</Titulo>
+      <SidebarLinks links={linksVistorias} />
+
+      {!restrito && (
+        <>
+          <Titulo>Manutenções</Titulo>
+          <SidebarLinks links={linksManutencoes} />
+
+          <Titulo>Distrato</Titulo>
+          <SidebarLinks links={linksDistrato} />
+        </>
+      )}
+
+      {role === "ADMIN" && (
+        <>
+          <Titulo>Configurações</Titulo>
           <SidebarLinks links={linksConfiguracoes} />
         </>
       )}

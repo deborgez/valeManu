@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import NumeroProcessoInput from "./NumeroProcessoInput";
+import MoedaInput from "./MoedaInput";
 import ImovelModal, { type Endereco } from "./ImovelModal";
 import ParteModal, { type Parte } from "./ParteModal";
 import FiancaModal, { type Fianca } from "./FiancaModal";
@@ -21,6 +22,7 @@ export type ProcessoInicial = {
   prazoContratoInicio: string | null;
   prazoContratoMeses: number | null;
   prazoMultaMeses: number | null;
+  valorAluguel: number | null;
   endereco: Endereco | null;
   captador: string | null;
   fianca: Fianca | null;
@@ -132,6 +134,16 @@ export default function ProcessoForm({
             <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
               Usado para calcular o abatimento mensal da multa por quebra de contrato.
             </p>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Valor do Aluguel (R$)
+            </label>
+            <MoedaInput
+              name="valorAluguel"
+              defaultValue={processoInicial?.valorAluguel ?? undefined}
+              className={CAMPO_CLASSE}
+            />
           </div>
         </div>
       </section>

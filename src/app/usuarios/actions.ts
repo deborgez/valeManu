@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { perfilValido } from "@/lib/perfis";
 import { redirect } from "next/navigation";
 
 async function garantirAdmin() {
@@ -24,7 +25,7 @@ export async function criarUsuario(formData: FormData) {
       nome: String(formData.get("nome")),
       email: String(formData.get("email")),
       senhaHash,
-      role: formData.get("role") === "ADMIN" ? "ADMIN" : "USER",
+      role: perfilValido(formData.get("role")),
       unidade: (formData.get("unidade") as string) || null,
     },
   });
@@ -49,7 +50,7 @@ export async function atualizarUsuario(id: string, formData: FormData) {
     data: {
       nome: String(formData.get("nome")),
       email: String(formData.get("email")),
-      role: formData.get("role") === "ADMIN" ? "ADMIN" : "USER",
+      role: perfilValido(formData.get("role")),
       unidade: (formData.get("unidade") as string) || null,
       ...(senha ? { senhaHash: await bcrypt.hash(senha, 10) } : {}),
     },

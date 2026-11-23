@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 export default function SidebarLinks({
   links,
 }: {
-  links: { href: string; label: string }[];
+  links: { href: string; label: string; badge?: number }[];
 }) {
   const pathname = usePathname();
 
@@ -26,13 +26,18 @@ export default function SidebarLinks({
           <Link
             key={link.href}
             href={link.href}
-            className={`rounded px-3 py-1.5 text-sm ${
+            className={`flex items-center rounded px-3 py-1.5 text-sm ${
               ativo
                 ? "bg-slate-900 font-medium text-white dark:bg-slate-700 dark:text-white"
                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
             }`}
           >
             {link.label}
+            {link.badge ? (
+              <span className="ml-2 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                {link.badge}
+              </span>
+            ) : null}
           </Link>
         );
       })}

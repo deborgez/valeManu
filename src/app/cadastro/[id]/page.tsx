@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatEndereco } from "@/lib/endereco";
 import { LABEL_TIPO_FIANCA } from "@/lib/labels";
 import { formatData } from "@/lib/datahora";
+import { formatMoedaExibicao } from "@/lib/masks";
 
 export default async function ProcessoDetalhePage({
   params,
@@ -70,6 +71,12 @@ export default async function ProcessoDetalhePage({
               {processo.prazoMultaMeses
                 ? `${processo.prazoMultaMeses} ${processo.prazoMultaMeses === 1 ? "mês" : "meses"}`
                 : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="mb-1 text-slate-400 dark:text-slate-500">Valor do Aluguel</p>
+            <p className="text-slate-700 dark:text-slate-300">
+              {processo.valorAluguel ? `R$ ${formatMoedaExibicao(processo.valorAluguel)}` : "—"}
             </p>
           </div>
         </div>

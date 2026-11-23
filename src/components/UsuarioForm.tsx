@@ -77,11 +77,13 @@ export default function UsuarioForm({
         </label>
         <select
           name="role"
-          defaultValue={usuario?.role ?? "USER"}
+          defaultValue={usuario?.role ?? "ADMINISTRATIVO"}
           className={CAMPO_CLASSE}
         >
-          <option value="USER">Usuário</option>
           <option value="ADMIN">Administrador</option>
+          <option value="ADMINISTRATIVO">Administrativo</option>
+          <option value="CORRETOR">Corretor</option>
+          <option value="VISTORIADOR">Vistoriador</option>
         </select>
       </div>
 

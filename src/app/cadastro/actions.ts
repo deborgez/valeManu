@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { parseDataLocal } from "@/lib/datahora";
+import { parseMoeda } from "@/lib/masks";
 
 const TIPOS_FIANCA = [
   "FIADOR",
@@ -51,6 +52,7 @@ function parseCamposProcesso(formData: FormData) {
     prazoContratoMeses,
     prazoContratoFim,
     prazoMultaMeses,
+    valorAluguel: parseMoeda(formData.get("valorAluguel")) || null,
     codigoImovel: (formData.get("codigoImovel") as string) || null,
     tipoFianca,
     fiancaNome: (formData.get("fiancaNome") as string) || null,

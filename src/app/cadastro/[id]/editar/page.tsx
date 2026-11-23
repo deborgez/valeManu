@@ -25,6 +25,7 @@ export default async function EditarProcessoPage({
       : null,
     prazoContratoMeses: processo.prazoContratoMeses,
     prazoMultaMeses: processo.prazoMultaMeses,
+    valorAluguel: processo.valorAluguel,
     endereco: processo.rua
       ? {
           codigoImovel: processo.codigoImovel ?? "",

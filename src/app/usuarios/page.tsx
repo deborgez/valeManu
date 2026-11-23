@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { excluirUsuario } from "./actions";
+import { LABEL_PERFIL } from "@/lib/perfis";
 
 export default async function UsuariosPage() {
   const session = await auth();
@@ -37,7 +38,7 @@ export default async function UsuariosPage() {
               <tr key={u.id} className="border-t border-slate-100 dark:border-slate-700">
                 <td className="px-4 py-2">{u.nome}</td>
                 <td className="px-4 py-2">{u.email}</td>
-                <td className="px-4 py-2">{u.role}</td>
+                <td className="px-4 py-2">{LABEL_PERFIL[u.role] ?? u.role}</td>
                 <td className="px-4 py-2 text-right">
                   <Link
                     href={`/usuarios/${u.id}`}

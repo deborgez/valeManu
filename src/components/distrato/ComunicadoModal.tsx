@@ -9,6 +9,7 @@ const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
 type Registro = {
+  descricao?: string | null;
   data: Date;
   forma: string;
   arquivoUrl: string | null;
@@ -114,6 +115,18 @@ export default function ComunicadoModal({
                       }
                     : undefined
                 }
+              />
+            </div>
+
+            <div className="-mt-2 mb-6">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Descrição (opcional)
+              </label>
+              <textarea
+                name="descricao"
+                rows={2}
+                defaultValue={registro?.descricao ?? ""}
+                className={CAMPO_CLASSE}
               />
             </div>
 

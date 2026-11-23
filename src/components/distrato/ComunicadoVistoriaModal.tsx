@@ -9,6 +9,7 @@ const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800";
 
 type Registro = {
+  descricao?: string | null;
   data: Date | null;
   forma: string | null;
   locadorDesejaParticipar: boolean;
@@ -129,6 +130,18 @@ export default function ComunicadoVistoriaModal({
                       }
                     : undefined
                 }
+              />
+            </div>
+
+            <div className="-mt-2 mb-6">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Descrição (opcional)
+              </label>
+              <textarea
+                name="descricao"
+                rows={2}
+                defaultValue={registro?.descricao ?? ""}
+                className={CAMPO_CLASSE}
               />
             </div>
 
