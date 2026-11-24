@@ -4,37 +4,37 @@
 
 /* Paleta base: cinzas levemente azulados (substitui o slate padrão em todo o sistema). */
 @theme {
-  --color-slate-50: #f4f7fd;
-  --color-slate-100: #eaeff9;
-  --color-slate-200: #dde5f3;
-  --color-slate-300: #c7d2e6;
-  --color-slate-400: #8e9dba;
-  --color-slate-500: #66748f;
-  --color-slate-600: #4b5977;
-  --color-slate-700: #37445f;
-  --color-slate-800: #1d2842;
-  --color-slate-900: #121a31;
-  --color-slate-950: #0a1022;
+  --color-slate-50: #f6f8fc;
+  --color-slate-100: #eceff7;
+  --color-slate-200: #dfe4f0;
+  --color-slate-300: #c9d0e3;
+  --color-slate-400: #8f9ab5;
+  --color-slate-500: #68738f;
+  --color-slate-600: #4d587a;
+  --color-slate-700: #37426a;
+  --color-slate-800: #212c4a;
+  --color-slate-900: #171f38;
+  --color-slate-950: #0d1224;
 }
 
 :root {
-  --background: #eef2fb;
-  --foreground: #121a31;
-  --accent: #4f6bed;
-  --accent-hover: #3f59d6;
-  --sidebar-bg: #4f6bed;
-  --sidebar-ativo: rgba(255, 255, 255, 0.2);
-  --card-sombra: 0 1px 2px rgba(24, 39, 90, 0.05), 0 8px 24px -10px rgba(24, 39, 90, 0.14);
+  --background: #f5f7fb;
+  --foreground: #171f38;
+  --accent: #212c4a;
+  --accent-hover: #2f3d66;
+  --sidebar-bg: #212c4a;
+  --sidebar-ativo: rgba(255, 255, 255, 0.14);
+  --card-sombra: 0 1px 2px rgba(33, 44, 74, 0.05), 0 8px 24px -10px rgba(33, 44, 74, 0.14);
   color-scheme: light;
 }
 
 :root.dark {
-  --background: #0c1226;
-  --foreground: #e8edf8;
-  --accent: #6580f5;
-  --accent-hover: #7b93ff;
-  --sidebar-bg: #111a34;
-  --sidebar-ativo: rgba(101, 128, 245, 0.28);
+  --background: #0d1224;
+  --foreground: #e8ecf6;
+  --accent: #4a5fa8;
+  --accent-hover: #5c72be;
+  --sidebar-bg: #151c33;
+  --sidebar-ativo: rgba(74, 95, 168, 0.4);
   --card-sombra: 0 1px 2px rgba(0, 0, 0, 0.3);
   color-scheme: dark;
 }
