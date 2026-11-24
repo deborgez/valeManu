@@ -16,6 +16,7 @@ export default async function NovoDistratoPage({
         where: { numeroProcesso: { contains: q, mode: "insensitive" } },
         orderBy: { createdAt: "desc" },
         take: 20,
+        include: { distratos: { select: { id: true }, take: 1 } },
       })
     : [];
 
@@ -59,6 +60,11 @@ export default async function NovoDistratoPage({
                   {p.numeroProcesso}
                 </p>
                 <p className="text-slate-500 dark:text-slate-400">{formatEndereco(p)}</p>
+                {p.distratos.length > 0 && (
+                  <p className="mt-1 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    Distrato já iniciado — clique para abrir o existente
+                  </p>
+                )}
               </button>
             </form>
           ))}

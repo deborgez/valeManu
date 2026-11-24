@@ -185,11 +185,12 @@ export default async function DistratoDetalhePage({
     erroComunicado?: string;
     erroComunicadoVistoria?: string;
     erroExcluirAdequacao?: string;
+    jaExistia?: string;
   }>;
 }) {
   const { id } = await params;
   const sessao = await auth();
-  const { erroComunicado, erroComunicadoVistoria, erroExcluirAdequacao } = await searchParams;
+  const { erroComunicado, erroComunicadoVistoria, erroExcluirAdequacao, jaExistia } = await searchParams;
 
   // Consultada separadamente (em paralelo) para não inflar a query principal:
   // envolve um include triplamente aninhado (pedidosOrcamento -> prestador) que,
@@ -334,6 +335,12 @@ export default async function DistratoDetalhePage({
 
   const cabecalhoProcesso = (
     <>
+      {jaExistia && (
+        <p className="mb-4 rounded bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+          Este processo já tinha um distrato iniciado, então abrimos o existente. Cada processo só
+          pode ter um distrato.
+        </p>
+      )}
       {/* Dados importados do processo */}
       <section className={SECAO_CLASSE}>
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">

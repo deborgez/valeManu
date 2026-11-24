@@ -122,6 +122,14 @@ export async function criarDistrato(processoId: string) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
 
+  // Um processo só pode ter um distrato: se já existe, abre o existente em vez de criar outro.
+  const existente = await prisma.distrato.findFirst({
+    where: { processoId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (existente) redirect(`/distrato/${existente.id}?jaExistia=1`);
+
   const distrato = await prisma.distrato.create({
     data: { processoId, criadoPorId: session.user.id },
   });
