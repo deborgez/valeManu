@@ -96,6 +96,7 @@ const ICONE_POR_ROTA: Record<string, string> = {
   "/vistorias/relatorios": "grafico",
   "/configuracoes": "predio",
   "/usuarios": "usuarios",
+  "/configuracoes/limpeza": "arquivo",
   "/gestao/desempenho": "usuarios",
   "/gestao/financeiro": "grafico",
 };
