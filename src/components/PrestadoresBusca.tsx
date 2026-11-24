@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ESPECIALIDADES_PRESTADOR } from "@/lib/labels";
-import IconeEspecialidade from "./IconeEspecialidade";
 import { especialidadeCanonica } from "@/lib/especialidades";
 
 type Prestador = {
@@ -14,6 +13,30 @@ type Prestador = {
   telefone: string;
   email: string | null;
 };
+
+const CORES_ESPECIALIDADE = [
+  "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300",
+  "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300",
+  "bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300",
+  "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
+  "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300",
+  "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300",
+  "bg-lime-100 text-lime-800 dark:bg-lime-950 dark:text-lime-300",
+  "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-950 dark:text-fuchsia-300",
+  "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300",
+];
+
+// Cada especialidade mantém sempre a mesma cor: oficiais pela posição na lista, outras pelo nome.
+function corEspecialidade(nome: string): string {
+  const posicao = ESPECIALIDADES_PRESTADOR.indexOf(nome);
+  if (posicao >= 0) return CORES_ESPECIALIDADE[posicao % CORES_ESPECIALIDADE.length];
+  let soma = 0;
+  for (const c of nome) soma = (soma * 31 + c.charCodeAt(0)) % 997;
+  return CORES_ESPECIALIDADE[soma % CORES_ESPECIALIDADE.length];
+}
 
 export default function PrestadoresBusca({
   prestadores,
@@ -80,12 +103,11 @@ export default function PrestadoresBusca({
         {grupos.map((grupo) => (
           <div key={grupo.especialidade}>
             <div className="mb-3 flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-[var(--accent)] dark:text-blue-200">
-                <IconeEspecialidade nome={grupo.especialidade} className="h-5 w-5" />
-              </span>
-              <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+              <span
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold ${corEspecialidade(grupo.especialidade)}`}
+              >
                 {grupo.especialidade}
-              </h2>
+              </span>
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-700 dark:text-slate-300">
                 {grupo.prestadores.length}{" "}
                 {grupo.prestadores.length === 1 ? "prestador" : "prestadores"}
