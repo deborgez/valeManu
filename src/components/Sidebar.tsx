@@ -61,7 +61,7 @@ export default async function Sidebar() {
   ];
 
   return (
-    <aside className="print:hidden w-60 shrink-0 overflow-y-auto bg-[var(--sidebar-bg)] p-4">
+    <aside className="menu-lateral print:hidden w-60 shrink-0 overflow-y-auto bg-[var(--sidebar-bg)] p-4">
       <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-white/40">
         Módulos
       </p>

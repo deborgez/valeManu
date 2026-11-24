@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { sair } from "./actions";
 import ThemeToggle from "./ThemeToggle";
 import NotificacoesSino from "./NotificacoesSino";
+import BuscaGlobal from "./BuscaGlobal";
+import BotaoMenu from "./BotaoMenu";
 import { formatDataHora } from "@/lib/datahora";
 
 export default async function NavBar() {
@@ -28,7 +30,8 @@ export default async function NavBar() {
 
   return (
     <nav className="print:hidden sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-2.5 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-800/95">
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 md:gap-6">
+        <BotaoMenu />
         {imobiliaria?.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -45,8 +48,8 @@ export default async function NavBar() {
             className="hidden h-9 w-auto dark:block"
           />
         )}
-        <div className="h-9 w-px bg-slate-200 dark:bg-slate-700" />
-        <div className="flex flex-col leading-tight">
+        <div className="hidden h-9 w-px bg-slate-200 dark:bg-slate-700 sm:block" />
+        <div className="hidden flex-col leading-tight sm:flex">
           <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Hub de Processos
           </span>
@@ -58,6 +61,7 @@ export default async function NavBar() {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        {session.user.role !== "VISTORIADOR" && <BuscaGlobal />}
         <NotificacoesSino
           naoLidas={naoLidas}
           itens={notificacoes.map((n) => ({

@@ -10,7 +10,7 @@ import { concluirVistoria, solicitarVistoria } from "@/app/vistorias/actions";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import NovaVistoriaModal from "./NovaVistoriaModal";
 import ConcluirVistoriaModal from "./ConcluirVistoriaModal";
-import BuscaVistorias, { type ItemVistoria } from "./BuscaVistorias";
+import TabelaLista, { type LinhaLista } from "@/components/TabelaLista";
 
 export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAIDA" }) {
   const session = await auth();
@@ -49,7 +49,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
       })
     : [];
 
-  const itens: ItemVistoria[] = vistorias.map((v) => {
+  const itens: LinhaLista[] = vistorias.map((v) => {
     const situacao = situacaoVistoria(v, hoje);
     return {
       id: v.id,
@@ -60,6 +60,13 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
         v.entreguePor?.nome ?? "",
         situacao.texto,
       ].join(" "),
+      ordenar: {
+        imovel: v.processo.numeroProcesso,
+        valor: v.processo.valorAluguel ?? 0,
+        solicitada: v.createdAt.getTime(),
+        prazo: prazoVistoria(v.createdAt).getTime(),
+        situacao: v.status === "ENTREGUE" ? "2" : "1",
+      },
       linha: (
         <tr key={v.id} className="border-t border-slate-100 dark:border-slate-700 align-top">
           <td className="px-4 py-2">
@@ -170,21 +177,20 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
         </p>
       )}
 
-      <BuscaVistorias
-        itens={itens}
-        colunas={podeEntregar ? 7 : 6}
+      <TabelaLista
+        linhas={itens}
         vazio={`Nenhuma vistoria de ${tipoLabel.toLowerCase()} solicitada ainda.`}
-        cabecalho={
-          <tr>
-              <th className="px-4 py-2">Imóvel</th>
-              <th className="px-4 py-2">Valor</th>
-              <th className="px-4 py-2">Solicitada em</th>
-              <th className="px-4 py-2">Prazo</th>
-              <th className="px-4 py-2">Situação</th>
-              <th className="px-4 py-2">Sinal</th>
-              {podeEntregar && <th className="px-4 py-2"></th>}
-            </tr>
-        }
+        placeholderBusca="Buscar por processo, endereço, solicitante ou situação"
+        ordemInicial={{ chave: "solicitada", direcao: "desc" }}
+        colunas={[
+          { chave: "imovel", rotulo: "Imóvel", ordenavel: true },
+          { chave: "valor", rotulo: "Valor", ordenavel: true },
+          { chave: "solicitada", rotulo: "Solicitada em", ordenavel: true },
+          { chave: "prazo", rotulo: "Prazo", ordenavel: true },
+          { chave: "situacao", rotulo: "Situação", ordenavel: true },
+          { chave: "sinal", rotulo: "Sinal" },
+          ...(podeEntregar ? [{ chave: "acoes", rotulo: "" }] : []),
+        ]}
       />
       <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
         Prazo de entrega: 5 dias úteis a partir da data de solicitação. Atualizado em{" "}

@@ -27,6 +27,7 @@ export function paginaInicial(role?: string): string {
 
 // Rotas liberadas para perfis restritos. ADMIN e ADMINISTRATIVO não têm restrição de rota.
 export function rotaPermitida(role: string | undefined, pathname: string): boolean {
+  if (pathname === "/notificacoes") return true;
   if (role === "VISTORIADOR") {
     return pathname === "/vistorias" || pathname.startsWith("/vistorias/");
   }

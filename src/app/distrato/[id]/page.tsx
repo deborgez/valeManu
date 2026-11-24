@@ -37,6 +37,7 @@ import ContatoModal from "@/components/distrato/ContatoModal";
 import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
 import ReciboEntregaChavesDocumento from "@/components/distrato/ReciboEntregaChavesDocumento";
+import EtapasRelacionamento from "@/components/distrato/EtapasRelacionamento";
 import SolicitarVistoriaSaidaModal from "@/components/distrato/SolicitarVistoriaSaidaModal";
 import { situacaoVistoria, prazoVistoria } from "@/lib/vistorias";
 import { podeSolicitarVistoria } from "@/lib/perfis";
@@ -392,6 +393,19 @@ export default async function DistratoDetalhePage({
 
   const relacionamentoConteudo = (
     <>
+      <EtapasRelacionamento
+        etapas={[
+          { rotulo: "Aviso prévio", concluida: Boolean(distrato.avisoPrevio) },
+          { rotulo: "Comunicado ao locador", concluida: Boolean(distrato.comunicadoLocador) },
+          { rotulo: "Acompanhamento", concluida: distrato.contatos.length > 0 },
+          { rotulo: "Entrega das chaves", concluida: Boolean(distrato.entregaChaves) },
+          { rotulo: "Comunicado da vistoria", concluida: Boolean(distrato.comunicadoVistoria) },
+          { rotulo: "Vistoria de saída", concluida: Boolean(solicitacao) },
+          { rotulo: "Laudo", concluida: vistoriaConcluida },
+          { rotulo: "Encerramento", concluida: concluido },
+        ]}
+      />
+
       {/* Aviso Prévio do Locatário + Comunicado ao Locador */}
       <section className={SECAO_CLASSE}>
         <SecaoTitulo

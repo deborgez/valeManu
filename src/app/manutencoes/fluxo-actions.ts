@@ -26,6 +26,7 @@ async function registrarHistorico(
     prisma.manutencao.findUnique({ where: { id: manutencaoId }, select: { numeroProcesso: true } }),
   ]);
   await notificar({
+    categoria: "MANUTENCAO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     excetoUsuarioId: session?.user.id,
     mensagem: `Manutenção ${manutencao?.numeroProcesso ?? ""}: ${etapa}`,

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   marcarNotificacaoLida,
   marcarTodasNotificacoesLidas,
@@ -114,6 +115,13 @@ export default function NotificacoesSino({
                 </li>
               )}
             </ul>
+            <Link
+              href="/notificacoes"
+              onClick={() => setAberto(false)}
+              className="block border-t border-slate-100 px-3 py-2 text-center text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              Ver todas e preferências
+            </Link>
           </div>
         </>
       )}

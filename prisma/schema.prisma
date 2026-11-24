@@ -152,6 +152,7 @@ model User {
   vistoriasSolicitadas Vistoria[] @relation("VistoriaSolicitadaPor")
   vistoriasEntregues   Vistoria[] @relation("VistoriaEntreguePor")
   notificacoes         Notificacao[] @relation("NotificacaoUsuario")
+  notificacoesDesativadas String[] @default([])
 
   avisosPrevioCriados      AvisoPrevioLocatario[]     @relation("AvisoPrevioCriadoPor")
   comunicadosCriados       ComunicadoLocador[]        @relation("ComunicadoCriadoPor")
@@ -819,6 +820,7 @@ model Notificacao {
   id        String   @id @default(cuid())
   mensagem  String
   link      String?
+  categoria String   @default("GERAL")
   lida      Boolean  @default(false)
   createdAt DateTime @default(now())
 

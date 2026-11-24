@@ -6,6 +6,8 @@ import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import PainelEtapas from "@/components/PainelEtapas";
+import { formatData, formatDataHora } from "@/lib/datahora";
+import { prazoVistoria, LABEL_TIPO_VISTORIA } from "@/lib/vistorias";
 
 type ManutencaoResumo = {
   id: string;
@@ -111,6 +113,64 @@ export default async function Home() {
     }),
   }));
 
+  const [vistoriasPendentes, servicosAgendados] = await Promise.all([
+    prisma.vistoria.findMany({
+      where: { status: "PENDENTE" },
+      include: { processo: { select: { numeroProcesso: true } } },
+    }),
+    prisma.inicioServico.findMany({
+      where: {
+        status: "AGENDADO",
+        dataHoraAgendada: { gte: new Date() },
+        manutencao: { status: { not: "CANCELADA" } },
+      },
+      include: { manutencao: { select: { id: true, numeroProcesso: true } } },
+    }),
+  ]);
+
+  const proximosPrazos = [
+    ...vistoriasPendentes.map((v) => ({
+      id: `v-${v.id}`,
+      titulo: `Vistoria de ${LABEL_TIPO_VISTORIA[v.tipo].toLowerCase()} — ${v.processo.numeroProcesso}`,
+      quando: prazoVistoria(v.createdAt),
+      texto: `Entregar até ${formatData(prazoVistoria(v.createdAt))}`,
+      href: v.tipo === "SAIDA" ? "/vistorias/saida" : "/vistorias/entrada",
+    })),
+    ...servicosAgendados.flatMap((s) =>
+      s.dataHoraAgendada
+        ? [
+            {
+              id: `s-${s.id}`,
+              titulo: `Serviço agendado — ${s.manutencao.numeroProcesso}`,
+              quando: s.dataHoraAgendada,
+              texto: formatDataHora(s.dataHoraAgendada),
+              href: `/manutencoes/${s.manutencao.id}`,
+            },
+          ]
+        : []
+    ),
+  ]
+    .sort((a, b) => a.quando.getTime() - b.quando.getTime())
+    .slice(0, 6);
+
+  const agora = new Date();
+  const meses = Array.from({ length: 6 }, (_, i) => {
+    const ref = new Date(agora.getFullYear(), agora.getMonth() - (5 - i), 1);
+    return {
+      chave: `${ref.getFullYear()}-${ref.getMonth()}`,
+      rotulo: ref.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", ""),
+      total: 0,
+    };
+  });
+  for (const m of manutencoes) {
+    if (m.status === "CANCELADA") continue;
+    const alvo = meses.find(
+      (mes) => mes.chave === `${m.createdAt.getFullYear()}-${m.createdAt.getMonth()}`
+    );
+    if (alvo) alvo.total += 1;
+  }
+  const maiorMes = Math.max(1, ...meses.map((m) => m.total));
+
   const abertas = manutencoes.filter(
     (m) => m.status !== "CONCLUIDA" && m.status !== "CANCELADA"
   );
@@ -212,6 +272,55 @@ export default async function Home() {
       </div>
 
       <PainelEtapas etapas={etapas} />
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Manutenções por mês
+          </h2>
+          <div className="flex h-40 items-end gap-3">
+            {meses.map((mes) => (
+              <div key={mes.chave} className="flex flex-1 flex-col items-center justify-end gap-1">
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  {mes.total}
+                </span>
+                <div
+                  className="w-full rounded-t-md bg-[var(--accent)]"
+                  style={{ height: `${Math.max(4, (mes.total / maiorMes) * 100)}%`, opacity: mes.total ? 1 : 0.25 }}
+                />
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">{mes.rotulo}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Próximos prazos
+          </h2>
+          {proximosPrazos.length === 0 ? (
+            <p className="text-sm text-slate-400 dark:text-slate-500">
+              Nenhum prazo ou agendamento pendente.
+            </p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
+              {proximosPrazos.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href={item.href}
+                    className="flex items-center justify-between gap-3 py-2 text-sm hover:text-slate-900 dark:hover:text-white"
+                  >
+                    <span className="text-slate-700 dark:text-slate-300">{item.titulo}</span>
+                    <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">
+                      {item.texto}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
 
       <div className="mt-8 flex gap-4">
         <Link

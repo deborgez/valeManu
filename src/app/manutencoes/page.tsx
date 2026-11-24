@@ -4,6 +4,7 @@ import { formatEndereco } from "@/lib/endereco";
 import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import Link from "next/link";
 import { formatData } from "@/lib/datahora";
+import { etapaAtualIndex } from "@/lib/trilha";
 
 type ManutencaoComRelacoes = Awaited<
   ReturnType<typeof buscarManutencoes>
@@ -15,6 +16,7 @@ async function buscarManutencoes() {
       inicioServicos: { orderBy: { createdAt: "desc" }, take: 1 },
       pedidosOrcamento: { select: { id: true } },
       pagamentos: { orderBy: { createdAt: "desc" }, take: 1 },
+      criadoPor: { select: { nome: true } },
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -105,6 +107,32 @@ function Cartao({ manutencao }: { manutencao: ManutencaoComRelacoes }) {
       )}
       <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">{formatEndereco(manutencao)}</p>
       <p className="text-xs text-slate-500 dark:text-slate-400">{manutencao.natureza}</p>
+      <div className="mt-2 flex items-center gap-2">
+        <span
+          title={manutencao.criadoPor.nome}
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-700 dark:bg-slate-600 dark:text-slate-100"
+        >
+          {manutencao.criadoPor.nome.charAt(0).toUpperCase()}
+        </span>
+        <div className="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
+          <div
+            className="h-full rounded-full bg-[var(--accent)]"
+            style={{
+              width: `${Math.round(
+                (etapaAtualIndex(
+                  cancelada
+                    ? (manutencao.statusAntesCancelamento ?? "SOLICITACAO")
+                    : manutencao.status,
+                  manutencao.pedidosOrcamento.length > 0,
+                  manutencao.pagamentos[0]?.status === "PAGO"
+                ) /
+                  6) *
+                  100
+              )}%`,
+            }}
+          />
+        </div>
+      </div>
       {manutencao.inicioServicos[0]?.status === "AGENDADO" && (
         <span className="mt-2 inline-block rounded bg-amber-100 dark:bg-amber-900 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
           Agendado

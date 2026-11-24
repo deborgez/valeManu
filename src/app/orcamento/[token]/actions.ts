@@ -51,6 +51,7 @@ export async function enviarOrcamentoProfissional(
     select: { numeroProcesso: true },
   });
   await notificar({
+    categoria: "MANUTENCAO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     mensagem: `Manutenção ${manutencao?.numeroProcesso ?? ""}: orçamento entregue pelo prestador`,
     link: `/manutencoes/${pedido.manutencaoId}`,
@@ -95,6 +96,7 @@ export async function responderContraoferta(token: string, aceitar: boolean) {
     select: { numeroProcesso: true },
   });
   await notificar({
+    categoria: "MANUTENCAO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     mensagem: `Manutenção ${manutencao?.numeroProcesso ?? ""}: prestador ${aceitar ? "aceitou" : "recusou"} a contraoferta`,
     link: `/manutencoes/${pedido.manutencaoId}`,

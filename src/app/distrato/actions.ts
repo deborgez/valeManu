@@ -59,6 +59,7 @@ async function logAuditoria(
     select: { processo: { select: { numeroProcesso: true } } },
   });
   await notificar({
+    categoria: "DISTRATO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     excetoUsuarioId: session.user.id,
     mensagem: `Distrato ${distrato?.processo.numeroProcesso ?? ""}: ${session.user.name ?? "Um usuário"} ${acao.toLowerCase()} ${LABEL_SECAO_DISTRATO[secao] ?? secao.toLowerCase()}`,
@@ -1685,6 +1686,7 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
     `Solicitou a vistoria de saída${quemParticipa.length ? ` (${quemParticipa.join(", ")})` : ""}`
   );
   await notificar({
+    categoria: "VISTORIA",
     perfis: ["VISTORIADOR", "ADMIN"],
     excetoUsuarioId: session.user.id,
     mensagem: `Nova vistoria de saída solicitada${quemParticipa.length ? ` (${quemParticipa.join(", ")})` : ""}`,

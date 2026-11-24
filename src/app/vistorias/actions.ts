@@ -46,6 +46,7 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
   });
 
   await notificar({
+    categoria: "VISTORIA",
     perfis: ["ADMIN", "VISTORIADOR"],
     excetoUsuarioId: session.user.id,
     mensagem: `Nova vistoria de entrada solicitada — processo ${processo.numeroProcesso}`,
@@ -117,6 +118,7 @@ export async function concluirVistoria(vistoriaId: string, formData: FormData) {
   }
 
   await notificar({
+    categoria: "VISTORIA",
     perfis: vistoria.distratoId ? ["ADMIN", "ADMINISTRATIVO"] : ["ADMIN"],
     usuarios: [vistoria.solicitadoPorId],
     excetoUsuarioId: session.user.id,

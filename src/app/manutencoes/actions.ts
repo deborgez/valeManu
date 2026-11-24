@@ -36,6 +36,7 @@ export async function criarManutencao(formData: FormData) {
     data: { manutencaoId: manutencao.id, etapa: "Solicitação criada" },
   });
   await notificar({
+    categoria: "MANUTENCAO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     excetoUsuarioId: session.user.id,
     mensagem: `Manutenção ${manutencao.numeroProcesso}: solicitação criada por ${session.user.name ?? "um usuário"}`,
@@ -124,6 +125,7 @@ export async function cancelarManutencao(manutencaoId: string, motivo: string) {
   ]);
 
   await notificar({
+    categoria: "MANUTENCAO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     excetoUsuarioId: session.user.id,
     mensagem: `Manutenção ${manutencao.numeroProcesso}: cancelada por ${session.user.name ?? "um usuário"} — ${motivoLimpo}`,
@@ -167,6 +169,7 @@ export async function reabrirManutencaoCancelada(manutencaoId: string) {
   ]);
 
   await notificar({
+    categoria: "MANUTENCAO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     excetoUsuarioId: session.user.id,
     mensagem: `Manutenção ${manutencao.numeroProcesso}: reaberta após cancelamento por ${session.user.name ?? "um usuário"}`,

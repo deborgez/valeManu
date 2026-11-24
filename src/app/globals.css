@@ -122,6 +122,55 @@ tbody tr {
   scrollbar-color: color-mix(in srgb, var(--foreground) 22%, transparent) transparent;
 }
 
+/* Menu lateral recolhível em telas pequenas. */
+@media (max-width: 767px) {
+  .menu-lateral {
+    position: fixed;
+    top: 56px;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  }
+
+  body.menu-aberto .menu-lateral {
+    transform: none;
+  }
+
+  body.menu-aberto::after {
+    content: "";
+    position: fixed;
+    inset: 56px 0 0 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Formulários: rótulos e campos mais uniformes. */
+label {
+  letter-spacing: 0.005em;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--foreground) 38%, transparent);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 /* Pop-ups com fundo desfocado e entrada suave. */
 [class~="fixed"][class~="inset-0"][class*="bg-black"] {
   backdrop-filter: blur(3px);
