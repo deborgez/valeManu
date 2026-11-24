@@ -96,6 +96,8 @@ const ICONE_POR_ROTA: Record<string, string> = {
   "/vistorias/relatorios": "grafico",
   "/configuracoes": "predio",
   "/usuarios": "usuarios",
+  "/gestao/desempenho": "usuarios",
+  "/gestao/financeiro": "grafico",
 };
 
 export default function SidebarLinks({

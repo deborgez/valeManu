@@ -38,6 +38,7 @@ import EntregaChavesModal from "@/components/distrato/EntregaChavesModal";
 import ComunicadoVistoriaModal from "@/components/distrato/ComunicadoVistoriaModal";
 import ReciboEntregaChavesDocumento from "@/components/distrato/ReciboEntregaChavesDocumento";
 import EtapasRelacionamento from "@/components/distrato/EtapasRelacionamento";
+import MensagensProntas from "@/components/distrato/MensagensProntas";
 import SolicitarVistoriaSaidaModal from "@/components/distrato/SolicitarVistoriaSaidaModal";
 import { situacaoVistoria, prazoVistoria } from "@/lib/vistorias";
 import { podeSolicitarVistoria } from "@/lib/perfis";
@@ -404,6 +405,23 @@ export default async function DistratoDetalhePage({
           { rotulo: "Laudo", concluida: vistoriaConcluida },
           { rotulo: "Encerramento", concluida: concluido },
         ]}
+      />
+
+      <MensagensProntas
+        contatos={[
+          ...locadores.map((l) => ({ rotulo: "Locador", nome: l.nome, telefone: l.telefone })),
+          ...locatarios.map((l) => ({ rotulo: "Locatário", nome: l.nome, telefone: l.telefone })),
+        ]}
+        numeroProcesso={processo.numeroProcesso}
+        endereco={formatEndereco(processo)}
+        imobiliaria={imobiliaria?.nome ?? ""}
+        prazoChaves={
+          distrato.avisoPrevio
+            ? formatData(
+                new Date(distrato.avisoPrevio.data.getTime() + 30 * 24 * 60 * 60 * 1000)
+              )
+            : null
+        }
       />
 
       {/* Aviso Prévio do Locatário + Comunicado ao Locador */}

@@ -29,6 +29,7 @@ export function paginaInicial(role?: string): string {
 export function rotaPermitida(role: string | undefined, pathname: string): boolean {
   if (pathname === "/notificacoes" || pathname === "/conta") return true;
   if (pathname.startsWith("/api/exportar/")) return true;
+  if (pathname.startsWith("/api/modelos/")) return true;
   if (role === "VISTORIADOR") {
     return pathname === "/vistorias" || pathname.startsWith("/vistorias/");
   }
