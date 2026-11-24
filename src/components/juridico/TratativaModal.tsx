@@ -64,6 +64,7 @@ export default function TratativaModal({
                   type="date"
                   name="data"
                   required
+                  min="2000-01-01"
                   max={hoje}
                   defaultValue={hoje}
                   className={CAMPO_CLASSE}

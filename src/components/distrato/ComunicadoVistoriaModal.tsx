@@ -76,6 +76,7 @@ export default function ComunicadoVistoriaModal({
               <input
                 type="date"
                 name="data"
+                min="2000-01-01"
                 max={hoje}
                 defaultValue={
                   registro?.data ? registro.data.toISOString().slice(0, 10) : ""

@@ -69,6 +69,9 @@ async function logAuditoria(
 }
 
 function validarNaoFutura(dataStr: string, campo: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dataStr) || dataStr < "2000-01-01") {
+    throw new Error(`A data de ${campo} é inválida. Confira o ano.`);
+  }
   if (dataStr > hojeSaoPaulo()) {
     throw new Error(`A data de ${campo} não pode ser no futuro.`);
   }

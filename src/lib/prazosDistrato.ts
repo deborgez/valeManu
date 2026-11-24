@@ -18,6 +18,13 @@ export function sinalEntregaChaves(dataAviso: Date, dataEntrega: Date): Sinal {
   const aposAviso = diasEntreDatas(dataEntrega, dataAviso);
   const alemDoPrazo = diasEntreDatas(dataEntrega, limite);
 
+  if (aposAviso < 0) {
+    return {
+      texto: `Entrega anterior ao aviso prévio (${dias(Math.abs(aposAviso))} antes) — confira as datas`,
+      cor: AMBAR,
+    };
+  }
+
   if (alemDoPrazo <= 0) {
     return {
       texto: `Dentro do prazo do aviso prévio — ${dias(aposAviso)} após o aviso (limite: ${PRAZO_AVISO_PREVIO_DIAS} dias)`,

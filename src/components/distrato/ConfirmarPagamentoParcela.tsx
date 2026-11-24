@@ -78,6 +78,7 @@ export default function ConfirmarPagamentoParcela({
                 type="date"
                 name="dataPagamento"
                 required
+                min="2000-01-01"
                 max={hoje}
                 defaultValue={hoje}
                 className={CAMPO_CLASSE}

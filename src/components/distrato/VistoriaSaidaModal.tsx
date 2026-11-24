@@ -79,6 +79,7 @@ export default function VistoriaSaidaModal({
                   type="date"
                   name="data"
                   required
+                  min="2000-01-01"
                   max={hoje}
                   defaultValue={
                     registro ? registro.data.toISOString().slice(0, 10) : undefined

@@ -17,6 +17,12 @@ describe("entrega das chaves x aviso prévio (30 dias)", () => {
     expect(sinalEntregaChaves(dia("2026-10-01"), dia("2026-10-31")).texto).toContain("Dentro do prazo");
   });
 
+  it("entrega anterior ao aviso é sinalizada, sem números absurdos", () => {
+    const s = sinalEntregaChaves(dia("2026-10-10"), dia("2026-10-05"));
+    expect(s.texto).toContain("anterior ao aviso prévio");
+    expect(s.texto).toContain("5 dias antes");
+  });
+
   it("fora do prazo mostra quantos dias passaram", () => {
     const s = sinalEntregaChaves(dia("2026-10-01"), dia("2026-11-05"));
     expect(s.texto).toContain("Fora do prazo");
