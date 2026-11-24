@@ -16,6 +16,7 @@ import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/l
 import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
 import { podeSolicitarVistoria } from "@/lib/perfis";
 import { notificar, LABEL_SECAO_DISTRATO } from "@/lib/notificacoes";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 const SECAO = {
   AVISO_PREVIO: "AVISO_PREVIO",
@@ -1660,7 +1661,7 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
   });
   if (distrato.solicitacaoVistoria) throw new Error("A vistoria de saída já foi solicitada.");
 
-  await prisma.vistoria.create({
+  const criadaSaida = await prisma.vistoria.create({
     data: {
       tipo: "SAIDA",
       processoId: distrato.processoId,
@@ -1672,6 +1673,16 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
       locatarioDesejaParticipar: formData.get("locatarioDesejaParticipar") === "on",
       solicitadoPorId: session.user.id,
     },
+  });
+
+  await registrarAuditoria({
+    entidade: "VISTORIA",
+    entidadeId: criadaSaida.id,
+    referencia: (
+      await prisma.processo.findUnique({ where: { id: distrato.processoId }, select: { numeroProcesso: true } })
+    )?.numeroProcesso,
+    acao: "Solicitou",
+    detalhe: "Vistoria de saída solicitada pelo distrato",
   });
 
   const quemParticipa = [
@@ -1710,6 +1721,15 @@ export async function cancelarSolicitacaoVistoriaSaida(distratoId: string) {
   }
 
   await prisma.vistoria.delete({ where: { id: vistoria.id } });
+  await registrarAuditoria({
+    entidade: "VISTORIA",
+    entidadeId: vistoria.id,
+    referencia: (
+      await prisma.processo.findUnique({ where: { id: vistoria.processoId }, select: { numeroProcesso: true } })
+    )?.numeroProcesso,
+    acao: "Cancelou",
+    detalhe: "Solicitação da vistoria de saída cancelada",
+  });
   await logAuditoria(
     distratoId,
     SECAO.SOLICITACAO_VISTORIA_SAIDA,

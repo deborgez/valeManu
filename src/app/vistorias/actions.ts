@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
 import { podeEntregarVistoria, podeSolicitarVistoria } from "@/lib/perfis";
 import { notificar } from "@/lib/notificacoes";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 function revalidarVistorias() {
   revalidatePath("/vistorias/entrada");
@@ -34,7 +35,7 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
     select: { id: true, numeroProcesso: true },
   });
 
-  await prisma.vistoria.create({
+  const criada = await prisma.vistoria.create({
     data: {
       tipo,
       processoId,
@@ -43,6 +44,14 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
       comprovanteTipo: (formData.get("comprovanteTipo") as string) || null,
       solicitadoPorId: session.user.id,
     },
+  });
+
+  await registrarAuditoria({
+    entidade: "VISTORIA",
+    entidadeId: criada.id,
+    referencia: processo.numeroProcesso,
+    acao: "Solicitou",
+    detalhe: "Vistoria de entrada solicitada",
   });
 
   await notificar({
@@ -99,6 +108,14 @@ export async function concluirVistoria(vistoriaId: string, formData: FormData) {
 
   const tipoTexto = vistoria.tipo === "SAIDA" ? "saída" : "entrada";
   const numero = vistoria.processo.numeroProcesso;
+
+  await registrarAuditoria({
+    entidade: "VISTORIA",
+    entidadeId: vistoriaId,
+    referencia: numero,
+    acao: "Concluiu",
+    detalhe: `Vistoria de ${tipoTexto} concluída em ${formatData(entregueData)} às ${hora}`,
+  });
 
   if (vistoria.distratoId) {
     const partes = [

@@ -59,6 +59,7 @@ export default async function Sidebar() {
   const linksConfiguracoes = [
     { href: "/configuracoes", label: "Unidade" },
     { href: "/usuarios", label: "Usuários" },
+    { href: "/configuracoes/auditoria", label: "Auditoria" },
     { href: "/configuracoes/limpeza", label: "Limpeza de dados" },
   ];
 

@@ -97,6 +97,7 @@ const ICONE_POR_ROTA: Record<string, string> = {
   "/configuracoes": "predio",
   "/usuarios": "usuarios",
   "/configuracoes/limpeza": "arquivo",
+  "/configuracoes/auditoria": "livro",
 };
 
 export default function SidebarLinks({

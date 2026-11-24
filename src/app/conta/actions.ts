@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 export async function alterarSenha(formData: FormData) {
   const session = await auth();
@@ -24,6 +25,14 @@ export async function alterarSenha(formData: FormData) {
   await prisma.user.update({
     where: { id: session.user.id },
     data: { senhaHash: await bcrypt.hash(nova, 10) },
+  });
+
+  await registrarAuditoria({
+    entidade: "USUARIO",
+    entidadeId: session.user.id,
+    referencia: session.user.name,
+    acao: "Editou",
+    detalhe: "Alterou a própria senha",
   });
 
   redirect("/conta?ok=1");

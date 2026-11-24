@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { parseDataLocal } from "@/lib/datahora";
 import { lerPlanilha, parseDataBr, parseNumeroBr, chaveColuna } from "@/lib/planilha";
 import { especialidadeCanonica } from "@/lib/especialidades";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 async function garantirGestao() {
   const session = await auth();
@@ -16,7 +17,12 @@ async function garantirGestao() {
   return session;
 }
 
-function resumo(tipo: string, criados: number, ignorados: number, erros: string[]) {
+async function resumo(tipo: string, criados: number, ignorados: number, erros: string[]) {
+  await registrarAuditoria({
+    entidade: "SISTEMA",
+    acao: "Importou",
+    detalhe: `Importação de ${tipo}: ${criados} cadastrados, ${ignorados} ignorados, ${erros.length} com erro`,
+  });
   const params = new URLSearchParams({
     tipo,
     criados: String(criados),
@@ -29,7 +35,7 @@ function resumo(tipo: string, criados: number, ignorados: number, erros: string[
 export async function importarPrestadores(formData: FormData) {
   await garantirGestao();
   const arquivo = formData.get("arquivo");
-  if (!(arquivo instanceof File) || arquivo.size === 0) resumo("prestadores", 0, 0, ["Nenhum arquivo enviado."]);
+  if (!(arquivo instanceof File) || arquivo.size === 0) await resumo("prestadores", 0, 0, ["Nenhum arquivo enviado."]);
 
   const linhas = await lerPlanilha(arquivo as File);
   const existentes = await prisma.prestador.findMany({ select: { nome: true, telefone: true } });
@@ -68,7 +74,7 @@ export async function importarPrestadores(formData: FormData) {
   }
 
   revalidatePath("/prestadores");
-  resumo("prestadores", criados, ignorados, erros);
+  await resumo("prestadores", criados, ignorados, erros);
 }
 
 const GARANTIAS: [string, "FIADOR" | "SEGURO_FIANCA" | "FIANCA_ONEROSA" | "TITULO_CAPITALIZACAO" | "CAUCAO_IMOBILIARIA" | "CAUCAO_DINHEIRO" | "SEM_GARANTIA"][] = [
@@ -84,7 +90,7 @@ const GARANTIAS: [string, "FIADOR" | "SEGURO_FIANCA" | "FIANCA_ONEROSA" | "TITUL
 export async function importarProcessos(formData: FormData) {
   const session = await garantirGestao();
   const arquivo = formData.get("arquivo");
-  if (!(arquivo instanceof File) || arquivo.size === 0) resumo("processos", 0, 0, ["Nenhum arquivo enviado."]);
+  if (!(arquivo instanceof File) || arquivo.size === 0) await resumo("processos", 0, 0, ["Nenhum arquivo enviado."]);
 
   const linhas = await lerPlanilha(arquivo as File);
   const existentes = new Set(
@@ -172,5 +178,5 @@ export async function importarProcessos(formData: FormData) {
   }
 
   revalidatePath("/cadastro");
-  resumo("processos", criados, ignorados, erros);
+  await resumo("processos", criados, ignorados, erros);
 }

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { parseDataLocal } from "@/lib/datahora";
 import { parseMoeda } from "@/lib/masks";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 const TIPOS_FIANCA = [
   "FIADOR",
@@ -96,6 +97,14 @@ export async function criarProcesso(formData: FormData) {
     },
   });
 
+  await registrarAuditoria({
+    entidade: "PROCESSO",
+    entidadeId: processo.id,
+    referencia: processo.numeroProcesso,
+    acao: "Criou",
+    detalhe: "Processo cadastrado",
+  });
+
   redirect(`/cadastro/${processo.id}`);
 }
 
@@ -113,6 +122,18 @@ export async function editarProcesso(processoId: string, formData: FormData) {
       },
     }),
   ]);
+
+  const atual = await prisma.processo.findUnique({
+    where: { id: processoId },
+    select: { numeroProcesso: true },
+  });
+  await registrarAuditoria({
+    entidade: "PROCESSO",
+    entidadeId: processoId,
+    referencia: atual?.numeroProcesso,
+    acao: "Editou",
+    detalhe: "Dados do processo alterados",
+  });
 
   redirect(`/cadastro/${processoId}`);
 }

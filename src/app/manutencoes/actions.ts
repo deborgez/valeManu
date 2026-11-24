@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { notificar } from "@/lib/notificacoes";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 export async function criarManutencao(formData: FormData) {
   const session = await auth();
@@ -35,6 +36,14 @@ export async function criarManutencao(formData: FormData) {
   await prisma.historicoEtapa.create({
     data: { manutencaoId: manutencao.id, etapa: "Solicitação criada" },
   });
+  await registrarAuditoria({
+    entidade: "MANUTENCAO",
+    entidadeId: manutencao.id,
+    referencia: manutencao.numeroProcesso,
+    acao: "Criou",
+    detalhe: "Solicitação de manutenção criada",
+  });
+
   await notificar({
     categoria: "MANUTENCAO",
     perfis: ["ADMIN", "ADMINISTRATIVO"],
@@ -63,6 +72,13 @@ export async function atualizarEndereco(manutencaoId: string, formData: FormData
     },
   });
 
+  await registrarAuditoria({
+    entidade: "MANUTENCAO",
+    entidadeId: manutencaoId,
+    acao: "Editou",
+    detalhe: "Endereço alterado",
+  });
+
   revalidatePath(`/manutencoes/${manutencaoId}`);
   revalidatePath("/manutencoes");
   revalidatePath("/");
@@ -84,6 +100,13 @@ export async function atualizarDadosSolicitante(
       competencia: formData.get("competencia") as "LOCADOR" | "LOCATARIO" | "IMOBILIARIA",
       natureza: String(formData.get("natureza")),
     },
+  });
+
+  await registrarAuditoria({
+    entidade: "MANUTENCAO",
+    entidadeId: manutencaoId,
+    acao: "Editou",
+    detalhe: "Dados do solicitante alterados",
   });
 
   revalidatePath(`/manutencoes/${manutencaoId}`);
@@ -123,6 +146,14 @@ export async function cancelarManutencao(manutencaoId: string, motivo: string) {
       },
     }),
   ]);
+
+  await registrarAuditoria({
+    entidade: "MANUTENCAO",
+    entidadeId: manutencaoId,
+    referencia: manutencao.numeroProcesso,
+    acao: "Cancelou",
+    detalhe: `Motivo: ${motivoLimpo}`,
+  });
 
   await notificar({
     categoria: "MANUTENCAO",
@@ -167,6 +198,14 @@ export async function reabrirManutencaoCancelada(manutencaoId: string) {
       },
     }),
   ]);
+
+  await registrarAuditoria({
+    entidade: "MANUTENCAO",
+    entidadeId: manutencaoId,
+    referencia: manutencao.numeroProcesso,
+    acao: "Reabriu",
+    detalhe: "Manutenção reaberta após o cancelamento",
+  });
 
   await notificar({
     categoria: "MANUTENCAO",

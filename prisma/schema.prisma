@@ -152,6 +152,7 @@ model User {
   vistoriasSolicitadas Vistoria[] @relation("VistoriaSolicitadaPor")
   vistoriasEntregues   Vistoria[] @relation("VistoriaEntreguePor")
   notificacoes         Notificacao[] @relation("NotificacaoUsuario")
+  auditoriasGerais     AuditoriaGeral[] @relation("AuditoriaGeralUsuario")
   notificacoesDesativadas String[] @default([])
 
   avisosPrevioCriados      AvisoPrevioLocatario[]     @relation("AvisoPrevioCriadoPor")
@@ -828,4 +829,21 @@ model Notificacao {
   usuario   User   @relation("NotificacaoUsuario", fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@index([usuarioId, lida])
+}
+
+model AuditoriaGeral {
+  id         String   @id @default(cuid())
+  entidade   String
+  entidadeId String?
+  referencia String?
+  acao       String
+  detalhe    String?
+  createdAt  DateTime @default(now())
+
+  usuarioId   String?
+  usuario     User?   @relation("AuditoriaGeralUsuario", fields: [usuarioId], references: [id], onDelete: SetNull)
+  usuarioNome String
+
+  @@index([entidade, createdAt])
+  @@index([createdAt])
 }
