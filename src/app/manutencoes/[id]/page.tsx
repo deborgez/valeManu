@@ -2,7 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import CopyLinkButton from "@/components/CopyLinkButton";
 import AgendarServicoForm from "@/components/AgendarServicoForm";
-import { gerarPedidoOrcamento } from "../pedidos-actions";
+import {
+  gerarPedidoOrcamento,
+  adicionarAnexosPedido,
+  removerAnexoPedido,
+} from "../pedidos-actions";
+import ExcluirBotao from "@/components/distrato/ExcluirBotao";
 import {
   entregarOrcamento,
   marcarOrcamentoNaoEntregue,
@@ -847,6 +852,90 @@ export default async function ManutencaoDetalhePage({
         </section>
       )}
       </fieldset>
+
+      {/* Fotos e vídeos das solicitações — editáveis em qualquer situação */}
+      <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+        <h2 className="mb-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          Fotos e vídeos das solicitações
+        </h2>
+        <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
+          Podem ser adicionados ou removidos a qualquer momento, mesmo com a manutenção finalizada
+          ou cancelada.
+        </p>
+
+        {manutencao.pedidosOrcamento.length === 0 ? (
+          <p className="text-sm text-slate-400 dark:text-slate-500">
+            Nenhuma solicitação de orçamento gerada ainda.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {manutencao.pedidosOrcamento.map((pedido) => {
+              const midias = pedido.anexos.filter((a) => a.tipo !== "ORCAMENTO");
+              return (
+                <div key={pedido.id}>
+                  <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Solicitação para {pedido.prestador.nome}
+                  </p>
+                  {midias.length > 0 ? (
+                    <div className="mb-3 flex flex-wrap gap-3">
+                      {midias.map((anexo) => (
+                        <div key={anexo.id} className="flex flex-col items-center gap-1">
+                          {anexo.tipo === "VIDEO" ? (
+                            <video
+                              src={anexo.path}
+                              controls
+                              className="h-24 w-32 rounded border border-slate-200 dark:border-slate-700 object-cover"
+                            />
+                          ) : (
+                            <a href={anexo.path} target="_blank" rel="noreferrer">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={anexo.path}
+                                alt={anexo.filename}
+                                className="h-24 w-32 rounded border border-slate-200 dark:border-slate-700 object-cover"
+                              />
+                            </a>
+                          )}
+                          <ExcluirBotao
+                            onExcluir={async () => {
+                              "use server";
+                              await removerAnexoPedido(anexo.id, manutencao.id);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mb-3 text-sm text-slate-400 dark:text-slate-500">
+                      Nenhuma foto ou vídeo anexado.
+                    </p>
+                  )}
+                  <form
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await adicionarAnexosPedido(pedido.id, manutencao.id, formData);
+                    }}
+                    className="flex flex-wrap items-end gap-3"
+                  >
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        Adicionar fotos / vídeos
+                      </label>
+                      <BlobUploadInput name="anexos" multiple accept="image/*,video/*" />
+                    </div>
+                    <button
+                      type="submit"
+                      className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+                    >
+                      Salvar
+                    </button>
+                  </form>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
