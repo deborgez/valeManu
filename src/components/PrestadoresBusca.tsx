@@ -81,7 +81,13 @@ export default function PrestadoresBusca({
               {grupo.especialidade}
             </h2>
             <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-              <table className="w-full text-left text-sm">
+              <table className="w-full table-fixed text-left text-sm">
+                <colgroup>
+                  <col className="w-[34%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[30%]" />
+                  <col className="w-[18%]" />
+                </colgroup>
                 <thead className="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400">
                   <tr>
                     <th className="px-4 py-2">Nome</th>
@@ -102,7 +108,7 @@ export default function PrestadoresBusca({
                         )}
                       </td>
                       <td className="px-4 py-2">{p.telefone}</td>
-                      <td className="px-4 py-2">{p.email ?? "-"}</td>
+                      <td className="truncate px-4 py-2">{p.email ?? "-"}</td>
                       <td className="px-4 py-2 text-right">
                         <Link
                           href={`/prestadores/${p.id}`}

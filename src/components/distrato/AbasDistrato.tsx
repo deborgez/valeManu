@@ -25,7 +25,7 @@ export default function AbasDistrato({ abas }: { abas: Aba[] }) {
 
   return (
     <div>
-      <div className="mb-6 flex gap-1 border-b border-slate-200 dark:border-slate-700">
+      <div className="mb-6 inline-flex gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         {abas.map((aba) => (
           <button
             key={aba.id}
@@ -33,8 +33,8 @@ export default function AbasDistrato({ abas }: { abas: Aba[] }) {
             onClick={() => selecionarAba(aba.id)}
             className={
               aba.id === abaAtiva
-                ? "border-b-2 border-slate-900 dark:border-slate-100 px-4 py-2 text-sm font-medium text-slate-900 dark:text-slate-100"
-                : "border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                ? "rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white shadow-sm"
+                : "rounded-lg px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
             }
           >
             {aba.label}

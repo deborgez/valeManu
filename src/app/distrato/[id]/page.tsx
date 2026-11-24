@@ -645,9 +645,7 @@ export default async function DistratoDetalhePage({
                               : ""}
                           </p>
                           {sinalEntregaChaves && (
-                            <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
-                              {sinalEntregaChaves.texto}
-                            </p>
+                            <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${sinalEntregaChaves.cor}`}>{sinalEntregaChaves.texto}</span>
                           )}
                           {distrato.entregaChaves.termoUrl && (
                             <ArquivoPreviewBotao
@@ -901,9 +899,7 @@ export default async function DistratoDetalhePage({
                         {solicitacao.entreguePor ? ` por ${solicitacao.entreguePor.nome}` : ""}
                       </p>
                       {sinalSolicitacao && (
-                        <p className={`text-xs font-medium ${sinalSolicitacao.cor}`}>
-                          {sinalSolicitacao.texto}
-                        </p>
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${sinalSolicitacao.cor}`}>{sinalSolicitacao.texto}</span>
                       )}
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         Participaram:{" "}
@@ -1370,9 +1366,7 @@ export default async function DistratoDetalhePage({
                   </p>
 
                   {sinalEntregaChaves && (
-                    <p className={`text-xs font-medium ${sinalEntregaChaves.cor}`}>
-                      {sinalEntregaChaves.texto}
-                    </p>
+                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${sinalEntregaChaves.cor}`}>{sinalEntregaChaves.texto}</span>
                   )}
                 </div>
               </div>

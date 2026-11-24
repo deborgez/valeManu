@@ -3,9 +3,9 @@ import { adicionarDiasUteis } from "./diasUteis";
 
 export type Sinal = { texto: string; cor: string };
 
-const VERDE = "text-green-700 dark:text-green-400";
-const VERMELHO = "text-red-700 dark:text-red-400";
-const AMBAR = "text-amber-700 dark:text-amber-400";
+const VERDE = "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300";
+const VERMELHO = "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300";
+const AMBAR = "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
 
 const dias = (n: number) => `${n} ${n === 1 ? "dia" : "dias"}`;
 

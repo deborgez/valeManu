@@ -106,7 +106,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
             {formatData(prazoVistoria(v.createdAt))}
           </td>
           <td className="px-4 py-2">
-            <p className={`font-medium ${situacao.cor}`}>{situacao.texto}</p>
+            <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${situacao.cor}`}>{situacao.texto}</span>
             {v.status === "ENTREGUE" && v.entregueHora && (
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 às {v.entregueHora}

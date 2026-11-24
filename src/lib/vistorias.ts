@@ -38,16 +38,16 @@ export function situacaoVistoria(
     if (atraso <= 0) {
       return {
         texto: `Entregue em ${formatData(v.entregueData)} — dentro do prazo`,
-        cor: "text-green-700 dark:text-green-400",
+        cor: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
       };
     }
     return {
       texto: `Entregue em ${formatData(v.entregueData)} — ${atraso} ${atraso === 1 ? "dia" : "dias"} após o prazo`,
-      cor: "text-red-700 dark:text-red-400",
+      cor: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
     };
   }
   if (hoje > limite) {
-    return { texto: "Pendente — prazo vencido", cor: "text-red-700 dark:text-red-400" };
+    return { texto: "Pendente — prazo vencido", cor: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300" };
   }
-  return { texto: "Pendente", cor: "text-amber-700 dark:text-amber-400" };
+  return { texto: "Pendente", cor: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" };
 }
