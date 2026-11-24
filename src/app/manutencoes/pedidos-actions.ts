@@ -126,3 +126,68 @@ export async function removerAnexoPedido(anexoId: string, manutencaoId: string) 
   revalidatePath(`/manutencoes/${manutencaoId}`);
   revalidatePath(`/orcamento/${anexo.pedidoOrcamento.token}`);
 }
+
+export async function adicionarAnexosConclusao(
+  conclusaoId: string,
+  manutencaoId: string,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const urls = formData.getAll("fotosUrl") as string[];
+  const nomes = formData.getAll("fotosNome") as string[];
+  const tipos = formData.getAll("fotosTipo") as string[];
+  if (urls.length === 0) return;
+
+  const conclusao = await prisma.conclusaoServico.findFirstOrThrow({
+    where: { id: conclusaoId, manutencaoId },
+  });
+
+  for (let i = 0; i < urls.length; i++) {
+    await prisma.anexo.create({
+      data: {
+        tipo: tipos[i]?.startsWith("video/") ? "VIDEO" : "FOTO",
+        path: urls[i],
+        mimeType: tipos[i] || "application/octet-stream",
+        filename: nomes[i] || urls[i],
+        conclusaoServicoId: conclusao.id,
+      },
+    });
+  }
+
+  await prisma.historicoEtapa.create({
+    data: {
+      manutencaoId,
+      etapa: "Fotos do serviço concluído alteradas",
+      detalhe: `${urls.length} ${urls.length === 1 ? "arquivo adicionado" : "arquivos adicionados"} por ${session.user.name ?? "um usuário"}`,
+    },
+  });
+
+  revalidatePath(`/manutencoes/${manutencaoId}`);
+}
+
+export async function removerAnexoConclusao(anexoId: string, manutencaoId: string) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const anexo = await prisma.anexo.findUniqueOrThrow({
+    where: { id: anexoId },
+    include: { conclusaoServico: true },
+  });
+  if (!anexo.conclusaoServico || anexo.conclusaoServico.manutencaoId !== manutencaoId) {
+    throw new Error("Anexo não pertence a esta manutenção.");
+  }
+
+  await prisma.anexo.delete({ where: { id: anexoId } });
+
+  await prisma.historicoEtapa.create({
+    data: {
+      manutencaoId,
+      etapa: "Fotos do serviço concluído alteradas",
+      detalhe: `Arquivo removido por ${session.user.name ?? "um usuário"}`,
+    },
+  });
+
+  revalidatePath(`/manutencoes/${manutencaoId}`);
+}
