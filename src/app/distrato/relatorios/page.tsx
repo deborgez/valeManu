@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { diasEntreDatas } from "@/lib/datahora";
+import { diasEntreDatas, hojeSaoPaulo } from "@/lib/datahora";
 import ListaClicavel from "@/components/ListaClicavel";
 import { calcularMetricasDistrato, formatDias } from "@/lib/desempenhoDistrato";
 
@@ -11,7 +11,7 @@ function primeiroDiaDoMes(): string {
 }
 
 function hoje(): string {
-  return new Date().toISOString().slice(0, 10);
+  return hojeSaoPaulo();
 }
 
 const CAMPO_CLASSE =

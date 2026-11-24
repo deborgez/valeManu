@@ -211,7 +211,8 @@ export async function agendarServico(
 ) {
   const data = String(formData.get("data"));
   const hora = String(formData.get("hora"));
-  const dataHoraAgendada = new Date(`${data}T${hora}`);
+  const horaCompleta = hora.length === 5 ? `${hora}:00` : hora;
+  const dataHoraAgendada = new Date(`${data}T${horaCompleta}-03:00`);
 
   await prisma.inicioServico.create({
     data: {

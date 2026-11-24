@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { diasEmAberto } from "@/lib/tempo";
+import { hojeSaoPaulo } from "@/lib/datahora";
 import { formatMoedaExibicao } from "@/lib/masks";
 import ListaClicavel from "@/components/ListaClicavel";
 import { LABEL_MANUTENCAO_STATUS, LABEL_PEDIDO_STATUS } from "@/lib/labels";
@@ -13,7 +14,7 @@ function primeiroDiaDoMes(): string {
 }
 
 function hoje(): string {
-  return new Date().toISOString().slice(0, 10);
+  return hojeSaoPaulo();
 }
 
 const CAMPO_CLASSE =

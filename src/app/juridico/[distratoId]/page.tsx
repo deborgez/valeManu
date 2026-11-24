@@ -147,7 +147,7 @@ export default async function DossieJuridicoPage({
 
   const dataReferenciaMulta = distrato.avisoPrevio
     ? distrato.avisoPrevio.data
-    : parseDataLocal(new Date().toISOString().slice(0, 10));
+    : parseDataLocal(hojeSaoPaulo());
   const resultadoMulta = distrato.aluguel
     ? calcularMulta({
         valorAluguel: distrato.aluguel.valor,
