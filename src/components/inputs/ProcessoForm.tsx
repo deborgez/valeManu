@@ -48,6 +48,10 @@ export default function ProcessoForm({
   );
   const editando = Boolean(processoInicial);
 
+  function substituirParte(index: number, parte: Parte) {
+    setPartes((atual) => atual.map((p, i) => (i === index ? parte : p)));
+  }
+
   function removerParte(index: number) {
     setPartes((atual) => atual.filter((_, i) => i !== index));
   }
@@ -203,13 +207,20 @@ export default function ProcessoForm({
                 <span>
                   {p.nome} | {p.telefone} — CPF {p.cpf}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => removerParte(p.i)}
-                  className="text-xs text-red-600 dark:text-red-400 underline"
-                >
-                  Remover
-                </button>
+                <span className="flex shrink-0 items-center gap-3">
+                  <ParteModal
+                    tipo={p.tipo}
+                    parteInicial={{ tipo: p.tipo, nome: p.nome, telefone: p.telefone, cpf: p.cpf }}
+                    onSalvar={(nova) => substituirParte(p.i, nova)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removerParte(p.i)}
+                    className="text-xs text-red-600 dark:text-red-400 underline"
+                  >
+                    Remover
+                  </button>
+                </span>
                 <input type="hidden" name="parteTipo" value={p.tipo} />
                 <input type="hidden" name="parteNome" value={p.nome} />
                 <input type="hidden" name="parteTelefone" value={p.telefone} />
@@ -239,13 +250,20 @@ export default function ProcessoForm({
                 <span>
                   {p.nome} | {p.telefone} — CPF {p.cpf}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => removerParte(p.i)}
-                  className="text-xs text-red-600 dark:text-red-400 underline"
-                >
-                  Remover
-                </button>
+                <span className="flex shrink-0 items-center gap-3">
+                  <ParteModal
+                    tipo={p.tipo}
+                    parteInicial={{ tipo: p.tipo, nome: p.nome, telefone: p.telefone, cpf: p.cpf }}
+                    onSalvar={(nova) => substituirParte(p.i, nova)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removerParte(p.i)}
+                    className="text-xs text-red-600 dark:text-red-400 underline"
+                  >
+                    Remover
+                  </button>
+                </span>
                 <input type="hidden" name="parteTipo" value={p.tipo} />
                 <input type="hidden" name="parteNome" value={p.nome} />
                 <input type="hidden" name="parteTelefone" value={p.telefone} />

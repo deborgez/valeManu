@@ -21,19 +21,23 @@ const LABEL_PARTE: Record<"LOCADOR" | "LOCATARIO", string> = {
 export default function ParteModal({
   tipo,
   onSalvar,
+  parteInicial,
 }: {
   tipo: "LOCADOR" | "LOCATARIO";
   onSalvar: (parte: Parte) => void;
+  /** Quando informada, o modal edita essa parte em vez de adicionar uma nova. */
+  parteInicial?: Parte;
 }) {
+  const editando = Boolean(parteInicial);
   const [aberto, setAberto] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
 
   function abrir() {
-    setNome("");
-    setTelefone("");
-    setCpf("");
+    setNome(parteInicial?.nome ?? "");
+    setTelefone(parteInicial?.telefone ?? "");
+    setCpf(parteInicial?.cpf ?? "");
     setAberto(true);
   }
 
@@ -49,19 +53,29 @@ export default function ParteModal({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={abrir}
-        className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-      >
-        Adicionar {LABEL_PARTE[tipo]}
-      </button>
+      {editando ? (
+        <button
+          type="button"
+          onClick={abrir}
+          className="text-xs text-slate-600 dark:text-slate-300 underline"
+        >
+          Editar
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={abrir}
+          className="rounded border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          Adicionar {LABEL_PARTE[tipo]}
+        </button>
+      )}
 
       {aberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="w-full max-w-sm rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg">
             <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Adicionar {LABEL_PARTE[tipo]}
+              {editando ? "Editar" : "Adicionar"} {LABEL_PARTE[tipo]}
             </h3>
 
             <div className="mb-4">
@@ -116,7 +130,7 @@ export default function ParteModal({
                 disabled={!podeSalvar()}
                 className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600 disabled:opacity-50"
               >
-                Adicionar
+                {editando ? "Salvar" : "Adicionar"}
               </button>
             </div>
           </div>
