@@ -59,7 +59,7 @@ export default function PainelEtapas({ etapas }: { etapas: Etapa[] }) {
               key={etapa.titulo}
               type="button"
               onClick={() => setEtapaAberta(etapa)}
-              className="flex flex-col items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-3 text-center hover:border-slate-400 dark:hover:border-slate-500"
+              className="flex flex-col items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-4 text-center transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:hover:border-slate-500"
             >
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                 {etapa.itens.length}

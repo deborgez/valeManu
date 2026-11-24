@@ -122,6 +122,35 @@ tbody tr {
   scrollbar-color: color-mix(in srgb, var(--foreground) 22%, transparent) transparent;
 }
 
+/* Pop-ups com fundo desfocado e entrada suave. */
+[class~="fixed"][class~="inset-0"][class*="bg-black"] {
+  backdrop-filter: blur(3px);
+  animation: fundo-entrada 0.15s ease-out;
+}
+
+[class~="fixed"][class~="inset-0"][class*="bg-black"] > * {
+  animation: popup-entrada 0.18s ease-out;
+}
+
+@keyframes fundo-entrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popup-entrada {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Listas e tabelas mais leves. */
+tbody tr:hover {
+  background-color: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+h1 {
+  letter-spacing: -0.015em;
+}
+
 @media print {
   @page {
     margin: 12mm;

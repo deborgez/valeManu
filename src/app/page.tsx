@@ -111,11 +111,105 @@ export default async function Home() {
     }),
   }));
 
+  const abertas = manutencoes.filter(
+    (m) => m.status !== "CONCLUIDA" && m.status !== "CANCELADA"
+  );
+  const criticas = abertas.filter((m) => diasEmAberto(m.createdAt, m.diasPausados) >= 3).length;
+  const emergenciais = abertas.filter((m) => m.emergencial).length;
+  const aguardandoPagamento = manutencoes.filter(
+    (m) => m.status === "CONCLUIDA" && m.pagamentos[0]?.status !== "PAGO"
+  ).length;
+
+  const resumo = [
+    {
+      titulo: "Em aberto",
+      valor: abertas.length,
+      detalhe: "manutenções em andamento",
+      tom: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200",
+      icone: (
+        <>
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        </>
+      ),
+    },
+    {
+      titulo: "Em atraso",
+      valor: criticas,
+      detalhe: "abertas há 3 dias ou mais",
+      tom: "bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400",
+      icone: (
+        <>
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </>
+      ),
+    },
+    {
+      titulo: "Emergenciais",
+      valor: emergenciais,
+      detalhe: "em aberto agora",
+      tom: "bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
+      icone: (
+        <>
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </>
+      ),
+    },
+    {
+      titulo: "Aguardando pagamento",
+      valor: aguardandoPagamento,
+      detalhe: "serviços concluídos",
+      tom: "bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400",
+      icone: (
+        <>
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+        </>
+      ),
+    },
+  ];
+
   return (
     <div className="mx-auto w-full max-w-7xl p-6">
       <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
         Painel de Manutenções
       </h1>
+
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {resumo.map((card) => (
+          <div
+            key={card.titulo}
+            className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4"
+          >
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{card.valor}</p>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                {card.titulo}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{card.detalhe}</p>
+            </div>
+            <div className={`flex h-11 w-11 items-center justify-center rounded-full ${card.tom}`}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+              >
+                {card.icone}
+              </svg>
+            </div>
+          </div>
+        ))}
+      </div>
 
       <PainelEtapas etapas={etapas} />
 

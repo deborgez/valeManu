@@ -30,10 +30,10 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50">
+    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-[#212c4a] via-[#2a3760] to-[#3b4b82] p-4">
       <form
         action={handleLogin}
-        className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 shadow-sm"
+        className="w-full max-w-sm rounded-2xl border-0 bg-white p-8 shadow-2xl"
       >
         <div className="mb-6 flex flex-col items-center text-center">
           {imobiliaria?.logoUrl && (
