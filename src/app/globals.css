@@ -2,10 +2,41 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Paleta base: cinzas levemente azulados (substitui o slate padrão em todo o sistema). */
+@theme {
+  --color-slate-50: #f4f7fd;
+  --color-slate-100: #eaeff9;
+  --color-slate-200: #dde5f3;
+  --color-slate-300: #c7d2e6;
+  --color-slate-400: #8e9dba;
+  --color-slate-500: #66748f;
+  --color-slate-600: #4b5977;
+  --color-slate-700: #37445f;
+  --color-slate-800: #1d2842;
+  --color-slate-900: #121a31;
+  --color-slate-950: #0a1022;
+}
+
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #eef2fb;
+  --foreground: #121a31;
+  --accent: #4f6bed;
+  --accent-hover: #3f59d6;
+  --sidebar-bg: #4f6bed;
+  --sidebar-ativo: rgba(255, 255, 255, 0.2);
+  --card-sombra: 0 1px 2px rgba(24, 39, 90, 0.05), 0 8px 24px -10px rgba(24, 39, 90, 0.14);
   color-scheme: light;
+}
+
+:root.dark {
+  --background: #0c1226;
+  --foreground: #e8edf8;
+  --accent: #6580f5;
+  --accent-hover: #7b93ff;
+  --sidebar-bg: #111a34;
+  --sidebar-ativo: rgba(101, 128, 245, 0.28);
+  --card-sombra: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -15,21 +46,80 @@
   --font-mono: var(--font-geist-mono);
 }
 
-:root.dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  color-scheme: dark;
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 button:not(:disabled),
 [role="button"]:not(:disabled) {
   cursor: pointer;
+}
+
+/* Cantos mais suaves e cartões com sombra leve. */
+.rounded {
+  border-radius: 0.5rem;
+}
+
+.rounded-lg {
+  border-radius: 0.875rem;
+}
+
+[class~="rounded-lg"][class*="bg-white"],
+[class~="rounded-lg"][class*="bg-slate-800"] {
+  box-shadow: var(--card-sombra);
+}
+
+:root:not(.dark) [class~="rounded-lg"][class*="bg-white"] {
+  border-color: transparent;
+}
+
+/* Botões primários (escuros) passam a usar a cor de destaque. */
+button[class*="bg-slate-900"],
+a[class*="bg-slate-900"] {
+  background-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+button[class*="bg-slate-900"]:hover:not(:disabled),
+a[class*="bg-slate-900"]:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Campos de formulário com foco na cor de destaque. */
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+/* Cabeçalhos de tabela no estilo "legenda". */
+thead th {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  transition: background-color 0.12s ease;
+}
+
+/* Barra de rolagem discreta. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--foreground) 22%, transparent) transparent;
 }
 
 @media print {

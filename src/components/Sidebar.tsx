@@ -6,7 +6,7 @@ import SidebarLinks from "./SidebarLinks";
 function Titulo({ children, primeiro }: { children: React.ReactNode; primeiro?: boolean }) {
   return (
     <div
-      className={`${primeiro ? "" : "mt-4 "}mb-1 px-3 text-sm font-semibold text-slate-800 dark:text-slate-200`}
+      className={`${primeiro ? "" : "mt-5 "}mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/55`}
     >
       {children}
     </div>
@@ -61,8 +61,8 @@ export default async function Sidebar() {
   ];
 
   return (
-    <aside className="print:hidden w-56 shrink-0 overflow-y-auto border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
-      <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+    <aside className="print:hidden w-60 shrink-0 overflow-y-auto bg-[var(--sidebar-bg)] p-4">
+      <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-white/40">
         Módulos
       </p>
 
