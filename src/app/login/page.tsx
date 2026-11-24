@@ -45,7 +45,7 @@ export default async function LoginPage({
             />
           )}
           <h1 className="text-xl font-semibold text-slate-900">
-            Sistema de Manutenções
+            Hub de Processos
           </h1>
         </div>
 

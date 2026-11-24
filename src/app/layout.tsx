@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema de Manutenções",
+  title: "Hub de Processos",
   description: "Gestão de manutenções de imóveis",
 };
 
