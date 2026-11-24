@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ESPECIALIDADES_PRESTADOR } from "@/lib/labels";
 import IconeEspecialidade from "./IconeEspecialidade";
+import { especialidadeCanonica } from "@/lib/especialidades";
 
 type Prestador = {
   id: string;
@@ -41,7 +42,7 @@ export default function PrestadoresBusca({
       ...Array.from(
         new Set(
           filtrados
-            .map((p) => p.especialidade)
+            .map((p) => especialidadeCanonica(p.especialidade))
             .filter((e) => !ESPECIALIDADES_PRESTADOR.includes(e))
         )
       ).sort(),
@@ -50,7 +51,7 @@ export default function PrestadoresBusca({
     return ordem
       .map((especialidade) => ({
         especialidade,
-        prestadores: filtrados.filter((p) => p.especialidade === especialidade),
+        prestadores: filtrados.filter((p) => especialidadeCanonica(p.especialidade) === especialidade),
       }))
       .filter((grupo) => grupo.prestadores.length > 0);
   }, [filtrados]);
@@ -112,6 +113,11 @@ export default function PrestadoresBusca({
                     <tr key={p.id} className="border-t border-slate-100 dark:border-slate-700">
                       <td className="px-4 py-2">
                         {p.nome}
+                        {especialidadeCanonica(p.especialidade) !== p.especialidade && (
+                          <span className="block text-xs text-slate-400 dark:text-slate-500">
+                            {p.especialidade}
+                          </span>
+                        )}
                         {p.empresa && (
                           <span className="block text-xs text-slate-500 dark:text-slate-400">
                             {p.empresa}

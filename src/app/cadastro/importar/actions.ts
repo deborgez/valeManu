@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { parseDataLocal } from "@/lib/datahora";
 import { lerPlanilha, parseDataBr, parseNumeroBr, chaveColuna } from "@/lib/planilha";
+import { especialidadeCanonica } from "@/lib/especialidades";
 
 async function garantirGestao() {
   const session = await auth();
@@ -55,7 +56,7 @@ export async function importarPrestadores(formData: FormData) {
       data: {
         nome,
         empresa: l.empresa || null,
-        especialidade,
+        especialidade: especialidadeCanonica(especialidade),
         telefone,
         cpf: l.cpfcnpj || l.cpf || null,
         email: l.email || null,

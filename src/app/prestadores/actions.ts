@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { especialidadeCanonica } from "@/lib/especialidades";
 
 export async function criarPrestador(formData: FormData) {
   const session = await auth();
@@ -13,7 +14,7 @@ export async function criarPrestador(formData: FormData) {
     data: {
       nome: String(formData.get("nome")),
       empresa: (formData.get("empresa") as string) || null,
-      especialidade: String(formData.get("especialidade")),
+      especialidade: especialidadeCanonica(String(formData.get("especialidade"))),
       telefone: String(formData.get("telefone")),
       cpf: (formData.get("cpf") as string) || null,
       email: (formData.get("email") as string) || null,
@@ -34,7 +35,7 @@ export async function atualizarPrestador(id: string, formData: FormData) {
     data: {
       nome: String(formData.get("nome")),
       empresa: (formData.get("empresa") as string) || null,
-      especialidade: String(formData.get("especialidade")),
+      especialidade: especialidadeCanonica(String(formData.get("especialidade"))),
       telefone: String(formData.get("telefone")),
       cpf: (formData.get("cpf") as string) || null,
       email: (formData.get("email") as string) || null,
