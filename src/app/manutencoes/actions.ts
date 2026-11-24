@@ -90,9 +90,11 @@ export async function atualizarDadosSolicitante(
   revalidatePath("/");
 }
 
-export async function cancelarManutencao(manutencaoId: string) {
+export async function cancelarManutencao(manutencaoId: string, motivo: string) {
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
+  const motivoLimpo = (motivo ?? "").trim();
+  if (!motivoLimpo) throw new Error("Informe o motivo do cancelamento.");
 
   const manutencao = await prisma.manutencao.findUniqueOrThrow({
     where: { id: manutencaoId },
@@ -116,7 +118,7 @@ export async function cancelarManutencao(manutencaoId: string) {
       data: {
         manutencaoId,
         etapa: "Manutenção cancelada",
-        detalhe: `Cancelada por ${session.user.name ?? "um usuário"}`,
+        detalhe: `Motivo: ${motivoLimpo} (cancelada por ${session.user.name ?? "um usuário"})`,
       },
     }),
   ]);
@@ -124,7 +126,7 @@ export async function cancelarManutencao(manutencaoId: string) {
   await notificar({
     perfis: ["ADMIN", "ADMINISTRATIVO"],
     excetoUsuarioId: session.user.id,
-    mensagem: `Manutenção ${manutencao.numeroProcesso}: cancelada por ${session.user.name ?? "um usuário"}`,
+    mensagem: `Manutenção ${manutencao.numeroProcesso}: cancelada por ${session.user.name ?? "um usuário"} — ${motivoLimpo}`,
     link: `/manutencoes/${manutencaoId}`,
   });
 

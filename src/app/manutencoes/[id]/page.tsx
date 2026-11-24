@@ -31,6 +31,7 @@ import {
   reabrirManutencaoCancelada,
 } from "../actions";
 import ConfirmarAcaoBotao from "@/components/ConfirmarAcaoBotao";
+import CancelarManutencaoBotao from "@/components/CancelarManutencaoBotao";
 import { formatData } from "@/lib/datahora";
 import { LABEL_MANUTENCAO_STATUS } from "@/lib/labels";
 import TrilhaEtapas from "@/components/TrilhaEtapas";
@@ -110,6 +111,10 @@ export default async function ManutencaoDetalhePage({
   );
 
   const cancelada = manutencao.status === "CANCELADA";
+  const motivoCancelamento = cancelada
+    ? ([...manutencao.historico].reverse().find((h) => h.etapa === "Manutenção cancelada")?.detalhe ??
+      null)
+    : null;
   const podeCancelar =
     !cancelada && !(manutencao.status === "CONCLUIDA" && pagamentoAtual?.status === "PAGO");
 
@@ -135,14 +140,10 @@ export default async function ManutencaoDetalhePage({
               </span>
             )}
             {podeCancelar && (
-              <ConfirmarAcaoBotao
-                rotulo="Cancelar manutenção"
-                pergunta="Tem certeza de que deseja cancelar esta manutenção? Ela será fechada na etapa em que está, os prazos deixam de contar e o card vai para a coluna Canceladas. Você poderá reabri-la depois."
-                confirmarRotulo="Sim, cancelar"
-                perigo
-                onConfirmar={async () => {
+              <CancelarManutencaoBotao
+                onConfirmar={async (motivo: string) => {
                   "use server";
-                  await cancelarManutencao(manutencao.id);
+                  await cancelarManutencao(manutencao.id, motivo);
                 }}
               />
             )}
@@ -190,6 +191,11 @@ export default async function ManutencaoDetalhePage({
               {LABEL_MANUTENCAO_STATUS[manutencao.statusAntesCancelamento ?? "SOLICITACAO"]}. Os
               prazos estão pausados. Ao reabrir, ela volta de onde parou.
             </p>
+            {motivoCancelamento && (
+              <p className="mt-1 whitespace-pre-line text-slate-600 dark:text-slate-400">
+                {motivoCancelamento}
+              </p>
+            )}
           </div>
           <ConfirmarAcaoBotao
             rotulo="Reabrir manutenção"
