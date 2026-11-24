@@ -77,14 +77,18 @@ export default async function Sidebar() {
         </>
       )}
 
+      {!restrito && (
+        <>
+          <Titulo>Manutenções</Titulo>
+          <SidebarLinks links={linksManutencoes} />
+        </>
+      )}
+
       <Titulo primeiro={role === "VISTORIADOR"}>Vistorias</Titulo>
       <SidebarLinks links={linksVistorias} />
 
       {!restrito && (
         <>
-          <Titulo>Manutenções</Titulo>
-          <SidebarLinks links={linksManutencoes} />
-
           <Titulo>Distrato</Titulo>
           <SidebarLinks links={linksDistrato} />
         </>
