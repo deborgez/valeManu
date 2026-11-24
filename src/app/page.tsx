@@ -134,8 +134,8 @@ export default async function Home() {
     ...vistoriasPendentes.map((v) => ({
       id: `v-${v.id}`,
       titulo: `Vistoria de ${LABEL_TIPO_VISTORIA[v.tipo].toLowerCase()} — ${v.processo.numeroProcesso}`,
-      quando: prazoVistoria(v.createdAt),
-      texto: `Entregar até ${formatData(prazoVistoria(v.createdAt))}`,
+      quando: prazoVistoria(v),
+      texto: `Entregar até ${formatData(prazoVistoria(v))}`,
       href: v.tipo === "SAIDA" ? "/vistorias/saida" : "/vistorias/entrada",
     })),
     ...servicosAgendados.flatMap((s) =>

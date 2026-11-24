@@ -127,7 +127,7 @@ export async function GET(
         formatEndereco(v.processo),
         v.processo.valorAluguel !== null ? v.processo.valorAluguel.toFixed(2).replace(".", ",") : "",
         formatData(v.createdAt),
-        formatData(prazoVistoria(v.createdAt)),
+        formatData(prazoVistoria(v)),
         v.status === "ENTREGUE" ? "Entregue" : "Pendente",
         v.entregueData ? formatData(v.entregueData) : "",
         v.entregueHora,

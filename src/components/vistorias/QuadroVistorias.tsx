@@ -64,7 +64,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
         imovel: v.processo.numeroProcesso,
         valor: v.processo.valorAluguel ?? 0,
         solicitada: v.createdAt.getTime(),
-        prazo: prazoVistoria(v.createdAt).getTime(),
+        prazo: prazoVistoria(v).getTime(),
         situacao: v.status === "ENTREGUE" ? "2" : "1",
       },
       linha: (
@@ -108,9 +108,15 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
             <p className="text-xs text-slate-400 dark:text-slate-500">
               {v.solicitadoPor.nome}
             </p>
+            {v.agendadaPara && (
+              <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                Agendada para {formatData(v.agendadaPara)}
+                {v.horaAgendada ? ` às ${v.horaAgendada}` : ""}
+              </p>
+            )}
           </td>
           <td className="whitespace-nowrap px-4 py-2">
-            {formatData(prazoVistoria(v.createdAt))}
+            {formatData(prazoVistoria(v))}
           </td>
           <td className="min-w-[13rem] px-4 py-2">
             <span
@@ -169,6 +175,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
         </a>
         {podeSolicitar && tipo === "ENTRADA" && (
           <NovaVistoriaModal
+            hoje={hojeStr}
             tipoLabel={tipoLabel}
             processos={processos.map((p) => ({
               id: p.id,

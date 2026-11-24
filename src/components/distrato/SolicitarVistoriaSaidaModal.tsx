@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
+import CamposAgendamento from "@/components/vistorias/CamposAgendamento";
 
 export default function SolicitarVistoriaSaidaModal({
   action,
+  hoje,
 }: {
   action: (formData: FormData) => Promise<void>;
+  hoje: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -63,6 +66,8 @@ export default function SolicitarVistoriaSaidaModal({
                 Locatário deseja participar
               </label>
             </fieldset>
+
+            <CamposAgendamento hoje={hoje} />
 
             <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">

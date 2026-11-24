@@ -1,5 +1,5 @@
 import { adicionarDiasUteis, diasUteisEntre } from "./diasUteis";
-import { diasEntreDatas, formatData } from "./datahora";
+import { diasEntreDatas, formatData, hojeSaoPaulo, parseDataLocal } from "./datahora";
 
 export const PRAZO_VISTORIA_DIAS_UTEIS = 5;
 
@@ -10,22 +10,47 @@ export const LABEL_TIPO_VISTORIA: Record<string, string> = {
 
 type VistoriaPrazo = {
   createdAt: Date;
+  agendadaPara?: Date | null;
   status: string;
   entregueData: Date | null;
 };
 
-export function prazoVistoria(solicitadaEm: Date): Date {
-  return adicionarDiasUteis(solicitadaEm, PRAZO_VISTORIA_DIAS_UTEIS);
+type BasePrazo = Date | { createdAt: Date; agendadaPara?: Date | null };
+
+// O prazo de 5 dias úteis conta da data agendada (se houver) ou do dia da solicitação.
+export function inicioDoPrazo(base: BasePrazo): Date {
+  if (base instanceof Date) return base;
+  return base.agendadaPara ?? base.createdAt;
+}
+
+export function prazoVistoria(base: BasePrazo): Date {
+  return adicionarDiasUteis(inicioDoPrazo(base), PRAZO_VISTORIA_DIAS_UTEIS);
+}
+
+// Lê "solicitar agora" ou "agendar" do formulário e valida a data agendada.
+export function lerAgendamento(formData: FormData): {
+  agendadaPara: Date | null;
+  horaAgendada: string | null;
+} {
+  if (formData.get("agendamento") !== "agendar") return { agendadaPara: null, horaAgendada: null };
+  const dataStr = String(formData.get("dataAgendada") || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dataStr) || dataStr < hojeSaoPaulo()) {
+    throw new Error("Informe uma data de agendamento a partir de hoje.");
+  }
+  return {
+    agendadaPara: parseDataLocal(dataStr),
+    horaAgendada: String(formData.get("horaAgendada") || "") || null,
+  };
 }
 
 export function entregueNoPrazo(v: VistoriaPrazo): boolean | null {
   if (v.status !== "ENTREGUE" || !v.entregueData) return null;
-  return v.entregueData <= prazoVistoria(v.createdAt);
+  return v.entregueData <= prazoVistoria(v);
 }
 
 export function diasUteisAteEntrega(v: VistoriaPrazo): number | null {
   if (v.status !== "ENTREGUE" || !v.entregueData) return null;
-  return diasUteisEntre(v.createdAt, v.entregueData);
+  return diasUteisEntre(inicioDoPrazo(v), v.entregueData);
 }
 
 export type SituacaoVistoria = {
@@ -40,7 +65,7 @@ const COR_VERMELHA = "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300"
 const COR_AMBAR = "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
 
 export function situacaoVistoria(v: VistoriaPrazo, hoje: Date): SituacaoVistoria {
-  const limite = prazoVistoria(v.createdAt);
+  const limite = prazoVistoria(v);
   if (v.status === "ENTREGUE" && v.entregueData) {
     const atraso = diasEntreDatas(v.entregueData, limite);
     if (atraso <= 0) {
@@ -57,6 +82,14 @@ export function situacaoVistoria(v: VistoriaPrazo, hoje: Date): SituacaoVistoria
       detalhe: `Entregue em ${formatData(v.entregueData)} (${dias} após o prazo)`,
       texto: `Entregue em ${formatData(v.entregueData)} — ${dias} após o prazo`,
       cor: COR_VERMELHA,
+    };
+  }
+  if (v.agendadaPara && hoje < v.agendadaPara) {
+    return {
+      rotulo: "Agendada",
+      detalhe: `Agendada para ${formatData(v.agendadaPara)} (prazo até ${formatData(limite)})`,
+      texto: `Agendada para ${formatData(v.agendadaPara)}`,
+      cor: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
     };
   }
   if (hoje > limite) {

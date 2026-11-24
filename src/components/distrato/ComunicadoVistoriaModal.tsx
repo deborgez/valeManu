@@ -12,7 +12,6 @@ type Registro = {
   descricao?: string | null;
   data: Date | null;
   forma: string | null;
-  locadorDesejaParticipar: boolean;
   arquivoUrl: string | null;
   arquivoNome: string | null;
   arquivoTipo: string | null;
@@ -97,22 +96,6 @@ export default function ComunicadoVistoriaModal({
                 <option value="LIGACAO">Ligação</option>
                 <option value="WHATSAPP">WhatsApp</option>
               </select>
-            </div>
-
-            <div className="mb-4 flex items-center gap-2">
-              <input
-                id="locadorDesejaParticipar"
-                type="checkbox"
-                name="locadorDesejaParticipar"
-                defaultChecked={registro?.locadorDesejaParticipar ?? false}
-                className="h-4 w-4"
-              />
-              <label
-                htmlFor="locadorDesejaParticipar"
-                className="text-sm text-slate-700 dark:text-slate-300"
-              >
-                Locador deseja participar da vistoria
-              </label>
             </div>
 
             <div className="mb-6">

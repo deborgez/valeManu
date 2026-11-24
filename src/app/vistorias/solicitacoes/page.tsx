@@ -48,7 +48,7 @@ export default async function QuadroSolicitacoesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {pendentes.map((v) => {
-            const limite = prazoVistoria(v.createdAt);
+            const limite = prazoVistoria(v);
             const atrasada = hoje > limite;
             const nova = v.createdAt >= hoje;
             return (
@@ -86,6 +86,12 @@ export default async function QuadroSolicitacoesPage() {
                 <p className="text-slate-500 dark:text-slate-400">
                   Solicitada em {formatData(v.createdAt)} por {v.solicitadoPor.nome}
                 </p>
+                {v.agendadaPara && (
+                  <p className="mt-1 inline-block rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                    Agendada para {formatData(v.agendadaPara)}
+                    {v.horaAgendada ? ` às ${v.horaAgendada}` : ""}
+                  </p>
+                )}
                 <p className="text-slate-500 dark:text-slate-400">
                   Entregar até {formatData(limite)}
                 </p>

@@ -20,7 +20,7 @@ function Quadro({ rotulo, valor, destaque }: { rotulo: string; valor: string; de
 
 export default async function RelatorioVistoriasPage() {
   const vistorias = await prisma.vistoria.findMany({
-    select: { tipo: true, status: true, createdAt: true, entregueData: true },
+    select: { tipo: true, status: true, createdAt: true, agendadaPara: true, entregueData: true },
   });
 
   const tipos = ["ENTRADA", "SAIDA"] as const;

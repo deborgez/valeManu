@@ -770,17 +770,6 @@ export default async function DistratoDetalhePage({
                               ? ` — Forma: ${LABEL_FORMA_CONTATO[distrato.comunicadoVistoria.forma]}`
                               : ""}
                           </p>
-                          <p
-                            className={
-                              distrato.comunicadoVistoria.locadorDesejaParticipar
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-amber-600 dark:text-amber-400"
-                            }
-                          >
-                            {distrato.comunicadoVistoria.locadorDesejaParticipar
-                              ? "Locador deseja participar"
-                              : "Locador não deseja participar"}
-                          </p>
                           {distrato.entregaChaves &&
                             distrato.comunicadoVistoria.data &&
                             (() => {
@@ -847,6 +836,7 @@ export default async function DistratoDetalhePage({
                   {!solicitacao ? (
                     podeSolicitarVistoria(sessao?.user.role) ? (
                       <SolicitarVistoriaSaidaModal
+                        hoje={hoje}
                         action={async (formData: FormData) => {
                           "use server";
                           await solicitarVistoriaSaida(distrato.id, formData);
@@ -865,6 +855,12 @@ export default async function DistratoDetalhePage({
                             Solicitada em {formatData(solicitacao.createdAt)} por{" "}
                             {solicitacao.solicitadoPor.nome}
                           </p>
+                          {solicitacao.agendadaPara && (
+                            <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                              Agendada para {formatData(solicitacao.agendadaPara)}
+                              {solicitacao.horaAgendada ? ` às ${solicitacao.horaAgendada}` : ""}
+                            </p>
+                          )}
                           {(solicitacao.locadorDesejaParticipar ||
                             solicitacao.locatarioDesejaParticipar) && (
                             <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
@@ -889,7 +885,7 @@ export default async function DistratoDetalhePage({
                             <OrdemServicoVistoriaDocumento
                               numeroProcesso={processo.numeroProcesso}
                               endereco={processo}
-                              dataEntregaLaudo={prazoVistoria(solicitacao.createdAt)}
+                              dataEntregaLaudo={prazoVistoria(solicitacao)}
                             />
                           </ImpressaoModal>
                           {solicitacao.status === "PENDENTE" &&
@@ -925,7 +921,7 @@ export default async function DistratoDetalhePage({
                         Aguardando o vistoriador
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Prazo de entrega: {formatData(prazoVistoria(solicitacao.createdAt))} (5
+                        Prazo de entrega: {formatData(prazoVistoria(solicitacao))} (5
                         dias úteis após a solicitação)
                       </p>
                     </div>

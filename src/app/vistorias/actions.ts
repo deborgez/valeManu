@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
 import { podeEntregarVistoria, podeSolicitarVistoria } from "@/lib/perfis";
 import { notificar } from "@/lib/notificacoes";
+import { lerAgendamento } from "@/lib/vistorias";
 import { registrarAuditoria } from "@/lib/auditoria";
 
 function revalidarVistorias() {
@@ -30,6 +31,8 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
   if (!processoId) throw new Error("Selecione o processo.");
   if (!comprovanteUrl) throw new Error("Anexe o comprovante do pagamento do sinal.");
 
+  const agendamento = lerAgendamento(formData);
+
   const processo = await prisma.processo.findUniqueOrThrow({
     where: { id: processoId },
     select: { id: true, numeroProcesso: true },
@@ -42,6 +45,7 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
       comprovanteUrl,
       comprovanteNome: (formData.get("comprovanteNome") as string) || null,
       comprovanteTipo: (formData.get("comprovanteTipo") as string) || null,
+      ...agendamento,
       solicitadoPorId: session.user.id,
     },
   });
@@ -58,7 +62,7 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
     categoria: "VISTORIA",
     perfis: ["ADMIN", "VISTORIADOR"],
     excetoUsuarioId: session.user.id,
-    mensagem: `Nova vistoria de entrada solicitada — processo ${processo.numeroProcesso}`,
+    mensagem: `Nova vistoria de entrada ${agendamento.agendadaPara ? `agendada para ${formatData(agendamento.agendadaPara)}` : "solicitada"} — processo ${processo.numeroProcesso}`,
     link: "/vistorias/solicitacoes",
   });
 

@@ -47,7 +47,7 @@ export async function gerarLembretes() {
     ]);
 
     for (const v of vistorias) {
-      const limite = prazoVistoria(v.createdAt);
+      const limite = prazoVistoria(v);
       const restantes = diasEntreDatas(limite, hoje);
       const tipo = LABEL_TIPO_VISTORIA[v.tipo].toLowerCase();
       if (restantes < 0) {

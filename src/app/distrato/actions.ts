@@ -15,6 +15,7 @@ import {
 import { LABEL_FORMA_AVISO, LABEL_FORMA_CONTATO, LABEL_LOCAL_ENTREGA } from "@/lib/labels";
 import { parseMoeda, formatMoedaExibicao } from "@/lib/masks";
 import { podeSolicitarVistoria } from "@/lib/perfis";
+import { lerAgendamento } from "@/lib/vistorias";
 import { notificar, LABEL_SECAO_DISTRATO } from "@/lib/notificacoes";
 import { registrarAuditoria } from "@/lib/auditoria";
 
@@ -630,7 +631,6 @@ export async function registrarComunicadoVistoria(
   const session = await auth();
   if (!session) throw new Error("Não autenticado.");
 
-  const locadorDesejaParticipar = formData.get("locadorDesejaParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
   const data = dataStr ? parseDataLocal(dataStr) : null;
   const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
@@ -650,7 +650,6 @@ export async function registrarComunicadoVistoria(
       distratoId,
       data,
       forma,
-      locadorDesejaParticipar,
       arquivoUrl: (formData.get("arquivoUrl") as string) || null,
       arquivoNome: (formData.get("arquivoNome") as string) || null,
       arquivoTipo: (formData.get("arquivoTipo") as string) || null,
@@ -662,7 +661,7 @@ export async function registrarComunicadoVistoria(
     distratoId,
     SECAO.COMUNICADO_VISTORIA,
     "Registrou",
-    `Data: ${data ? formatData(data) : "—"}${forma ? ` — Forma: ${LABEL_FORMA_CONTATO[forma]}` : ""} — Locador ${locadorDesejaParticipar ? "deseja" : "não deseja"} participar`
+    `Data: ${data ? formatData(data) : "—"}${forma ? ` — Forma: ${LABEL_FORMA_CONTATO[forma]}` : ""}`
   );
   revalidatePath(`/distrato/${distratoId}`);
 }
@@ -671,7 +670,6 @@ export async function editarComunicadoVistoria(
   distratoId: string,
   formData: FormData
 ) {
-  const locadorDesejaParticipar = formData.get("locadorDesejaParticipar") === "on";
   const dataStr = formData.get("data") as string | null;
   const data = dataStr ? parseDataLocal(dataStr) : null;
   const forma = formData.get("forma") as "LIGACAO" | "WHATSAPP" | null;
@@ -694,16 +692,15 @@ export async function editarComunicadoVistoria(
 
   await prisma.comunicadoVistoriaSaida.update({
     where: { distratoId },
-    data: { descricao: (formData.get("descricao") as string) || null, data, forma, locadorDesejaParticipar, arquivoUrl, arquivoNome, arquivoTipo },
+    data: { descricao: (formData.get("descricao") as string) || null, data, forma, arquivoUrl, arquivoNome, arquivoTipo },
   });
 
   const detalhe = descreverAlteracoes(
     antigo,
-    { data, forma, locadorDesejaParticipar, arquivoUrl },
+    { data, forma, arquivoUrl },
     {
       data: { label: "a data" },
       forma: { label: "a forma", formatar: (v) => (v ? LABEL_FORMA_CONTATO[v as string] : "vazio") },
-      locadorDesejaParticipar: { label: "\"locador deseja participar\"" },
       arquivoUrl: { label: "o arquivo anexado", arquivo: true },
     }
   );
@@ -1665,6 +1662,7 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
 
   const comprovanteUrl = String(formData.get("comprovanteUrl") || "");
   if (!comprovanteUrl) throw new Error("Anexe o comprovante do pagamento do sinal.");
+  const agendamento = lerAgendamento(formData);
 
   const distrato = await prisma.distrato.findUniqueOrThrow({
     where: { id: distratoId },
@@ -1680,6 +1678,7 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
       comprovanteUrl,
       comprovanteNome: (formData.get("comprovanteNome") as string) || null,
       comprovanteTipo: (formData.get("comprovanteTipo") as string) || null,
+      ...agendamento,
       locadorDesejaParticipar: formData.get("locadorDesejaParticipar") === "on",
       locatarioDesejaParticipar: formData.get("locatarioDesejaParticipar") === "on",
       solicitadoPorId: session.user.id,

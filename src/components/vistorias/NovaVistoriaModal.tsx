@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import BlobUploadInput from "@/components/inputs/BlobUploadInput";
+import CamposAgendamento from "./CamposAgendamento";
 
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
@@ -18,7 +19,9 @@ export default function NovaVistoriaModal({
   tipoLabel,
   processos,
   action,
+  hoje,
 }: {
+  hoje: string;
   tipoLabel: string;
   processos: ProcessoOpcao[];
   action: (formData: FormData) => Promise<void>;
@@ -141,6 +144,8 @@ export default function NovaVistoriaModal({
               )}
               <input type="hidden" name="processoId" value={selecionado?.id ?? ""} />
             </div>
+
+            <CamposAgendamento hoje={hoje} />
 
             <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">

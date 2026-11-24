@@ -794,6 +794,9 @@ model Vistoria {
 
   createdAt DateTime @default(now())
 
+  agendadaPara DateTime?
+  horaAgendada String?
+
   entregueData DateTime?
   entregueHora String?
 

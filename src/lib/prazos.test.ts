@@ -68,6 +68,19 @@ describe("prazo e situação da vistoria (5 dias úteis da solicitação)", () =
     expect(iso(prazoVistoria(dia("2026-11-16")))).toBe("2026-11-24");
   });
 
+  it("com agendamento, o prazo conta da data agendada", () => {
+    // solicitada em 16/11, agendada para 25/11: 26, 27, 30/11, 01 e 02/12
+    const v = { createdAt: dia("2026-11-16"), agendadaPara: dia("2026-11-25") };
+    expect(iso(prazoVistoria(v))).toBe("2026-12-02");
+    expect(iso(prazoVistoria({ createdAt: dia("2026-11-16") }))).toBe("2026-11-24");
+  });
+
+  it("vistoria agendada para o futuro aparece como Agendada", () => {
+    const v = { createdAt: dia("2026-11-16"), agendadaPara: dia("2026-11-25"), status: "PENDENTE", entregueData: null };
+    expect(situacaoVistoria(v, dia("2026-11-20")).rotulo).toBe("Agendada");
+    expect(situacaoVistoria(v, dia("2026-11-25")).rotulo).toBe("Pendente");
+  });
+
   it("entregue no limite conta como no prazo", () => {
     const v = { createdAt: dia("2026-11-16"), status: "ENTREGUE", entregueData: dia("2026-11-24") };
     expect(entregueNoPrazo(v)).toBe(true);
