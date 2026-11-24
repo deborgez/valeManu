@@ -103,6 +103,7 @@ export async function concluirVistoria(vistoriaId: string, formData: FormData) {
       status: "ENTREGUE",
       entregueData,
       entregueHora: hora,
+      descricaoConclusao: String(formData.get("descricao") || "").trim() || null,
       entreguePorId: session.user.id,
       ...(vistoria.tipo === "SAIDA"
         ? { locadorParticipou: participouLocador, locatarioParticipou: participouLocatario }

@@ -947,6 +947,11 @@ export default async function DistratoDetalhePage({
                           .filter(Boolean)
                           .join(" e ") || "nenhuma das partes"}
                       </p>
+                      {solicitacao.descricaoConclusao && (
+                        <p className="mt-2 whitespace-pre-line text-xs text-slate-600 dark:text-slate-400">
+                          {solicitacao.descricaoConclusao}
+                        </p>
+                      )}
                     </div>
                   )}
                 </Divisor>

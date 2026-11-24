@@ -126,6 +126,11 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
               {situacao.rotulo}
             </span>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{situacao.detalhe}</p>
+            {v.descricaoConclusao && (
+              <p className="mt-1 whitespace-pre-line text-xs text-slate-600 dark:text-slate-300">
+                {v.descricaoConclusao}
+              </p>
+            )}
             {v.status === "ENTREGUE" && v.entregueHora && (
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 às {v.entregueHora}

@@ -799,6 +799,7 @@ model Vistoria {
 
   entregueData DateTime?
   entregueHora String?
+  descricaoConclusao String?
 
   locadorDesejaParticipar   Boolean @default(false)
   locatarioDesejaParticipar Boolean @default(false)

@@ -92,6 +92,12 @@ export default function ConcluirVistoriaModal({
                 </label>
               </fieldset>
             )}
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Descrição (opcional)
+              </label>
+              <textarea name="descricao" rows={3} className={CAMPO_CLASSE} />
+            </div>
             {erro && <p className="mb-3 text-xs text-red-600 dark:text-red-400">{erro}</p>}
             <div className="flex justify-end gap-2">
               <button

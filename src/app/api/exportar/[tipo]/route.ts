@@ -120,7 +120,7 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
     conteudo = csv(
-      ["Tipo", "Processo", "Endereço", "Valor do aluguel", "Solicitada em", "Prazo", "Situação", "Entregue em", "Horário", "Entregue por", "Solicitada por"],
+      ["Tipo", "Processo", "Endereço", "Valor do aluguel", "Solicitada em", "Prazo", "Situação", "Entregue em", "Horário", "Entregue por", "Descrição da conclusão", "Solicitada por"],
       vistorias.map((v) => [
         LABEL_TIPO_VISTORIA[v.tipo],
         v.processo.numeroProcesso,
@@ -132,6 +132,7 @@ export async function GET(
         v.entregueData ? formatData(v.entregueData) : "",
         v.entregueHora,
         v.entreguePor?.nome,
+        v.descricaoConclusao,
         v.solicitadoPor.nome,
       ])
     );
