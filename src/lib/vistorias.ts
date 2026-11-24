@@ -28,26 +28,49 @@ export function diasUteisAteEntrega(v: VistoriaPrazo): number | null {
   return diasUteisEntre(v.createdAt, v.entregueData);
 }
 
-export function situacaoVistoria(
-  v: VistoriaPrazo,
-  hoje: Date
-): { texto: string; cor: string } {
+export type SituacaoVistoria = {
+  rotulo: string;
+  detalhe: string;
+  texto: string;
+  cor: string;
+};
+
+const COR_VERDE = "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300";
+const COR_VERMELHA = "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300";
+const COR_AMBAR = "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
+
+export function situacaoVistoria(v: VistoriaPrazo, hoje: Date): SituacaoVistoria {
   const limite = prazoVistoria(v.createdAt);
   if (v.status === "ENTREGUE" && v.entregueData) {
     const atraso = diasEntreDatas(v.entregueData, limite);
     if (atraso <= 0) {
       return {
+        rotulo: "Entregue no prazo",
+        detalhe: `Entregue em ${formatData(v.entregueData)}`,
         texto: `Entregue em ${formatData(v.entregueData)} — dentro do prazo`,
-        cor: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
+        cor: COR_VERDE,
       };
     }
+    const dias = `${atraso} ${atraso === 1 ? "dia" : "dias"}`;
     return {
-      texto: `Entregue em ${formatData(v.entregueData)} — ${atraso} ${atraso === 1 ? "dia" : "dias"} após o prazo`,
-      cor: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+      rotulo: "Entregue com atraso",
+      detalhe: `Entregue em ${formatData(v.entregueData)} (${dias} após o prazo)`,
+      texto: `Entregue em ${formatData(v.entregueData)} — ${dias} após o prazo`,
+      cor: COR_VERMELHA,
     };
   }
   if (hoje > limite) {
-    return { texto: "Pendente — prazo vencido", cor: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300" };
+    return {
+      rotulo: "Prazo vencido",
+      detalhe: `Venceu em ${formatData(limite)}`,
+      texto: "Pendente — prazo vencido",
+      cor: COR_VERMELHA,
+    };
   }
-  return { texto: "Pendente", cor: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" };
+  return {
+    rotulo: "Pendente",
+    detalhe: `Entregar até ${formatData(limite)}`,
+    texto: "Pendente",
+    cor: COR_AMBAR,
+  };
 }

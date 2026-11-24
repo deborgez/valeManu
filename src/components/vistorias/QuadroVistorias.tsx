@@ -112,12 +112,18 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
           <td className="whitespace-nowrap px-4 py-2">
             {formatData(prazoVistoria(v.createdAt))}
           </td>
-          <td className="px-4 py-2">
-            <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${situacao.cor}`}>{situacao.texto}</span>
+          <td className="min-w-[13rem] px-4 py-2">
+            <span
+              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${situacao.cor}`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {situacao.rotulo}
+            </span>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{situacao.detalhe}</p>
             {v.status === "ENTREGUE" && v.entregueHora && (
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 às {v.entregueHora}
-                {v.entreguePor ? ` — ${v.entreguePor.nome}` : ""}
+                {v.entreguePor ? ` · ${v.entreguePor.nome}` : ""}
               </p>
             )}
           </td>
