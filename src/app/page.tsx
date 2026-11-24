@@ -20,6 +20,7 @@ type ManutencaoResumo = {
   status: string;
   emergencial: boolean;
   reaberta: boolean;
+  diasPausados: number;
   createdAt: Date;
   pedidosOrcamento: { id: string }[];
   pagamentos: { status: string }[];
@@ -81,6 +82,7 @@ export default async function Home() {
       natureza: true,
       status: true,
       emergencial: true,
+      diasPausados: true,
       reaberta: true,
       createdAt: true,
       pedidosOrcamento: { select: { id: true } },
@@ -96,7 +98,7 @@ export default async function Home() {
   const etapas = ETAPAS.map((etapa) => ({
     titulo: etapa.titulo,
     itens: manutencoes.filter(etapa.filtro).map((m) => {
-      const aberta = m.status !== "CONCLUIDA";
+      const aberta = m.status !== "CONCLUIDA" && m.status !== "CANCELADA";
       return {
         id: m.id,
         numeroProcesso: m.numeroProcesso,
@@ -104,7 +106,7 @@ export default async function Home() {
         natureza: m.natureza,
         emergencial: m.emergencial,
         reaberta: m.reaberta,
-        severidade: classificarSeveridade(diasEmAberto(m.createdAt), aberta),
+        severidade: classificarSeveridade(diasEmAberto(m.createdAt, m.diasPausados), aberta),
       };
     }),
   }));

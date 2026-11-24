@@ -6,6 +6,7 @@ export const LABEL_MANUTENCAO_STATUS: Record<string, string> = {
   AGENDADA: "Agendada",
   EM_ANDAMENTO: "Em andamento",
   CONCLUIDA: "Concluída",
+  CANCELADA: "Cancelada",
 };
 
 export const LABEL_PEDIDO_STATUS: Record<string, string> = {

@@ -40,6 +40,7 @@ enum ManutencaoStatus {
   AGENDADA
   EM_ANDAMENTO
   CONCLUIDA
+  CANCELADA
 }
 
 enum ManutencaoCategoria {
@@ -206,6 +207,9 @@ model Manutencao {
   status            ManutencaoStatus     @default(SOLICITACAO)
   categoria         ManutencaoCategoria  @default(MANUTENCAO)
   reaberta          Boolean          @default(false)
+  statusAntesCancelamento ManutencaoStatus?
+  canceladaEm             DateTime?
+  diasPausados            Int              @default(0)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 

@@ -24,7 +24,15 @@ import { formatEndereco } from "@/lib/endereco";
 import EditarEnderecoForm from "@/components/EditarEnderecoForm";
 import EditarDadosSolicitanteForm from "@/components/EditarDadosSolicitanteForm";
 import ReabrirServicoForm from "@/components/ReabrirServicoForm";
-import { atualizarEndereco, atualizarDadosSolicitante } from "../actions";
+import {
+  atualizarEndereco,
+  atualizarDadosSolicitante,
+  cancelarManutencao,
+  reabrirManutencaoCancelada,
+} from "../actions";
+import ConfirmarAcaoBotao from "@/components/ConfirmarAcaoBotao";
+import { formatData } from "@/lib/datahora";
+import { LABEL_MANUTENCAO_STATUS } from "@/lib/labels";
 import TrilhaEtapas from "@/components/TrilhaEtapas";
 import { etapaAtualIndex } from "@/lib/trilha";
 import {
@@ -101,8 +109,12 @@ export default async function ManutencaoDetalhePage({
     (p) => p.status === "CONTRAOFERTA_ENVIADA"
   );
 
+  const cancelada = manutencao.status === "CANCELADA";
+  const podeCancelar =
+    !cancelada && !(manutencao.status === "CONCLUIDA" && pagamentoAtual?.status === "PAGO");
+
   const etapaAtual = etapaAtualIndex(
-    manutencao.status,
+    cancelada ? (manutencao.statusAntesCancelamento ?? "SOLICITACAO") : manutencao.status,
     manutencao.pedidosOrcamento.length > 0,
     pagamentoAtual?.status === "PAGO"
   );
@@ -116,7 +128,24 @@ export default async function ManutencaoDetalhePage({
           <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
             Processo {manutencao.numeroProcesso}
           </h1>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {cancelada && (
+              <span className="rounded bg-slate-200 dark:bg-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+                Cancelada
+              </span>
+            )}
+            {podeCancelar && (
+              <ConfirmarAcaoBotao
+                rotulo="Cancelar manutenção"
+                pergunta="Tem certeza de que deseja cancelar esta manutenção? Ela será fechada na etapa em que está, os prazos deixam de contar e o card vai para a coluna Canceladas. Você poderá reabri-la depois."
+                confirmarRotulo="Sim, cancelar"
+                perigo
+                onConfirmar={async () => {
+                  "use server";
+                  await cancelarManutencao(manutencao.id);
+                }}
+              />
+            )}
             {manutencao.reaberta && (
               <span className="rounded bg-orange-100 dark:bg-orange-900 px-2 py-1 text-xs font-medium text-orange-700 dark:text-orange-400">
                 Serviço Reaberto
@@ -149,13 +178,39 @@ export default async function ManutencaoDetalhePage({
         </p>
       </div>
 
+      {cancelada && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 p-4 text-sm">
+          <div>
+            <p className="font-semibold text-slate-800 dark:text-slate-100">
+              Manutenção cancelada
+              {manutencao.canceladaEm ? ` em ${formatData(manutencao.canceladaEm)}` : ""}
+            </p>
+            <p className="text-slate-600 dark:text-slate-400">
+              Estava na etapa:{" "}
+              {LABEL_MANUTENCAO_STATUS[manutencao.statusAntesCancelamento ?? "SOLICITACAO"]}. Os
+              prazos estão pausados. Ao reabrir, ela volta de onde parou.
+            </p>
+          </div>
+          <ConfirmarAcaoBotao
+            rotulo="Reabrir manutenção"
+            pergunta="Reabrir esta manutenção? Ela volta para a etapa em que estava e os prazos voltam a contar de onde pararam."
+            confirmarRotulo="Sim, reabrir"
+            onConfirmar={async () => {
+              "use server";
+              await reabrirManutencaoCancelada(manutencao.id);
+            }}
+          />
+        </div>
+      )}
+
+      <fieldset disabled={cancelada} className="m-0 min-w-0 border-0 p-0">
       {/* Pedido de Orçamento */}
       <section className="mb-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
           Pedido de Orçamento
         </h2>
 
-        {manutencao.status !== "CONCLUIDA" && (
+        {manutencao.status !== "CONCLUIDA" && !cancelada && (
           <form
             action={async (formData: FormData) => {
               "use server";
@@ -170,11 +225,16 @@ export default async function ManutencaoDetalhePage({
               <select
                 name="prestadorId"
                 required
+                defaultValue=""
                 className="rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100"
               >
+                <option value="" disabled>
+                  Selecione o profissional
+                </option>
                 {prestadores.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.nome} ({p.especialidade})
+                    {p.nome}
+                    {p.empresa ? ` - ${p.empresa}` : ""} ({p.especialidade})
                   </option>
                 ))}
               </select>
@@ -780,6 +840,7 @@ export default async function ManutencaoDetalhePage({
           </ol>
         </section>
       )}
+      </fieldset>
     </div>
   );
 }

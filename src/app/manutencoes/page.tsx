@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatEndereco } from "@/lib/endereco";
 import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import Link from "next/link";
+import { formatData } from "@/lib/datahora";
 
 type ManutencaoComRelacoes = Awaited<
   ReturnType<typeof buscarManutencoes>
@@ -54,6 +55,7 @@ const COLUNAS: {
     titulo: "Pagamento Efetuado",
     filtro: (m) => m.status === "CONCLUIDA" && m.pagamentos[0]?.status === "PAGO",
   },
+  { titulo: "Canceladas", filtro: (m) => m.status === "CANCELADA" },
 ];
 
 const CARTAO_COR = {
@@ -75,8 +77,9 @@ const AVISO_COR = {
 };
 
 function Cartao({ manutencao }: { manutencao: ManutencaoComRelacoes }) {
-  const aberta = manutencao.status !== "CONCLUIDA";
-  const dias = diasEmAberto(manutencao.createdAt);
+  const cancelada = manutencao.status === "CANCELADA";
+  const aberta = manutencao.status !== "CONCLUIDA" && !cancelada;
+  const dias = diasEmAberto(manutencao.createdAt, manutencao.diasPausados);
   const severidade = classificarSeveridade(dias, aberta);
   const critico = aberta && dias >= 5;
 
@@ -108,11 +111,18 @@ function Cartao({ manutencao }: { manutencao: ManutencaoComRelacoes }) {
         </span>
       )}
       {manutencao.inicioServicos[0]?.status === "INICIADO_ANDAMENTO" &&
-        manutencao.status !== "CONCLUIDA" && (
+        manutencao.status !== "CONCLUIDA" &&
+        !cancelada && (
           <span className="mt-2 inline-block rounded bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400">
             Em andamento
           </span>
         )}
+      {cancelada && (
+        <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+          Cancelada
+          {manutencao.canceladaEm ? ` em ${formatData(manutencao.canceladaEm)}` : ""}
+        </p>
+      )}
       {aberta && (
         <p className={`mt-2 text-xs font-bold ${AVISO_COR[severidade]}`}>
           {dias === 0 ? "Aberto hoje" : `Em aberto há ${dias} ${dias === 1 ? "dia" : "dias"}`}
@@ -139,7 +149,7 @@ export default async function ManutencoesPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
         {COLUNAS.map((coluna) => {
           const itens = manutencoes.filter(coluna.filtro);
           return (

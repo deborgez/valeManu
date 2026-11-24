@@ -34,13 +34,14 @@ export default async function RelatoriosPage({
   const dataFim = new Date(`${ate}T23:59:59`);
 
   const manutencoes = await prisma.manutencao.findMany({
-    where: { createdAt: { gte: dataInicio, lte: dataFim } },
+    where: { createdAt: { gte: dataInicio, lte: dataFim }, status: { not: "CANCELADA" } },
     select: {
       id: true,
       numeroProcesso: true,
       status: true,
       reaberta: true,
       createdAt: true,
+      diasPausados: true,
       conclusoesServico: {
         select: { dataConclusao: true },
         orderBy: { dataConclusao: "desc" },
@@ -76,7 +77,7 @@ export default async function RelatoriosPage({
       return dias >= 3;
     }
     if (m.status === "CONCLUIDA") return false;
-    return diasEmAberto(m.createdAt) >= 3;
+    return diasEmAberto(m.createdAt, m.diasPausados) >= 3;
   });
   const itensAtrasadas = manutencoesAtrasadas.map(itemDe);
 

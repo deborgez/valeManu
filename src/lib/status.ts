@@ -12,6 +12,7 @@ export async function atualizarServicosAgendados() {
     where: {
       status: "AGENDADO",
       dataHoraAgendada: { lte: agora },
+      manutencao: { status: { not: "CANCELADA" } },
     },
   });
 

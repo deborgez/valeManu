@@ -89,3 +89,89 @@ export async function atualizarDadosSolicitante(
   revalidatePath("/manutencoes");
   revalidatePath("/");
 }
+
+export async function cancelarManutencao(manutencaoId: string) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const manutencao = await prisma.manutencao.findUniqueOrThrow({
+    where: { id: manutencaoId },
+    include: { pagamentos: { orderBy: { createdAt: "desc" }, take: 1 } },
+  });
+  if (manutencao.status === "CANCELADA") return;
+  if (manutencao.status === "CONCLUIDA" && manutencao.pagamentos[0]?.status === "PAGO") {
+    throw new Error("Uma manutenção com pagamento efetuado não pode ser cancelada.");
+  }
+
+  await prisma.$transaction([
+    prisma.manutencao.update({
+      where: { id: manutencaoId },
+      data: {
+        statusAntesCancelamento: manutencao.status,
+        status: "CANCELADA",
+        canceladaEm: new Date(),
+      },
+    }),
+    prisma.historicoEtapa.create({
+      data: {
+        manutencaoId,
+        etapa: "Manutenção cancelada",
+        detalhe: `Cancelada por ${session.user.name ?? "um usuário"}`,
+      },
+    }),
+  ]);
+
+  await notificar({
+    perfis: ["ADMIN", "ADMINISTRATIVO"],
+    excetoUsuarioId: session.user.id,
+    mensagem: `Manutenção ${manutencao.numeroProcesso}: cancelada por ${session.user.name ?? "um usuário"}`,
+    link: `/manutencoes/${manutencaoId}`,
+  });
+
+  revalidatePath(`/manutencoes/${manutencaoId}`);
+  revalidatePath("/manutencoes");
+  revalidatePath("/");
+}
+
+export async function reabrirManutencaoCancelada(manutencaoId: string) {
+  const session = await auth();
+  if (!session) throw new Error("Não autenticado.");
+
+  const manutencao = await prisma.manutencao.findUniqueOrThrow({ where: { id: manutencaoId } });
+  if (manutencao.status !== "CANCELADA") return;
+
+  const retornaPara = manutencao.statusAntesCancelamento ?? "SOLICITACAO";
+  const diasCancelada = manutencao.canceladaEm
+    ? Math.floor((Date.now() - manutencao.canceladaEm.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  await prisma.$transaction([
+    prisma.manutencao.update({
+      where: { id: manutencaoId },
+      data: {
+        status: retornaPara,
+        statusAntesCancelamento: null,
+        canceladaEm: null,
+        diasPausados: { increment: diasCancelada },
+      },
+    }),
+    prisma.historicoEtapa.create({
+      data: {
+        manutencaoId,
+        etapa: "Manutenção reaberta após cancelamento",
+        detalhe: `Reaberta por ${session.user.name ?? "um usuário"} — voltou para a etapa em que estava`,
+      },
+    }),
+  ]);
+
+  await notificar({
+    perfis: ["ADMIN", "ADMINISTRATIVO"],
+    excetoUsuarioId: session.user.id,
+    mensagem: `Manutenção ${manutencao.numeroProcesso}: reaberta após cancelamento por ${session.user.name ?? "um usuário"}`,
+    link: `/manutencoes/${manutencaoId}`,
+  });
+
+  revalidatePath(`/manutencoes/${manutencaoId}`);
+  revalidatePath("/manutencoes");
+  revalidatePath("/");
+}

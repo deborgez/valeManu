@@ -1141,8 +1141,8 @@ export default async function DistratoDetalhePage({
                   </p>
                   <ul className="flex flex-col gap-2">
                     {doGrupo.map((a) => {
-                      const aberta = a.status !== "CONCLUIDA";
-                      const dias = diasEmAberto(a.createdAt);
+                      const aberta = a.status !== "CONCLUIDA" && a.status !== "CANCELADA";
+                      const dias = diasEmAberto(a.createdAt, a.diasPausados);
                       const severidade = classificarSeveridade(dias, aberta);
                       const { valorPrestador } = valoresAdequacao(a);
 
