@@ -7,6 +7,7 @@ import BuscaGlobal from "./BuscaGlobal";
 import BotaoMenu from "./BotaoMenu";
 import { formatDataHora } from "@/lib/datahora";
 import { LABEL_PERFIL } from "@/lib/perfis";
+import Link from "next/link";
 
 export default async function NavBar() {
   const session = await auth();
@@ -82,7 +83,11 @@ export default async function NavBar() {
           />
           <ThemeToggle />
           <div className="mx-1.5 hidden h-7 w-px bg-slate-200 dark:bg-slate-700 sm:block" />
-          <div className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-1 dark:border-slate-700 dark:bg-slate-800 sm:pr-4">
+          <Link
+            href="/conta"
+            title="Minha conta"
+            className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-1 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 sm:pr-4"
+          >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--accent)] to-[color-mix(in_srgb,var(--accent)_55%,#8b9cff)] text-xs font-semibold text-white">
               {inicial}
             </div>
@@ -94,7 +99,7 @@ export default async function NavBar() {
                 <span className="text-[11px] text-slate-400 dark:text-slate-500">{perfil}</span>
               )}
             </div>
-          </div>
+          </Link>
           <form action={sair}>
             <button
               type="submit"

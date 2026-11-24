@@ -77,9 +77,30 @@ export default function PrestadoresBusca({
       <div className="flex flex-col gap-6">
         {grupos.map((grupo) => (
           <div key={grupo.especialidade}>
-            <h2 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-              {grupo.especialidade}
-            </h2>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-[var(--accent)] dark:text-blue-200">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                </svg>
+              </span>
+              <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                {grupo.especialidade}
+              </h2>
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-700 dark:text-slate-300">
+                {grupo.prestadores.length}{" "}
+                {grupo.prestadores.length === 1 ? "prestador" : "prestadores"}
+              </span>
+              <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+            </div>
             <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
               <table className="w-full table-fixed text-left text-sm">
                 <colgroup>

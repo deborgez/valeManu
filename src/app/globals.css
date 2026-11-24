@@ -77,16 +77,16 @@ button:not(:disabled),
 }
 
 /* Botões primários (escuros) passam a usar a cor de destaque. */
-button[class*="bg-slate-900"],
-a[class*="bg-slate-900"] {
+button[class~="bg-slate-900"],
+a[class~="bg-slate-900"] {
   background-color: var(--accent);
   color: #fff;
   box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-button[class*="bg-slate-900"]:hover:not(:disabled),
-a[class*="bg-slate-900"]:hover {
+button[class~="bg-slate-900"]:hover:not(:disabled),
+a[class~="bg-slate-900"]:hover {
   background-color: var(--accent-hover);
 }
 

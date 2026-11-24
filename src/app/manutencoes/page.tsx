@@ -198,12 +198,21 @@ export default async function ManutencoesPage({
     <div className="w-full p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Manutenções</h1>
+        <div className="flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a
+          href="/api/exportar/manutencoes"
+          className="rounded border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          Exportar planilha
+        </a>
         <Link
           href="/manutencoes/nova"
           className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
         >
           Nova Manutenção
         </Link>
+        </div>
       </div>
 
       {filtroAtivo && (

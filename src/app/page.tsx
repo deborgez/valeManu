@@ -6,6 +6,7 @@ import { diasEmAberto, classificarSeveridade } from "@/lib/tempo";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import PainelEtapas from "@/components/PainelEtapas";
+import { gerarLembretes } from "@/lib/lembretes";
 import { formatData, formatDataHora } from "@/lib/datahora";
 import { prazoVistoria, LABEL_TIPO_VISTORIA } from "@/lib/vistorias";
 
@@ -70,6 +71,7 @@ export default async function Home() {
   if (!session) redirect("/login");
 
   await atualizarServicosAgendados();
+  await gerarLembretes();
 
   const manutencoes: ManutencaoResumo[] = await prisma.manutencao.findMany({
     select: {

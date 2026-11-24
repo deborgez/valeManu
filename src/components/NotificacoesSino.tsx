@@ -98,8 +98,8 @@ export default function NotificacoesSino({
                     onClick={() => abrir(item)}
                     className={`block w-full border-b border-slate-100 px-3 py-2 text-left text-sm last:border-b-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700 ${
                       item.lida
-                        ? "text-slate-500 dark:text-slate-400"
-                        : "bg-blue-50/60 font-medium text-slate-900 dark:bg-slate-900 dark:text-slate-100"
+                        ? "bg-white text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                        : "bg-white font-medium text-[var(--accent)] dark:bg-slate-800 dark:text-blue-200"
                     }`}
                   >
                     <span className="block">{item.mensagem}</span>

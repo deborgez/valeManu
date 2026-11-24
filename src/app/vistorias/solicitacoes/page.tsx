@@ -7,6 +7,7 @@ import { formatMoedaExibicao } from "@/lib/masks";
 import { podeEntregarVistoria } from "@/lib/perfis";
 import { LABEL_TIPO_VISTORIA, prazoVistoria } from "@/lib/vistorias";
 import { concluirVistoria } from "../actions";
+import { gerarLembretes } from "@/lib/lembretes";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import ConcluirVistoriaModal from "@/components/vistorias/ConcluirVistoriaModal";
 
@@ -14,6 +15,7 @@ export default async function QuadroSolicitacoesPage() {
   const session = await auth();
   if (!podeEntregarVistoria(session?.user.role)) redirect("/vistorias/entrada");
 
+  await gerarLembretes();
   const hojeStr = hojeSaoPaulo();
   const hoje = parseDataLocal(hojeStr);
 

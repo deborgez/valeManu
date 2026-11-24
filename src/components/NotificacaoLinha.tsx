@@ -33,8 +33,8 @@ export default function NotificacaoLinha({
         onClick={abrir}
         className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm last:border-b-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700 ${
           lida
-            ? "text-slate-500 dark:text-slate-400"
-            : "bg-blue-50/50 font-medium text-slate-900 dark:bg-slate-900 dark:text-slate-100"
+            ? "bg-white text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+            : "bg-white font-medium text-[var(--accent)] dark:bg-slate-800 dark:text-blue-200"
         }`}
       >
         <span
