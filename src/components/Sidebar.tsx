@@ -56,11 +56,6 @@ export default async function Sidebar() {
     { href: "/juridico", label: "Jurídico" },
   ];
 
-  const linksGestao = [
-    { href: "/gestao/desempenho", label: "Desempenho da equipe" },
-    { href: "/gestao/financeiro", label: "Painel financeiro" },
-  ];
-
   const linksConfiguracoes = [
     { href: "/configuracoes", label: "Unidade" },
     { href: "/usuarios", label: "Usuários" },
@@ -97,13 +92,6 @@ export default async function Sidebar() {
         <>
           <Titulo>Distrato</Titulo>
           <SidebarLinks links={linksDistrato} />
-        </>
-      )}
-
-      {!restrito && (
-        <>
-          <Titulo>Gestão</Titulo>
-          <SidebarLinks links={linksGestao} />
         </>
       )}
 
