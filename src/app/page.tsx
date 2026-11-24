@@ -183,6 +183,7 @@ export default async function Home() {
   const resumo = [
     {
       titulo: "Em aberto",
+      href: "/manutencoes?filtro=abertas",
       valor: abertas.length,
       detalhe: "manutenções em andamento",
       tom: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200",
@@ -197,6 +198,7 @@ export default async function Home() {
     },
     {
       titulo: "Em atraso",
+      href: "/manutencoes?filtro=atraso",
       valor: criticas,
       detalhe: "abertas há 3 dias ou mais",
       tom: "bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400",
@@ -209,6 +211,7 @@ export default async function Home() {
     },
     {
       titulo: "Emergenciais",
+      href: "/manutencoes?filtro=emergenciais",
       valor: emergenciais,
       detalhe: "em aberto agora",
       tom: "bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
@@ -222,6 +225,7 @@ export default async function Home() {
     },
     {
       titulo: "Aguardando pagamento",
+      href: "/manutencoes?filtro=pagamento",
       valor: aguardandoPagamento,
       detalhe: "serviços concluídos",
       tom: "bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400",
@@ -242,9 +246,10 @@ export default async function Home() {
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {resumo.map((card) => (
-          <div
+          <Link
             key={card.titulo}
-            className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4"
+            href={card.href}
+            className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{card.valor}</p>
@@ -267,7 +272,7 @@ export default async function Home() {
                 {card.icone}
               </svg>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

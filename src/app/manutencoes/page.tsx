@@ -161,9 +161,38 @@ function Cartao({ manutencao }: { manutencao: ManutencaoComRelacoes }) {
   );
 }
 
-export default async function ManutencoesPage() {
+const FILTROS: Record<string, { rotulo: string; filtro: (m: ManutencaoComRelacoes) => boolean }> = {
+  abertas: {
+    rotulo: "Em aberto",
+    filtro: (m) => m.status !== "CONCLUIDA" && m.status !== "CANCELADA",
+  },
+  atraso: {
+    rotulo: "Em atraso (abertas há 3 dias ou mais)",
+    filtro: (m) =>
+      m.status !== "CONCLUIDA" &&
+      m.status !== "CANCELADA" &&
+      diasEmAberto(m.createdAt, m.diasPausados) >= 3,
+  },
+  emergenciais: {
+    rotulo: "Emergenciais em aberto",
+    filtro: (m) => m.status !== "CONCLUIDA" && m.status !== "CANCELADA" && m.emergencial,
+  },
+  pagamento: {
+    rotulo: "Aguardando pagamento",
+    filtro: (m) => m.status === "CONCLUIDA" && m.pagamentos[0]?.status !== "PAGO",
+  },
+};
+
+export default async function ManutencoesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filtro?: string }>;
+}) {
   await atualizarServicosAgendados();
-  const manutencoes = await buscarManutencoes();
+  const { filtro: filtroParam } = await searchParams;
+  const filtroAtivo = filtroParam ? FILTROS[filtroParam] : undefined;
+  const todas = await buscarManutencoes();
+  const manutencoes = filtroAtivo ? todas.filter(filtroAtivo.filtro) : todas;
 
   return (
     <div className="w-full p-6">
@@ -176,6 +205,21 @@ export default async function ManutencoesPage() {
           Nova Manutenção
         </Link>
       </div>
+
+      {filtroAtivo && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm dark:border-slate-700 dark:bg-slate-800">
+          <span className="text-slate-600 dark:text-slate-300">
+            Filtro: <strong>{filtroAtivo.rotulo}</strong> — {manutencoes.length}{" "}
+            {manutencoes.length === 1 ? "manutenção" : "manutenções"}
+          </span>
+          <Link
+            href="/manutencoes"
+            className="ml-auto text-xs font-medium text-slate-500 underline hover:text-slate-800 dark:text-slate-400"
+          >
+            Limpar filtro
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8">
         {COLUNAS.map((coluna) => {

@@ -122,7 +122,8 @@ export default function SidebarLinks({
           <Link
             key={link.href}
             href={link.href}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+            title={link.label}
+            className={`relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
               ativo
                 ? "bg-[var(--sidebar-ativo)] font-medium text-white"
                 : "text-white/75 hover:bg-white/10 hover:text-white"
@@ -140,9 +141,9 @@ export default function SidebarLinks({
             >
               {icone}
             </svg>
-            <span className="flex-1">{link.label}</span>
+            <span className="rotulo-menu flex-1 whitespace-nowrap">{link.label}</span>
             {link.badge ? (
-              <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              <span className="badge-menu rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                 {link.badge}
               </span>
             ) : null}

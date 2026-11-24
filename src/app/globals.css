@@ -126,7 +126,7 @@ tbody tr {
 @media (max-width: 767px) {
   .menu-lateral {
     position: fixed;
-    top: 56px;
+    top: 64px;
     bottom: 0;
     left: 0;
     z-index: 40;
@@ -142,9 +142,58 @@ tbody tr {
   body.menu-aberto::after {
     content: "";
     position: fixed;
-    inset: 56px 0 0 0;
+    inset: 64px 0 0 0;
     z-index: 35;
     background: rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Menu lateral recolhido (somente ícones) em telas grandes. */
+@media (min-width: 768px) {
+  .menu-lateral {
+    transition: width 0.2s ease;
+  }
+
+  html.menu-recolhido .menu-lateral {
+    width: 4.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    overflow-x: hidden;
+  }
+
+  html.menu-recolhido .menu-lateral .rotulo-menu {
+    display: none;
+  }
+
+  html.menu-recolhido .menu-lateral .titulo-menu {
+    font-size: 0;
+    height: 1px;
+    padding: 0;
+    margin: 0.9rem 0.5rem;
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  html.menu-recolhido .menu-lateral a {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  html.menu-recolhido .menu-lateral .badge-menu {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    padding: 0 0.3rem;
+  }
+
+  html.menu-recolhido .menu-lateral .menu-topo {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  html.menu-recolhido .botao-recolher svg {
+    transform: rotate(180deg);
   }
 }
 

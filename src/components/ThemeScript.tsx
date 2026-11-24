@@ -9,6 +9,7 @@ const THEME_INIT_SCRIPT = `
     var stored = localStorage.getItem("theme");
     var isDark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
     document.documentElement.classList.toggle("dark", isDark);
+    if (localStorage.getItem("menu-recolhido") === "1") document.documentElement.classList.add("menu-recolhido");
   } catch (e) {}
 })();
 `;

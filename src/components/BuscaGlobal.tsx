@@ -37,7 +37,20 @@ export default function BuscaGlobal() {
   }
 
   return (
-    <div className="relative hidden w-72 md:block">
+    <div className="relative w-full max-w-md">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
       <input
         value={termo}
         onChange={(e) => {
@@ -47,7 +60,7 @@ export default function BuscaGlobal() {
         onFocus={() => setAberto(true)}
         placeholder="Buscar processo ou endereço..."
         aria-label="Busca global"
-        className="w-full rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        className="w-full rounded-full border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
       />
       {aberto && termo.trim().length >= 2 && (
         <>

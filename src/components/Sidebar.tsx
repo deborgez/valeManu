@@ -2,11 +2,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { podeEntregarVistoria } from "@/lib/perfis";
 import SidebarLinks from "./SidebarLinks";
+import BotaoRecolherMenu from "./BotaoRecolherMenu";
 
 function Titulo({ children, primeiro }: { children: React.ReactNode; primeiro?: boolean }) {
   return (
     <div
-      className={`${primeiro ? "" : "mt-5 "}mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/55`}
+      className={`titulo-menu ${primeiro ? "" : "mt-5 "}mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/55`}
     >
       {children}
     </div>
@@ -61,10 +62,13 @@ export default async function Sidebar() {
   ];
 
   return (
-    <aside className="menu-lateral print:hidden w-60 shrink-0 overflow-y-auto bg-[var(--sidebar-bg)] p-4">
-      <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-white/40">
-        Módulos
-      </p>
+    <aside className="menu-lateral print:hidden w-72 shrink-0 overflow-y-auto bg-[var(--sidebar-bg)] p-4">
+      <div className="menu-topo mb-3 flex items-center justify-between px-3">
+        <p className="rotulo-menu text-xs font-semibold uppercase tracking-wider text-white/40">
+          Módulos
+        </p>
+        <BotaoRecolherMenu />
+      </div>
 
       {role !== "VISTORIADOR" && (
         <>
