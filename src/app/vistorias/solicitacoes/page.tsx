@@ -106,12 +106,16 @@ export default async function QuadroSolicitacoesPage() {
                   </p>
                 )}
                 <div className="mt-3 flex items-center justify-between">
-                  <ArquivoPreviewBotao
-                    url={v.comprovanteUrl}
-                    nome={v.comprovanteNome}
-                    tipo={v.comprovanteTipo}
-                    label="Ver comprovante do sinal"
-                  />
+                  {v.comprovanteUrl ? (
+                    <ArquivoPreviewBotao
+                      url={v.comprovanteUrl}
+                      nome={v.comprovanteNome}
+                      tipo={v.comprovanteTipo}
+                      label="Ver comprovante do sinal"
+                    />
+                  ) : (
+                    <span />
+                  )}
                   <ConcluirVistoriaModal
                     hoje={hojeStr}
                     participacao={v.tipo === "SAIDA"}

@@ -788,7 +788,7 @@ model Vistoria {
   tipo   TipoVistoria
   status StatusVistoria @default(PENDENTE)
 
-  comprovanteUrl  String
+  comprovanteUrl  String?
   comprovanteNome String?
   comprovanteTipo String?
 

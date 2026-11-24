@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import BlobUploadInput from "@/components/inputs/BlobUploadInput";
 import CamposAgendamento from "@/components/vistorias/CamposAgendamento";
 
 export default function SolicitarVistoriaSaidaModal({
@@ -69,12 +68,6 @@ export default function SolicitarVistoriaSaidaModal({
 
             <CamposAgendamento hoje={hoje} />
 
-            <div className="mb-6">
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Comprovante do pagamento do sinal
-              </label>
-              <BlobUploadInput name="comprovante" accept="image/*,application/pdf" required />
-            </div>
 
             {erro && <p className="mb-3 text-xs text-red-600 dark:text-red-400">{erro}</p>}
 

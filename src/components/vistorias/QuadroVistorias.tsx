@@ -133,14 +133,20 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
               </p>
             )}
           </td>
-          <td className="px-4 py-2">
-            <ArquivoPreviewBotao
-              url={v.comprovanteUrl}
-              nome={v.comprovanteNome}
-              tipo={v.comprovanteTipo}
-              label="Ver comprovante"
-            />
-          </td>
+          {tipo === "ENTRADA" && (
+            <td className="px-4 py-2">
+              {v.comprovanteUrl ? (
+                <ArquivoPreviewBotao
+                  url={v.comprovanteUrl}
+                  nome={v.comprovanteNome}
+                  tipo={v.comprovanteTipo}
+                  label="Ver comprovante"
+                />
+              ) : (
+                <span className="text-slate-400 dark:text-slate-500">—</span>
+              )}
+            </td>
+          )}
           {podeEntregar && (
             <td className="px-4 py-2 text-right">
               {v.status === "PENDENTE" && (
@@ -208,7 +214,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
           { chave: "solicitada", rotulo: "Solicitada em", ordenavel: true },
           { chave: "prazo", rotulo: "Prazo", ordenavel: true },
           { chave: "situacao", rotulo: "Situação", ordenavel: true },
-          { chave: "sinal", rotulo: "Sinal" },
+          ...(tipo === "ENTRADA" ? [{ chave: "sinal", rotulo: "Sinal" }] : []),
           ...(podeEntregar ? [{ chave: "acoes", rotulo: "" }] : []),
         ]}
       />

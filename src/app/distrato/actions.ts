@@ -1660,8 +1660,6 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
     throw new Error("Seu perfil não pode solicitar vistorias.");
   }
 
-  const comprovanteUrl = String(formData.get("comprovanteUrl") || "");
-  if (!comprovanteUrl) throw new Error("Anexe o comprovante do pagamento do sinal.");
   const agendamento = lerAgendamento(formData);
 
   const distrato = await prisma.distrato.findUniqueOrThrow({
@@ -1675,9 +1673,6 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
       tipo: "SAIDA",
       processoId: distrato.processoId,
       distratoId,
-      comprovanteUrl,
-      comprovanteNome: (formData.get("comprovanteNome") as string) || null,
-      comprovanteTipo: (formData.get("comprovanteTipo") as string) || null,
       ...agendamento,
       locadorDesejaParticipar: formData.get("locadorDesejaParticipar") === "on",
       locatarioDesejaParticipar: formData.get("locatarioDesejaParticipar") === "on",

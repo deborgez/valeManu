@@ -5,36 +5,45 @@ import { useState } from "react";
 const CAMPO_CLASSE =
   "w-full rounded border border-slate-300 dark:border-slate-600 bg-white px-3 py-2 text-sm dark:bg-slate-900 dark:text-slate-100";
 
+const OPCOES = [
+  { valor: "agora", rotulo: "Solicitar agora" },
+  { valor: "agendar", rotulo: "Agendar" },
+] as const;
+
 export default function CamposAgendamento({ hoje }: { hoje: string }) {
   const [modo, setModo] = useState<"agora" | "agendar">("agora");
 
   return (
     <fieldset className="mb-4">
-      <legend className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
+      <legend className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
         Quando será a vistoria?
       </legend>
-      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-        <input
-          type="radio"
-          name="agendamento"
-          value="agora"
-          checked={modo === "agora"}
-          onChange={() => setModo("agora")}
-          className="h-4 w-4"
-        />
-        Solicitar agora (o prazo conta a partir de hoje)
-      </label>
-      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-        <input
-          type="radio"
-          name="agendamento"
-          value="agendar"
-          checked={modo === "agendar"}
-          onChange={() => setModo("agendar")}
-          className="h-4 w-4"
-        />
-        Agendar para uma data (o prazo conta a partir da data agendada)
-      </label>
+
+      <div className="grid grid-cols-2 gap-2">
+        {OPCOES.map((opcao) => {
+          const ativa = modo === opcao.valor;
+          return (
+            <label
+              key={opcao.valor}
+              className={`flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                ativa
+                  ? "border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[var(--accent)] dark:text-blue-200"
+                  : "border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+              }`}
+            >
+              <input
+                type="radio"
+                name="agendamento"
+                value={opcao.valor}
+                checked={ativa}
+                onChange={() => setModo(opcao.valor)}
+                className="sr-only"
+              />
+              {opcao.rotulo}
+            </label>
+          );
+        })}
+      </div>
 
       {modo === "agendar" && (
         <div className="mt-3 grid grid-cols-2 gap-4">

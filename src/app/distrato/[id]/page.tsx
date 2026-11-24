@@ -873,12 +873,14 @@ export default async function DistratoDetalhePage({
                                 .join(" · ")}
                             </p>
                           )}
-                          <ArquivoPreviewBotao
-                            url={solicitacao.comprovanteUrl}
-                            nome={solicitacao.comprovanteNome}
-                            tipo={solicitacao.comprovanteTipo}
-                            label="Ver comprovante do sinal"
-                          />
+                          {solicitacao.comprovanteUrl && (
+                            <ArquivoPreviewBotao
+                              url={solicitacao.comprovanteUrl}
+                              nome={solicitacao.comprovanteNome}
+                              tipo={solicitacao.comprovanteTipo}
+                              label="Ver comprovante do sinal"
+                            />
+                          )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           <ImpressaoModal label="Imprimir OS da Vistoria">
