@@ -191,7 +191,7 @@ model Prestador {
 
 model Manutencao {
   id                String           @id @default(cuid())
-  numeroProcesso    String           @unique
+  numeroProcesso    String
   cep               String?
   rua               String?
   numero            String?
@@ -226,6 +226,8 @@ model Manutencao {
   conclusoesServico ConclusaoServico[]
   pagamentos        Pagamento[]
   historico         HistoricoEtapa[]
+
+  @@index([numeroProcesso])
 }
 
 model PedidoOrcamento {

@@ -31,6 +31,13 @@ export default async function NovaManutencaoPage({
         })
       : [];
 
+    const existentes = await prisma.manutencao.groupBy({
+      by: ["numeroProcesso"],
+      where: { numeroProcesso: { in: processos.map((p) => p.numeroProcesso) } },
+      _count: { _all: true },
+    });
+    const totalPorProcesso = new Map(existentes.map((e) => [e.numeroProcesso, e._count._all]));
+
     return (
       <div className="mx-auto w-full max-w-3xl p-6">
         <h1 className="mb-6 text-xl font-semibold text-slate-900 dark:text-slate-100">
@@ -68,6 +75,12 @@ export default async function NovaManutencaoPage({
                   {p.numeroProcesso}
                 </p>
                 <p className="text-slate-500 dark:text-slate-400">{formatEndereco(p)}</p>
+                {(totalPorProcesso.get(p.numeroProcesso) ?? 0) > 0 && (
+                  <p className="mt-1 inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                    Já tem {totalPorProcesso.get(p.numeroProcesso)}{" "}
+                    {totalPorProcesso.get(p.numeroProcesso) === 1 ? "manutenção" : "manutenções"}
+                  </p>
+                )}
               </Link>
             ))}
             {processos.length === 0 && (
