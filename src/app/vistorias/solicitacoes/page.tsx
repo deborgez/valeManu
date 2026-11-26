@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatEndereco } from "@/lib/endereco";
@@ -12,7 +13,7 @@ import ConcluirVistoriaModal from "@/components/vistorias/ConcluirVistoriaModal"
 
 export default async function QuadroSolicitacoesPage() {
   const session = await auth();
-  const podeEntregar = podeEntregarVistoria(session?.user.role);
+  if (!podeEntregarVistoria(session?.user.role)) redirect("/vistorias/entrada");
 
   await gerarLembretes();
   const hojeStr = hojeSaoPaulo();
@@ -126,16 +127,14 @@ export default async function QuadroSolicitacoesPage() {
                   ) : (
                     <span />
                   )}
-                  {podeEntregar && (
-                    <ConcluirVistoriaModal
-                      hoje={hojeStr}
-                      participacao={v.tipo === "SAIDA"}
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await concluirVistoria(v.id, formData);
-                      }}
-                    />
-                  )}
+                  <ConcluirVistoriaModal
+                    hoje={hojeStr}
+                    participacao={v.tipo === "SAIDA"}
+                    action={async (formData: FormData) => {
+                      "use server";
+                      await concluirVistoria(v.id, formData);
+                    }}
+                  />
                 </div>
               </div>
             );

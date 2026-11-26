@@ -58,13 +58,13 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
     detalhe: "Vistoria de entrada solicitada",
   });
 
-  await notificar({
-    categoria: "VISTORIA",
-    perfis: ["ADMIN", "VISTORIADOR", "ADMINISTRATIVO"],
+  const aviso = {
+    categoria: "VISTORIA" as const,
     excetoUsuarioId: session.user.id,
     mensagem: `Nova vistoria de entrada ${agendamento.agendadaPara ? `agendada para ${formatData(agendamento.agendadaPara)}` : "solicitada"} — processo ${processo.numeroProcesso}`,
-    link: "/vistorias/solicitacoes",
-  });
+  };
+  await notificar({ ...aviso, perfis: ["ADMIN", "VISTORIADOR"], link: "/vistorias/solicitacoes" });
+  await notificar({ ...aviso, perfis: ["ADMINISTRATIVO"], link: "/vistorias/entrada" });
 
   revalidarVistorias();
 }

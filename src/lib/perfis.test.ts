@@ -21,15 +21,15 @@ describe("rotaPermitida", () => {
     expect(rotaPermitida("CORRETOR", "/cadastro/novo")).toBe(true);
     expect(rotaPermitida("CORRETOR", "/cadastro/abc/editar")).toBe(false);
     expect(rotaPermitida("CORRETOR", "/vistorias/entrada")).toBe(true);
-    expect(rotaPermitida("CORRETOR", "/vistorias/solicitacoes")).toBe(true);
+    expect(rotaPermitida("CORRETOR", "/vistorias/solicitacoes")).toBe(false);
     expect(rotaPermitida("CORRETOR", "/distrato")).toBe(false);
     expect(rotaPermitida("CORRETOR", "/manutencoes")).toBe(false);
   });
 
-  it("todos os perfis veem o quadro de solicitações (concluir é restrito)", () => {
+  it("administrativo não acessa o quadro de solicitações", () => {
     expect(rotaPermitida("ADMINISTRATIVO", "/distrato")).toBe(true);
     expect(rotaPermitida("ADMINISTRATIVO", "/vistorias/relatorios")).toBe(true);
-    expect(rotaPermitida("ADMINISTRATIVO", "/vistorias/solicitacoes")).toBe(true);
+    expect(rotaPermitida("ADMINISTRATIVO", "/vistorias/solicitacoes")).toBe(false);
     expect(rotaPermitida("VISTORIADOR", "/vistorias/solicitacoes")).toBe(true);
   });
 

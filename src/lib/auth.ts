@@ -2,6 +2,9 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { PERFIS, perfilValido, type Perfil } from "@/lib/perfis";
+
+const INTERVALO_REVALIDACAO_MS = 60 * 1000;
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -37,11 +40,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role;
         token.unidade = (user as { unidade?: string | null }).unidade ?? null;
+        token.verificadoEm = Date.now();
+        return token;
+      }
+      // O perfil pode mudar depois do login: confere no banco para a sessão não ficar desatualizada.
+      const perfilConhecido = PERFIS.includes(token.role as Perfil);
+      const verificadoEm = (token.verificadoEm as number | undefined) ?? 0;
+      if (perfilConhecido && Date.now() - verificadoEm < INTERVALO_REVALIDACAO_MS) return token;
+      try {
+        const atual = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, unidade: true },
+        });
+        if (!atual) return null; // usuário excluído: encerra a sessão
+        token.role = atual.role;
+        token.unidade = atual.unidade ?? null;
+        token.verificadoEm = Date.now();
+      } catch (erro) {
+        console.error("Falha ao atualizar o perfil da sessão:", erro);
+        token.role = perfilValido(token.role);
       }
       return token;
     },
