@@ -1,19 +1,25 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import { formatEndereco } from "@/lib/endereco";
 import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
 import { formatMoedaExibicao } from "@/lib/masks";
-import { podeEntregarVistoria } from "@/lib/perfis";
+import { podeEntregarVistoria, podeSolicitarVistoria } from "@/lib/perfis";
+import { listarProcessosParaVistoria } from "@/lib/processosVistoria";
+import NovaVistoriaModal from "@/components/vistorias/NovaVistoriaModal";
 import { LABEL_TIPO_VISTORIA, prazoVistoria } from "@/lib/vistorias";
-import { concluirVistoria } from "../actions";
+import { concluirVistoria, solicitarVistoria } from "../actions";
 import { gerarLembretes } from "@/lib/lembretes";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import ConcluirVistoriaModal from "@/components/vistorias/ConcluirVistoriaModal";
 
 export default async function QuadroSolicitacoesPage() {
   const session = await auth();
-  if (!podeEntregarVistoria(session?.user.role)) redirect("/vistorias/entrada");
+  const role = session?.user.role;
+  const podeEntregar = podeEntregarVistoria(role);
+  const podeSolicitar = podeSolicitarVistoria(role);
+  const podeVerDistrato = role === "ADMIN" || role === "ADMINISTRATIVO";
+  const processos = podeSolicitar ? await listarProcessosParaVistoria() : [];
 
   await gerarLembretes();
   const hojeStr = hojeSaoPaulo();
@@ -34,11 +40,32 @@ export default async function QuadroSolicitacoesPage() {
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
           Quadro de Solicitações
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {pendentes.length === 0
-            ? "Nenhuma vistoria pendente"
-            : `${pendentes.length} ${pendentes.length === 1 ? "vistoria pendente" : "vistorias pendentes"}`}
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {pendentes.length === 0
+              ? "Nenhuma vistoria pendente"
+              : `${pendentes.length} ${pendentes.length === 1 ? "vistoria pendente" : "vistorias pendentes"}`}
+          </p>
+          {podeVerDistrato && (
+            <Link
+              href="/distrato"
+              className="rounded border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+            >
+              Solicitar Saída pelo Distrato
+            </Link>
+          )}
+          {podeSolicitar && (
+            <NovaVistoriaModal
+              hoje={hojeStr}
+              tipoLabel="Entrada"
+              processos={processos}
+              action={async (formData: FormData) => {
+                "use server";
+                await solicitarVistoria("ENTRADA", formData);
+              }}
+            />
+          )}
+        </div>
       </div>
 
       {pendentes.length === 0 ? (
@@ -116,14 +143,16 @@ export default async function QuadroSolicitacoesPage() {
                   ) : (
                     <span />
                   )}
-                  <ConcluirVistoriaModal
-                    hoje={hojeStr}
-                    participacao={v.tipo === "SAIDA"}
-                    action={async (formData: FormData) => {
-                      "use server";
-                      await concluirVistoria(v.id, formData);
-                    }}
-                  />
+                  {podeEntregar && (
+                    <ConcluirVistoriaModal
+                      hoje={hojeStr}
+                      participacao={v.tipo === "SAIDA"}
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await concluirVistoria(v.id, formData);
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             );

@@ -826,6 +826,22 @@ export default async function DistratoDetalhePage({
                 </Divisor>
               )}
 
+              {!podeSolicitacaoVistoria && (
+                <Divisor>
+                  <SecaoTitulo
+                    titulo="Vistoria de Saída"
+                    auditoria={auditoriaPorSecao("SOLICITACAO_VISTORIA_SAIDA")}
+                  />
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    O botão para solicitar a vistoria de saída aparece depois de registrar{" "}
+                    {!distrato.entregaChaves
+                      ? "a Entrega das Chaves e o Comunicado ao Locador"
+                      : "o Comunicado ao Locador"}
+                    .
+                  </p>
+                </Divisor>
+              )}
+
               {/* Etapa 3 · Vistoria de Saída (solicitação ao vistoriador) */}
               {podeSolicitacaoVistoria && (
                 <Divisor>

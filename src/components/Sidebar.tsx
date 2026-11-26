@@ -35,9 +35,7 @@ export default async function Sidebar() {
         ];
 
   const linksVistorias = [
-    ...(veEntregas
-      ? [{ href: "/vistorias/solicitacoes", label: "Quadro de Solicitações", badge: pendentes }]
-      : []),
+    { href: "/vistorias/solicitacoes", label: "Quadro de Solicitações", badge: pendentes },
     { href: "/vistorias/entrada", label: "Vistorias de Entrada" },
     { href: "/vistorias/saida", label: "Vistorias de Saída" },
     { href: "/vistorias/relatorios", label: "Relatório de Vistorias" },

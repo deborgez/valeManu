@@ -34,7 +34,6 @@ export function rotaPermitida(role: string | undefined, pathname: string): boole
     return pathname === "/vistorias" || pathname.startsWith("/vistorias/");
   }
   if (role === "CORRETOR") {
-    if (pathname.startsWith("/vistorias/solicitacoes")) return false;
     if (/^\/cadastro\/[^/]+\/editar/.test(pathname)) return false;
     return (
       pathname === "/vistorias" ||
@@ -43,6 +42,5 @@ export function rotaPermitida(role: string | undefined, pathname: string): boole
       pathname.startsWith("/cadastro/")
     );
   }
-  if (pathname.startsWith("/vistorias/solicitacoes")) return podeEntregarVistoria(role);
   return true;
 }

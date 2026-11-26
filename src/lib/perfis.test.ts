@@ -16,20 +16,21 @@ describe("rotaPermitida", () => {
     expect(rotaPermitida("VISTORIADOR", "/distrato")).toBe(false);
   });
 
-  it("corretor acessa processos e vistorias, mas não edita processo nem vê o quadro do vistoriador", () => {
+  it("corretor acessa processos e vistorias, mas não edita processo", () => {
     expect(rotaPermitida("CORRETOR", "/cadastro")).toBe(true);
     expect(rotaPermitida("CORRETOR", "/cadastro/novo")).toBe(true);
     expect(rotaPermitida("CORRETOR", "/cadastro/abc/editar")).toBe(false);
     expect(rotaPermitida("CORRETOR", "/vistorias/entrada")).toBe(true);
-    expect(rotaPermitida("CORRETOR", "/vistorias/solicitacoes")).toBe(false);
+    expect(rotaPermitida("CORRETOR", "/vistorias/solicitacoes")).toBe(true);
     expect(rotaPermitida("CORRETOR", "/distrato")).toBe(false);
     expect(rotaPermitida("CORRETOR", "/manutencoes")).toBe(false);
   });
 
-  it("administrativo vê tudo, menos o quadro de solicitações do vistoriador", () => {
+  it("todos os perfis veem o quadro de solicitações (concluir é restrito)", () => {
     expect(rotaPermitida("ADMINISTRATIVO", "/distrato")).toBe(true);
     expect(rotaPermitida("ADMINISTRATIVO", "/vistorias/relatorios")).toBe(true);
-    expect(rotaPermitida("ADMINISTRATIVO", "/vistorias/solicitacoes")).toBe(false);
+    expect(rotaPermitida("ADMINISTRATIVO", "/vistorias/solicitacoes")).toBe(true);
+    expect(rotaPermitida("VISTORIADOR", "/vistorias/solicitacoes")).toBe(true);
   });
 
   it("administrador acessa o quadro de solicitações", () => {

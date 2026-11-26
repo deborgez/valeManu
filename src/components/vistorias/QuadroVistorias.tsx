@@ -7,6 +7,7 @@ import { formatMoedaExibicao } from "@/lib/masks";
 import { podeEntregarVistoria, podeSolicitarVistoria } from "@/lib/perfis";
 import { LABEL_TIPO_VISTORIA, prazoVistoria, situacaoVistoria } from "@/lib/vistorias";
 import { concluirVistoria, solicitarVistoria } from "@/app/vistorias/actions";
+import { listarProcessosParaVistoria } from "@/lib/processosVistoria";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import NovaVistoriaModal from "./NovaVistoriaModal";
 import ConcluirVistoriaModal from "./ConcluirVistoriaModal";
@@ -32,22 +33,7 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
     },
   });
 
-  const processos = podeSolicitar
-    ? await prisma.processo.findMany({
-        orderBy: { numeroProcesso: "asc" },
-        select: {
-          id: true,
-          numeroProcesso: true,
-          valorAluguel: true,
-          rua: true,
-          numero: true,
-          complemento: true,
-          bairro: true,
-          cidade: true,
-          estado: true,
-        },
-      })
-    : [];
+  const processos = podeSolicitar ? await listarProcessosParaVistoria() : [];
 
   const itens: LinhaLista[] = vistorias.map((v) => {
     const situacao = situacaoVistoria(v, hoje);
@@ -184,16 +170,19 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
         >
           Exportar planilha
         </a>
+        {tipo === "SAIDA" && podeVerDistrato && (
+          <Link
+            href="/distrato"
+            className="rounded bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-slate-600"
+          >
+            Solicitar pelo Distrato
+          </Link>
+        )}
         {podeSolicitar && tipo === "ENTRADA" && (
           <NovaVistoriaModal
             hoje={hojeStr}
             tipoLabel={tipoLabel}
-            processos={processos.map((p) => ({
-              id: p.id,
-              numeroProcesso: p.numeroProcesso,
-              endereco: formatEndereco(p),
-              valor: p.valorAluguel ? formatMoedaExibicao(p.valorAluguel) : null,
-            }))}
+            processos={processos}
             action={async (formData: FormData) => {
               "use server";
               await solicitarVistoria(tipo, formData);
@@ -204,7 +193,8 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
 
       {tipo === "SAIDA" && (
         <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-          A vistoria de saída é solicitada pelo Distrato, na aba Relacionamento.
+          A vistoria de saída é solicitada pelo Distrato, na aba Relacionamento. O botão aparece
+          depois de registrar a Entrega das Chaves e o Comunicado ao Locador.
         </p>
       )}
 
