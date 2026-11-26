@@ -14,6 +14,7 @@ function revalidarVistorias() {
   revalidatePath("/vistorias/saida");
   revalidatePath("/vistorias/solicitacoes");
   revalidatePath("/vistorias/relatorios");
+  revalidatePath("/vistorias/[id]", "page");
 }
 
 export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: FormData) {
@@ -58,13 +59,13 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
     detalhe: "Vistoria de entrada solicitada",
   });
 
-  const aviso = {
-    categoria: "VISTORIA" as const,
+  await notificar({
+    categoria: "VISTORIA",
+    perfis: ["ADMIN", "VISTORIADOR", "ADMINISTRATIVO"],
     excetoUsuarioId: session.user.id,
     mensagem: `Nova vistoria de entrada ${agendamento.agendadaPara ? `agendada para ${formatData(agendamento.agendadaPara)}` : "solicitada"} — processo ${processo.numeroProcesso}`,
-  };
-  await notificar({ ...aviso, perfis: ["ADMIN", "VISTORIADOR"], link: "/vistorias/solicitacoes" });
-  await notificar({ ...aviso, perfis: ["ADMINISTRATIVO"], link: "/vistorias/entrada" });
+    link: `/vistorias/${criada.id}`,
+  });
 
   revalidarVistorias();
 }
@@ -145,7 +146,7 @@ export async function concluirVistoria(vistoriaId: string, formData: FormData) {
     usuarios: [vistoria.solicitadoPorId],
     excetoUsuarioId: session.user.id,
     mensagem: `Vistoria de ${tipoTexto} concluída — processo ${numero}${vistoria.distratoId ? ": os comunicados de encerramento já podem ser registrados" : ""}`,
-    link: vistoria.distratoId ? `/distrato/${vistoria.distratoId}` : `/vistorias/${vistoria.tipo === "SAIDA" ? "saida" : "entrada"}`,
+    link: vistoria.distratoId ? `/distrato/${vistoria.distratoId}` : `/vistorias/${vistoriaId}`,
   });
 
   revalidarVistorias();

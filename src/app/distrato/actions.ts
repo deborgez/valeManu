@@ -1706,7 +1706,7 @@ export async function solicitarVistoriaSaida(distratoId: string, formData: FormD
     perfis: ["VISTORIADOR", "ADMIN"],
     excetoUsuarioId: session.user.id,
     mensagem: `Nova vistoria de saída solicitada${quemParticipa.length ? ` (${quemParticipa.join(", ")})` : ""}`,
-    link: "/vistorias/solicitacoes",
+    link: `/vistorias/${criadaSaida.id}`,
   });
   revalidatePath(`/distrato/${distratoId}`);
   revalidatePath("/vistorias/saida");

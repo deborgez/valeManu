@@ -56,12 +56,14 @@ export default async function QuadroVistorias({ tipo }: { tipo: "ENTRADA" | "SAI
       linha: (
         <tr key={v.id} className="border-t border-slate-100 dark:border-slate-700 align-top">
           <td className="px-4 py-2">
-            <p className="font-medium text-slate-900 dark:text-slate-100">
-              {v.processo.numeroProcesso}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {formatEndereco(v.processo)}
-            </p>
+            <Link href={`/vistorias/${v.id}`} className="group block">
+              <span className="block font-medium text-[var(--accent)] underline-offset-2 group-hover:underline dark:text-blue-200">
+                {v.processo.numeroProcesso}
+              </span>
+              <span className="block text-xs text-slate-500 dark:text-slate-400">
+                {formatEndereco(v.processo)}
+              </span>
+            </Link>
             {v.tipo === "SAIDA" && (v.locadorDesejaParticipar || v.locatarioDesejaParticipar) && (
               <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
                 {[v.locadorDesejaParticipar && "Locador deseja participar", v.locatarioDesejaParticipar && "Locatário deseja participar"]

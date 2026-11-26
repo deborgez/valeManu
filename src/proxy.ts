@@ -22,7 +22,11 @@ export default auth((req) => {
 
   const role = req.auth.user?.role;
   if (!rotaPermitida(role, pathname)) {
-    return NextResponse.redirect(new URL(paginaInicial(role), req.nextUrl.origin));
+    // Avisos antigos apontam para o quadro; quem não tem acesso vai para a lista de vistorias.
+    const destino = pathname.startsWith("/vistorias/solicitacoes")
+      ? "/vistorias/entrada"
+      : paginaInicial(role);
+    return NextResponse.redirect(new URL(destino, req.nextUrl.origin));
   }
 
   return NextResponse.next();

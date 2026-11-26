@@ -55,14 +55,14 @@ export async function gerarLembretes() {
           perfis: ["ADMIN", "VISTORIADOR"],
           categoria: "VISTORIA",
           mensagem: `Prazo vencido: vistoria de ${tipo} do processo ${v.processo.numeroProcesso} deveria ter sido entregue até ${formatData(limite)}`,
-          link: "/vistorias/solicitacoes",
+          link: `/vistorias/${v.id}`,
         });
       } else if (restantes <= 1) {
         await lembrar({
           perfis: ["ADMIN", "VISTORIADOR"],
           categoria: "VISTORIA",
           mensagem: `Prazo ${restantes === 0 ? "vence hoje" : "vence amanhã"}: vistoria de ${tipo} do processo ${v.processo.numeroProcesso}`,
-          link: "/vistorias/solicitacoes",
+          link: `/vistorias/${v.id}`,
         });
       }
     }

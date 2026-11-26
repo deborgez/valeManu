@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -86,10 +87,14 @@ export default async function QuadroSolicitacoesPage() {
                     </span>
                   )}
                 </div>
-                <p className="font-semibold text-slate-900 dark:text-slate-100">
-                  {v.processo.numeroProcesso}
-                </p>
-                <p className="text-slate-600 dark:text-slate-400">{formatEndereco(v.processo)}</p>
+                <Link href={`/vistorias/${v.id}`} className="group block">
+                  <span className="block font-semibold text-[var(--accent)] underline-offset-2 group-hover:underline dark:text-blue-200">
+                    {v.processo.numeroProcesso}
+                  </span>
+                  <span className="block text-slate-600 dark:text-slate-400">
+                    {formatEndereco(v.processo)}
+                  </span>
+                </Link>
                 <p className="mt-1 text-slate-500 dark:text-slate-400">
                   Valor:{" "}
                   {v.processo.valorAluguel ? `R$ ${formatMoedaExibicao(v.processo.valorAluguel)}` : "—"}
@@ -156,9 +161,12 @@ export default async function QuadroSolicitacoesPage() {
                   className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 text-sm last:border-b-0 dark:border-slate-700"
                 >
                   <div>
-                    <p className="font-medium text-slate-900 dark:text-slate-100">
+                    <Link
+                      href={`/vistorias/${v.id}`}
+                      className="font-medium text-[var(--accent)] underline-offset-2 hover:underline dark:text-blue-200"
+                    >
                       {LABEL_TIPO_VISTORIA[v.tipo]} — {v.processo.numeroProcesso}
-                    </p>
+                    </Link>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {formatEndereco(v.processo)}
                     </p>
