@@ -1,25 +1,18 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import { formatEndereco } from "@/lib/endereco";
 import { formatData, hojeSaoPaulo, parseDataLocal } from "@/lib/datahora";
 import { formatMoedaExibicao } from "@/lib/masks";
-import { podeEntregarVistoria, podeSolicitarVistoria } from "@/lib/perfis";
-import { listarProcessosParaVistoria } from "@/lib/processosVistoria";
-import NovaVistoriaModal from "@/components/vistorias/NovaVistoriaModal";
-import { LABEL_TIPO_VISTORIA, prazoVistoria } from "@/lib/vistorias";
-import { concluirVistoria, solicitarVistoria } from "../actions";
+import { podeEntregarVistoria } from "@/lib/perfis";
+import { LABEL_TIPO_VISTORIA, prazoVistoria, situacaoVistoria } from "@/lib/vistorias";
+import { concluirVistoria } from "../actions";
 import { gerarLembretes } from "@/lib/lembretes";
 import ArquivoPreviewBotao from "@/components/distrato/ArquivoPreviewBotao";
 import ConcluirVistoriaModal from "@/components/vistorias/ConcluirVistoriaModal";
 
 export default async function QuadroSolicitacoesPage() {
   const session = await auth();
-  const role = session?.user.role;
-  const podeEntregar = podeEntregarVistoria(role);
-  const podeSolicitar = podeSolicitarVistoria(role);
-  const podeVerDistrato = role === "ADMIN" || role === "ADMINISTRATIVO";
-  const processos = podeSolicitar ? await listarProcessosParaVistoria() : [];
+  const podeEntregar = podeEntregarVistoria(session?.user.role);
 
   await gerarLembretes();
   const hojeStr = hojeSaoPaulo();
@@ -34,38 +27,28 @@ export default async function QuadroSolicitacoesPage() {
     },
   });
 
+  const seteDiasAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const concluidas = await prisma.vistoria.findMany({
+    where: { status: "ENTREGUE", entregueData: { gte: seteDiasAtras } },
+    orderBy: [{ entregueData: "desc" }, { createdAt: "desc" }],
+    include: {
+      processo: true,
+      solicitadoPor: { select: { nome: true } },
+      entreguePor: { select: { nome: true } },
+    },
+  });
+
   return (
     <div className="mx-auto w-full max-w-5xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
           Quadro de Solicitações
         </h1>
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {pendentes.length === 0
-              ? "Nenhuma vistoria pendente"
-              : `${pendentes.length} ${pendentes.length === 1 ? "vistoria pendente" : "vistorias pendentes"}`}
-          </p>
-          {podeVerDistrato && (
-            <Link
-              href="/distrato"
-              className="rounded border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-            >
-              Solicitar Saída pelo Distrato
-            </Link>
-          )}
-          {podeSolicitar && (
-            <NovaVistoriaModal
-              hoje={hojeStr}
-              tipoLabel="Entrada"
-              processos={processos}
-              action={async (formData: FormData) => {
-                "use server";
-                await solicitarVistoria("ENTRADA", formData);
-              }}
-            />
-          )}
-        </div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {pendentes.length === 0
+            ? "Nenhuma vistoria pendente"
+            : `${pendentes.length} ${pendentes.length === 1 ? "vistoria pendente" : "vistorias pendentes"}`}
+        </p>
       </div>
 
       {pendentes.length === 0 ? (
@@ -158,6 +141,55 @@ export default async function QuadroSolicitacoesPage() {
             );
           })}
         </div>
+      )}
+
+      {concluidas.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Concluídas nos últimos 7 dias
+          </h2>
+          <ul className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+            {concluidas.map((v) => {
+              const situacao = situacaoVistoria(v, hoje);
+              return (
+                <li
+                  key={v.id}
+                  className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 text-sm last:border-b-0 dark:border-slate-700"
+                >
+                  <div>
+                    <p className="font-medium text-slate-900 dark:text-slate-100">
+                      {LABEL_TIPO_VISTORIA[v.tipo]} — {v.processo.numeroProcesso}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {formatEndereco(v.processo)}
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                      Solicitada em {formatData(v.createdAt)} por {v.solicitadoPor.nome}
+                      {v.entreguePor ? ` · concluída por ${v.entreguePor.nome}` : ""}
+                    </p>
+                    {v.descricaoConclusao && (
+                      <p className="mt-1 whitespace-pre-line text-xs text-slate-600 dark:text-slate-300">
+                        {v.descricaoConclusao}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${situacao.cor}`}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                      {situacao.rotulo}
+                    </span>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {situacao.detalhe}
+                      {v.entregueHora ? ` às ${v.entregueHora}` : ""}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
     </div>
   );

@@ -60,7 +60,7 @@ export async function solicitarVistoria(tipo: "ENTRADA" | "SAIDA", formData: For
 
   await notificar({
     categoria: "VISTORIA",
-    perfis: ["ADMIN", "VISTORIADOR"],
+    perfis: ["ADMIN", "VISTORIADOR", "ADMINISTRATIVO"],
     excetoUsuarioId: session.user.id,
     mensagem: `Nova vistoria de entrada ${agendamento.agendadaPara ? `agendada para ${formatData(agendamento.agendadaPara)}` : "solicitada"} — processo ${processo.numeroProcesso}`,
     link: "/vistorias/solicitacoes",
